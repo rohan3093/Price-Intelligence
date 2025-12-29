@@ -1,0 +1,298 @@
+import React, { useState, useEffect } from "react";
+
+interface DesignTokens {
+  brandBlack: string;
+  brandGray: string;
+  brandWhite: string;
+  brandYellow: string;
+  baseFontSize: number;
+}
+
+const defaultTokens: DesignTokens = {
+  brandBlack: "#0c0c0c",
+  brandGray: "#bec2c6",
+  brandWhite: "#ffffff",
+  brandYellow: "#f7f126",
+  baseFontSize: 16,
+};
+
+export const DesignSettings: React.FC = () => {
+  const [tokens, setTokens] = useState<DesignTokens>(defaultTokens);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    // Load saved settings from localStorage
+    const saved = localStorage.getItem("designTokens");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setTokens({ ...defaultTokens, ...parsed });
+        applyTokens({ ...defaultTokens, ...parsed });
+      } catch (e) {
+        // Silently fall back to defaults if saved tokens are corrupted
+        applyTokens(defaultTokens);
+      }
+    } else {
+      applyTokens(defaultTokens);
+    }
+  }, []);
+
+  const applyTokens = (newTokens: DesignTokens) => {
+    const root = document.documentElement;
+    root.style.setProperty("--brand-black", newTokens.brandBlack);
+    root.style.setProperty("--brand-gray", newTokens.brandGray);
+    root.style.setProperty("--brand-white", newTokens.brandWhite);
+    root.style.setProperty("--brand-yellow", newTokens.brandYellow);
+    root.style.setProperty("--base-font-size", `${newTokens.baseFontSize}px`);
+  };
+
+  const handleChange = (key: keyof DesignTokens, value: string | number) => {
+    const newTokens = { ...tokens, [key]: value };
+    setTokens(newTokens);
+    setHasChanges(true);
+    applyTokens(newTokens);
+  };
+
+  const handleSave = () => {
+    localStorage.setItem("designTokens", JSON.stringify(tokens));
+    setHasChanges(false);
+    alert("Design settings saved! Refresh the page to see changes across all components.");
+  };
+
+  const handleReset = () => {
+    setTokens(defaultTokens);
+    applyTokens(defaultTokens);
+    localStorage.removeItem("designTokens");
+    setHasChanges(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="border border-brand-gray/20 rounded-none p-4 bg-brand-white">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-body font-normal text-brand-black mb-1">
+              Design System Settings
+            </h2>
+            <p className="text-xs text-brand-black">
+              Customize the visual appearance of the app. Changes apply immediately.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {hasChanges && (
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-body hover:bg-brand-black/90"
+              >
+                Save Changes
+              </button>
+            )}
+            <button
+              onClick={handleReset}
+              className="px-4 py-2 rounded-none border border-brand-gray/20 bg-brand-white text-brand-black text-xs font-body hover:border-brand-black hover:bg-brand-gray/10"
+            >
+              Reset to Default
+            </button>
+          </div>
+        </div>
+
+        {/* Color Tokens */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-body font-normal text-brand-black border-b border-brand-gray/20 pb-2">
+            Brand Colors
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Brand Black */}
+            <div>
+              <label className="block text-xs font-body text-brand-black mb-2">
+                Brand Black
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={tokens.brandBlack}
+                  onChange={(e) => handleChange("brandBlack", e.target.value)}
+                  className="h-10 w-20 border border-brand-gray/20 rounded-none cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={tokens.brandBlack}
+                  onChange={(e) => handleChange("brandBlack", e.target.value)}
+                  className="flex-1 border border-brand-gray/20 rounded-none px-3 py-2 text-xs font-body text-brand-black focus:outline-none focus:border-brand-black"
+                  placeholder="#0c0c0c"
+                />
+              </div>
+              <div
+                className="mt-2 h-8 border border-brand-gray/20 rounded-none"
+                style={{ backgroundColor: tokens.brandBlack }}
+              />
+            </div>
+
+            {/* Brand Gray */}
+            <div>
+              <label className="block text-xs font-body text-brand-black mb-2">
+                Brand Gray
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={tokens.brandGray}
+                  onChange={(e) => handleChange("brandGray", e.target.value)}
+                  className="h-10 w-20 border border-brand-gray/20 rounded-none cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={tokens.brandGray}
+                  onChange={(e) => handleChange("brandGray", e.target.value)}
+                  className="flex-1 border border-brand-gray/20 rounded-none px-3 py-2 text-xs font-body text-brand-black focus:outline-none focus:border-brand-black"
+                  placeholder="#bec2c6"
+                />
+              </div>
+              <div
+                className="mt-2 h-8 border border-brand-gray/20 rounded-none"
+                style={{ backgroundColor: tokens.brandGray }}
+              />
+            </div>
+
+            {/* Brand White */}
+            <div>
+              <label className="block text-xs font-body text-brand-black mb-2">
+                Brand White
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={tokens.brandWhite}
+                  onChange={(e) => handleChange("brandWhite", e.target.value)}
+                  className="h-10 w-20 border border-brand-gray/20 rounded-none cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={tokens.brandWhite}
+                  onChange={(e) => handleChange("brandWhite", e.target.value)}
+                  className="flex-1 border border-brand-gray/20 rounded-none px-3 py-2 text-xs font-body text-brand-black focus:outline-none focus:border-brand-black"
+                  placeholder="#ffffff"
+                />
+              </div>
+              <div
+                className="mt-2 h-8 border border-brand-gray/20 rounded-none"
+                style={{ backgroundColor: tokens.brandWhite }}
+              />
+            </div>
+
+            {/* Brand Yellow */}
+            <div>
+              <label className="block text-xs font-body text-brand-black mb-2">
+                Brand Yellow
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={tokens.brandYellow}
+                  onChange={(e) => handleChange("brandYellow", e.target.value)}
+                  className="h-10 w-20 border border-brand-gray/20 rounded-none cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={tokens.brandYellow}
+                  onChange={(e) => handleChange("brandYellow", e.target.value)}
+                  className="flex-1 border border-brand-gray/20 rounded-none px-3 py-2 text-xs font-body text-brand-black focus:outline-none focus:border-brand-black"
+                  placeholder="#f7f126"
+                />
+              </div>
+              <div
+                className="mt-2 h-8 border border-brand-gray/20 rounded-none"
+                style={{ backgroundColor: tokens.brandYellow }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Typography */}
+        <div className="space-y-4 mt-6">
+          <h3 className="text-sm font-body font-normal text-brand-black border-b border-brand-gray/20 pb-2">
+            Typography
+          </h3>
+
+          <div>
+            <label className="block text-xs font-body text-brand-black mb-2">
+              Base Font Size: {tokens.baseFontSize}px
+            </label>
+            <input
+              type="range"
+              min="12"
+              max="20"
+              value={tokens.baseFontSize}
+              onChange={(e) => handleChange("baseFontSize", parseInt(e.target.value))}
+              className="w-full"
+            />
+            <div className="flex justify-between text-[10px] text-brand-black/60 mt-1">
+              <span>12px</span>
+              <span>16px (default)</span>
+              <span>20px</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Preview */}
+        <div className="space-y-4 mt-6">
+          <h3 className="text-sm font-body font-normal text-brand-black border-b border-brand-gray/20 pb-2">
+            Preview
+          </h3>
+
+          <div className="border border-brand-gray/20 rounded-none p-4 bg-brand-white space-y-3">
+            <div className="flex items-center gap-3">
+              <div
+                className="h-12 w-12 rounded-lg bg-brand-gray/10"
+                style={{ backgroundColor: `${tokens.brandGray}20` }}
+              />
+              <div>
+                <h4 className="text-base font-heading font-normal text-brand-black">
+                  Sample Asset Name
+                </h4>
+                <p className="text-xs text-brand-black">Brand · SKU</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                className="px-3 py-1.5 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-body"
+                style={{
+                  borderColor: tokens.brandBlack,
+                  backgroundColor: tokens.brandBlack,
+                }}
+              >
+                Primary Button
+              </button>
+              <button
+                className="px-3 py-1.5 rounded-none border border-brand-gray/20 bg-brand-white text-brand-black text-xs font-body"
+                style={{
+                  borderColor: `${tokens.brandGray}33`,
+                  backgroundColor: tokens.brandWhite,
+                  color: tokens.brandBlack,
+                }}
+              >
+                Secondary Button
+              </button>
+            </div>
+            <div className="text-xs text-brand-black">
+              <p>Buy (B2B): ₹24,500</p>
+              <p>Sell (B2C): ₹27,000 – ₹29,500</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Current Values Display */}
+        <div className="mt-6 p-4 bg-brand-gray/5 border border-brand-gray/20 rounded-none">
+          <h3 className="text-xs font-body font-medium text-brand-black mb-2">
+            Current Design Tokens
+          </h3>
+          <pre className="text-[10px] font-mono text-brand-black overflow-x-auto">
+            {JSON.stringify(tokens, null, 2)}
+          </pre>
+        </div>
+      </div>
+    </div>
+  );
+};
+
