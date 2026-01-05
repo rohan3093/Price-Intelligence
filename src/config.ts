@@ -5,7 +5,7 @@
 
 export const config = {
   // App info
-  appName: "10HS Price Intelligence",
+  appName: "Sentria",
   appVersion: "1.0.0",
   
   // Analytics

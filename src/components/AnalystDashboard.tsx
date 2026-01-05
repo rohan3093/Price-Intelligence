@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Asset, SizeVariant } from "../types";
 import { DailyPriceUpdates } from "./DailyPriceUpdates";
 import { DesignSettings } from "./DesignSettings";
 import { AnalyticsView } from "./AnalyticsView";
 import { createAsset, updateAsset, deleteAsset, batchCreateAssets } from "../utils/assetsApi";
+import { convertUSDToINR, getUSDToINRRate } from "../utils/exchangeRate";
+import { sortSizesByValue } from "../utils/sizeSort";
 
 type DashboardTab = "assets" | "market-data" | "analytics" | "settings";
 
@@ -85,22 +87,22 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
   };
 
   return (
-    <main className="flex-1 bg-brand-white px-6 py-6 md:px-8 md:py-8 pb-20 md:pb-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8 pb-6 border-b border-brand-gray/30">
+    <main className="flex-1 bg-brand-white px-3 py-3 md:px-4 md:py-4 pb-20 md:pb-4 max-w-7xl mx-auto">
+      {/* Header - more compact */}
+      <div className="mb-3 pb-3 border-b border-brand-gray/30">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-heading font-normal text-brand-black mb-2 uppercase tracking-wide">
-              Market Intelligence Console
+            <h1 className="text-lg md:text-xl font-heading font-normal text-brand-black mb-1 leading-tight uppercase tracking-wide">
+              Sentria
             </h1>
-            <p className="text-sm text-brand-black/60 font-medium">
+            <p className="text-xs text-brand-black/60 leading-tight">
               Portfolio management • Market data capture • Price intelligence
             </p>
           </div>
           {onLogout && (
             <button
               onClick={onLogout}
-              className="px-4 py-2 border border-brand-gray/30 bg-brand-white text-sm font-medium text-brand-black hover:border-brand-black hover:bg-brand-black hover:text-brand-white transition-all"
+              className="px-2.5 py-1 border border-brand-gray/30 bg-brand-white text-xs font-medium text-brand-black hover:border-brand-black hover:bg-brand-black hover:text-brand-white transition-all leading-tight"
               style={{ borderRadius: '0px' }}
             >
               Logout
@@ -109,11 +111,11 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-8 border-b border-brand-gray/30">
+      {/* Tabs - more compact */}
+      <div className="flex gap-1 mb-3 border-b border-brand-gray/30">
         <button
           onClick={() => setActiveTab("assets")}
-          className={`px-5 py-3 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all ${
+          className={`px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide border-b-2 transition-all leading-tight ${
             activeTab === "assets"
               ? "border-brand-black text-brand-black"
               : "border-transparent text-brand-black/50 hover:text-brand-black/80"
@@ -123,7 +125,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
         </button>
         <button
           onClick={() => setActiveTab("market-data")}
-          className={`px-5 py-3 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all ${
+          className={`px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide border-b-2 transition-all leading-tight ${
             activeTab === "market-data"
               ? "border-brand-black text-brand-black"
               : "border-transparent text-brand-black/50 hover:text-brand-black/80"
@@ -133,7 +135,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
         </button>
         <button
           onClick={() => setActiveTab("analytics")}
-          className={`px-5 py-3 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all ${
+          className={`px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide border-b-2 transition-all leading-tight ${
             activeTab === "analytics"
               ? "border-brand-black text-brand-black"
               : "border-transparent text-brand-black/50 hover:text-brand-black/80"
@@ -143,7 +145,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
         </button>
         <button
           onClick={() => setActiveTab("settings")}
-          className={`px-5 py-3 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all ml-auto ${
+          className={`px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide border-b-2 transition-all ml-auto leading-tight ${
             activeTab === "settings"
               ? "border-brand-black text-brand-black"
               : "border-transparent text-brand-black/40 hover:text-brand-black/60"
@@ -153,8 +155,8 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
         </button>
       </div>
 
-      {/* Locked content container so all tabs share the same visual width */}
-      <div className="border border-brand-gray/30 bg-brand-white p-6 md:p-8" style={{ borderRadius: '0px' }}>
+      {/* Locked content container so all tabs share the same visual width - more compact */}
+      <div className="border border-brand-gray/30 bg-brand-white p-3 md:p-4" style={{ borderRadius: '0px' }}>
         {activeTab === "market-data" ? (
           <DailyPriceUpdates
             assets={assets}
@@ -181,29 +183,29 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
             }}
           />
         ) : activeTab === "assets" ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Asset List */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            {/* Asset List - more compact */}
             <div className="lg:col-span-1">
-              <div className="border border-brand-gray/30 p-5 bg-brand-white" style={{ borderRadius: '0px' }}>
-              <div className="mb-5 pb-4 border-b border-brand-gray/20">
-                <div className="flex items-start justify-between mb-3">
+              <div className="border border-brand-gray/30 p-3 bg-brand-white" style={{ borderRadius: '0px' }}>
+              <div className="mb-3 pb-3 border-b border-brand-gray/20">
+                <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h2 className="text-sm font-semibold text-brand-black uppercase tracking-wide mb-2">
+                    <h2 className="text-xs font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
                       Instrument Universe
                     </h2>
-                    <p className="text-xs text-brand-black/60 font-medium">
+                    <p className="text-[10px] text-brand-black/60 font-mono-numeric leading-tight">
                       {assets.length} {assets.length === 1 ? 'instrument' : 'instruments'} tracked
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5">
                     <button
                       onClick={() => {
                         setShowBulkAddForm(true);
                       }}
-                      className="px-4 py-2 border border-brand-black bg-brand-white text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-black hover:text-brand-white transition-all flex-shrink-0"
+                      className="px-2 py-1 border border-brand-black bg-brand-white text-brand-black text-[10px] font-semibold uppercase tracking-wide hover:bg-brand-black hover:text-brand-white transition-all flex-shrink-0 leading-tight"
                       style={{ borderRadius: '0px' }}
                     >
-                      Bulk Add
+                      Bulk
                     </button>
                     <button
                       onClick={() => {
@@ -211,26 +213,26 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                         setIsEditing(false);
                         setSelectedAsset(null);
                       }}
-                      className="px-4 py-2 border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-all flex-shrink-0"
+                      className="px-2 py-1 border border-brand-black bg-brand-black text-brand-white text-[10px] font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-all flex-shrink-0 leading-tight"
                       style={{ borderRadius: '0px' }}
                     >
                       + Add
                     </button>
                   </div>
                 </div>
-                {/* Search Bar */}
-                <div className="mt-4">
+                {/* Search Bar - more compact */}
+                <div className="mt-2">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search by name, SKU, or brand..."
-                    className="w-full border border-brand-gray/30 px-3 py-2 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black"
+                    className="w-full border border-brand-gray/30 px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
                     style={{ borderRadius: '0px' }}
                   />
                 </div>
               </div>
-              <div className="space-y-2 max-h-[600px] overflow-y-auto">
+              <div className="space-y-1 max-h-[600px] overflow-y-auto">
                 {(() => {
                   // Filter assets based on search query
                   const filteredAssets = searchQuery.trim()
@@ -247,7 +249,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
 
                   if (filteredAssets.length === 0) {
                     return (
-                      <div className="text-center py-8 text-xs text-brand-black/50">
+                      <div className="text-center py-6 text-xs text-brand-black/50 leading-tight">
                         {searchQuery.trim() ? 'No instruments found matching your search' : 'No instruments'}
                       </div>
                     );
@@ -256,7 +258,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                   return filteredAssets.map((asset) => (
                   <div
                     key={asset.id}
-                    className={`border p-3 cursor-pointer transition-all ${
+                    className={`border p-2 cursor-pointer transition-all ${
                       selectedAsset?.id === asset.id
                         ? "border-brand-black bg-brand-black text-brand-white"
                         : "border-brand-gray/30 hover:border-brand-gray/50 hover:bg-brand-gray/5"
@@ -270,12 +272,12 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <p className={`text-xs font-semibold mb-1 ${
+                        <p className={`text-xs font-semibold mb-0.5 leading-tight ${
                           selectedAsset?.id === asset.id ? "text-brand-white" : "text-brand-black"
                         }`}>
                           {asset.name}
                         </p>
-                        <p className={`text-xs ${
+                        <p className={`text-[10px] leading-tight ${
                           selectedAsset?.id === asset.id ? "text-brand-white/70" : "text-brand-black/60"
                         }`}>
                           {asset.sku}
@@ -289,7 +291,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                             setIsEditing(true);
                             setShowNewAssetForm(true);
                           }}
-                          className={`text-xs px-2 py-1 border transition-all ${
+                          className={`text-[10px] px-1.5 py-0.5 border transition-all leading-tight ${
                             selectedAsset?.id === asset.id
                               ? "border-brand-white/30 text-brand-white hover:bg-brand-white/10"
                               : "border-brand-gray/30 text-brand-black hover:border-brand-black hover:bg-brand-black hover:text-brand-white"
@@ -303,10 +305,10 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                             e.stopPropagation();
                             handleDeleteAsset(asset.id);
                           }}
-                          className="text-xs px-2 py-1 border border-red-500/30 text-red-600 hover:border-red-600 hover:bg-red-600 hover:text-brand-white transition-all"
+                          className="text-[10px] px-1.5 py-0.5 border border-red-500/30 text-red-600 hover:border-red-600 hover:bg-red-600 hover:text-brand-white transition-all leading-tight"
                           style={{ borderRadius: '0px' }}
                         >
-                          Delete
+                          Del
                         </button>
                       </div>
                     </div>
@@ -317,16 +319,16 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
               </div>
             </div>
 
-            {/* Asset Details View */}
+            {/* Asset Details View - more compact */}
             <div className="lg:col-span-2">
               {selectedAsset ? (
                 <AssetDetailsView asset={selectedAsset} />
               ) : (
-                <div className="border border-brand-gray/30 p-12 bg-brand-white text-center" style={{ borderRadius: '0px' }}>
-                  <p className="text-sm font-medium text-brand-black/60 mb-1">
+                <div className="border border-brand-gray/30 p-8 bg-brand-white text-center" style={{ borderRadius: '0px' }}>
+                  <p className="text-xs font-medium text-brand-black/60 mb-1 leading-tight">
                     No Instrument Selected
                   </p>
-                  <p className="text-xs text-brand-black/50">
+                  <p className="text-[10px] text-brand-black/50 leading-tight">
                     Select an instrument from the list or create a new one
                   </p>
                 </div>
@@ -394,20 +396,20 @@ interface AssetFormModalProps {
 
 const AssetFormModal: React.FC<AssetFormModalProps> = ({ asset, assets, onSave, onClose }) => {
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-4">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-3">
       <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-brand-white border border-brand-gray/30 shadow-2xl" style={{ borderRadius: '0px' }}>
-        <div className="sticky top-0 z-10 flex justify-between items-center px-6 py-4 bg-brand-white border-b border-brand-gray/30">
-          <h2 className="text-xl font-heading font-normal text-brand-black uppercase tracking-wide">
+        <div className="sticky top-0 z-10 flex justify-between items-center px-3 py-2 bg-brand-white border-b border-brand-gray/30">
+          <h2 className="text-base font-heading font-normal text-brand-black uppercase tracking-wide leading-tight">
             {asset ? "Edit Instrument" : "New Instrument"}
           </h2>
           <button
             onClick={onClose}
-            className="text-brand-black hover:text-brand-black text-lg px-2 py-1"
+            className="text-brand-black hover:text-brand-black text-base px-2 py-1 leading-tight"
           >
             ✕
           </button>
         </div>
-        <div className="p-6 md:p-8">
+        <div className="p-3 md:p-4">
           <AssetForm
             asset={asset}
             assets={assets}
@@ -514,27 +516,27 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Basic Information */}
-        <div className="space-y-4">
-          <div className="border-b border-brand-gray/20 pb-3">
-            <h3 className="text-sm font-semibold text-brand-black uppercase tracking-wide mb-1">
+    <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Basic Information - more compact */}
+        <div className="space-y-3">
+          <div className="border-b border-brand-gray/20 pb-2">
+            <h3 className="text-xs font-semibold text-brand-black uppercase tracking-wide mb-0.5 leading-tight">
               Basic Information
             </h3>
-            <p className="text-xs text-brand-black/60">
+            <p className="text-[10px] text-brand-black/60 leading-tight">
               Core asset details and metadata
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-brand-black uppercase tracking-wide mb-2">
+              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
                 Name <span className="text-red-600 font-normal">*</span>
               </label>
               <input
                 type="text"
                 value={formData.name || ""}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className={`w-full border rounded-none px-3 py-2 text-xs font-medium text-brand-black focus:outline-none ${
+                className={`w-full border rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none leading-tight ${
                   duplicateAssets && duplicateAssets.some(d => d.name.toLowerCase() === formData.name?.toLowerCase())
                     ? "border-red-500 focus:border-red-600"
                     : "border-brand-gray/30 focus:border-brand-black"
@@ -542,20 +544,20 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
                 required
               />
               {duplicateAssets && duplicateAssets.some(d => d.name.toLowerCase() === formData.name?.toLowerCase()) && (
-                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                <p className="text-[10px] text-red-600 mt-0.5 flex items-center gap-1 leading-tight">
                   <span>⚠</span> Duplicate name found
                 </p>
               )}
             </div>
             <div>
-              <label className="block text-xs font-semibold text-brand-black uppercase tracking-wide mb-2">
+              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
                 SKU <span className="text-red-600 font-normal">*</span>
               </label>
               <input
                 type="text"
                 value={formData.sku || ""}
                 onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                className={`w-full border rounded-none px-3 py-2 text-xs font-medium text-brand-black focus:outline-none ${
+                className={`w-full border rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none leading-tight ${
                   duplicateAssets && duplicateAssets.some(d => d.sku.toLowerCase() === formData.sku?.toLowerCase())
                     ? "border-red-500 focus:border-red-600"
                     : "border-brand-gray/30 focus:border-brand-black"
@@ -563,31 +565,31 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
                 required
               />
               {duplicateAssets && duplicateAssets.some(d => d.sku.toLowerCase() === formData.sku?.toLowerCase()) && (
-                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                <p className="text-[10px] text-red-600 mt-0.5 flex items-center gap-1 leading-tight">
                   <span>⚠</span> Duplicate SKU found
                 </p>
               )}
             </div>
             <div>
-              <label className="block text-xs font-semibold text-brand-black uppercase tracking-wide mb-2">
+              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
                 Brand <span className="text-red-600 font-normal">*</span>
               </label>
               <input
                 type="text"
                 value={formData.brand || ""}
                 onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                className="w-full border border-brand-gray/30 rounded-none px-3 py-2 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black"
+                className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-brand-black uppercase tracking-wide mb-2">
+              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
                 Category
               </label>
               <select
                 value={formData.category || "Sneakers"}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full border border-brand-gray/30 rounded-none px-3 py-2 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black"
+                className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
               >
                 <option value="Sneakers">Sneakers</option>
                 <option value="Watches">Watches</option>
@@ -596,30 +598,30 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-brand-black uppercase tracking-wide mb-2">
+              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
                 Image URL
               </label>
               <input
                 type="url"
                 value={formData.image || ""}
                 onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                className="w-full border border-brand-gray/30 rounded-none px-3 py-2 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black"
+                className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
                 placeholder="https://..."
               />
             </div>
           </div>
           
-          {/* Duplicate Warning Banner */}
+          {/* Duplicate Warning Banner - more compact */}
           {duplicateAssets && duplicateAssets.length > 0 && (
-            <div className="border border-yellow-500/50 bg-yellow-500/10 p-3" style={{ borderRadius: '0px' }}>
-              <div className="flex items-start gap-2">
-                <span className="text-yellow-600 text-sm">⚠</span>
+            <div className="border border-yellow-500/50 bg-yellow-500/10 p-2" style={{ borderRadius: '0px' }}>
+              <div className="flex items-start gap-1.5">
+                <span className="text-yellow-600 text-xs">⚠</span>
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-yellow-700 mb-1">Potential Duplicate Detected</p>
-                  <p className="text-xs text-yellow-600">
+                  <p className="text-[10px] font-semibold text-yellow-700 mb-0.5 leading-tight">Potential Duplicate Detected</p>
+                  <p className="text-[10px] text-yellow-600 leading-tight">
                     Found {duplicateAssets.length} existing instrument{duplicateAssets.length !== 1 ? 's' : ''} with matching name or SKU:
                   </p>
-                  <ul className="text-xs text-yellow-600 mt-1 list-disc list-inside">
+                  <ul className="text-[10px] text-yellow-600 mt-0.5 list-disc list-inside leading-tight">
                     {duplicateAssets.map(dup => (
                       <li key={dup.id}>{dup.name} (SKU: {dup.sku})</li>
                     ))}
@@ -651,18 +653,18 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
           }}
         />
 
-        {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t border-brand-gray/20">
+        {/* Actions - more compact */}
+        <div className="flex gap-2 pt-3 border-t border-brand-gray/20">
           <button
             type="submit"
-            className="px-6 py-2 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition"
+            className="px-3 py-1.5 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition leading-tight"
           >
-            {asset ? "Update Instrument" : "Create Instrument"}
+            {asset ? "Update" : "Create"}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-2 rounded-none border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition"
+            className="px-3 py-1.5 rounded-none border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition leading-tight"
           >
             Cancel
           </button>
@@ -679,47 +681,119 @@ interface PriceAnchorsFormProps {
 
 const PriceAnchorsForm: React.FC<PriceAnchorsFormProps> = ({ priceAnchors, onChange }) => {
   const [anchors, setAnchors] = useState(priceAnchors || {});
+  const [retailGlobalUSD, setRetailGlobalUSD] = useState<string>("");
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  const [isLoadingRate, setIsLoadingRate] = useState(false);
 
-  const updateAnchor = (key: string, value: number) => {
-    const newAnchors = { ...anchors, [key]: value };
+  // Load exchange rate on mount and convert existing retailGlobal (INR) to USD for display
+  useEffect(() => {
+    const loadExchangeRate = async () => {
+      setIsLoadingRate(true);
+      try {
+        const rate = await getUSDToINRRate();
+        setExchangeRate(rate);
+        
+        // Convert existing retailGlobal (stored in INR) to USD for display
+        if (anchors.retailGlobal) {
+          const usdValue = anchors.retailGlobal / rate;
+          setRetailGlobalUSD(usdValue.toFixed(2));
+        }
+      } catch (error) {
+        console.error("Failed to load exchange rate:", error);
+      } finally {
+        setIsLoadingRate(false);
+      }
+    };
+    
+    loadExchangeRate();
+  }, []);
+
+  // Update retail India (stored in INR)
+  const updateRetailIndia = (value: number) => {
+    const newAnchors = { ...anchors, retailIndia: value };
     setAnchors(newAnchors);
     onChange(newAnchors);
   };
 
+  // Update retail Global (input in USD, convert to INR for storage)
+  const updateRetailGlobal = async (usdValue: string) => {
+    setRetailGlobalUSD(usdValue);
+    
+    if (!usdValue || usdValue.trim() === "") {
+      const newAnchors = { ...anchors };
+      delete newAnchors.retailGlobal;
+      setAnchors(newAnchors);
+      onChange(newAnchors);
+      return;
+    }
+
+    const usd = parseFloat(usdValue);
+    if (isNaN(usd) || usd <= 0) {
+      return;
+    }
+
+    try {
+      // Convert USD to INR
+      const inrValue = await convertUSDToINR(usd);
+      const newAnchors = { ...anchors, retailGlobal: inrValue };
+      setAnchors(newAnchors);
+      onChange(newAnchors);
+    } catch (error) {
+      console.error("Failed to convert USD to INR:", error);
+      // Fallback: use approximate rate if conversion fails
+      const fallbackRate = exchangeRate || 83;
+      const inrValue = usd * fallbackRate;
+      const newAnchors = { ...anchors, retailGlobal: inrValue };
+      setAnchors(newAnchors);
+      onChange(newAnchors);
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="border-b border-brand-gray/20 pb-3">
-        <h3 className="text-sm font-semibold text-brand-black uppercase tracking-wide mb-1">
+    <div className="space-y-3">
+      <div className="border-b border-brand-gray/20 pb-2">
+        <h3 className="text-xs font-semibold text-brand-black uppercase tracking-wide mb-0.5 leading-tight">
           Retail Prices
         </h3>
-        <p className="text-xs text-brand-black/60">
+        <p className="text-[10px] text-brand-black/60 leading-tight">
           Original launch prices. Used to calculate spread percentage (current price vs retail).
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-semibold text-brand-black uppercase tracking-wide mb-2">
+          <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
             Retail (India) ₹
           </label>
           <input
             type="number"
             value={anchors.retailIndia || ""}
-            onChange={(e) => updateAnchor("retailIndia", parseFloat(e.target.value) || 0)}
-            className="w-full border border-brand-gray/30 rounded-none px-3 py-2 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black"
+            onChange={(e) => updateRetailIndia(parseFloat(e.target.value) || 0)}
+            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-mono-numeric font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
             placeholder="e.g., 12,999"
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-brand-black uppercase tracking-wide mb-2">
-            Retail (Global) ₹
+          <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
+            Retail (Global) $
+            {exchangeRate && (
+              <span className="text-[9px] text-brand-black/50 font-normal ml-1">
+                (≈₹{exchangeRate.toFixed(2)}/USD)
+              </span>
+            )}
           </label>
           <input
             type="number"
-            value={anchors.retailGlobal || ""}
-            onChange={(e) => updateAnchor("retailGlobal", parseFloat(e.target.value) || 0)}
-            className="w-full border border-brand-gray/30 rounded-none px-3 py-2 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black"
+            value={retailGlobalUSD}
+            onChange={(e) => updateRetailGlobal(e.target.value)}
+            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-mono-numeric font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
             placeholder="e.g., 150"
+            disabled={isLoadingRate}
           />
+          {retailGlobalUSD && !isNaN(parseFloat(retailGlobalUSD)) && exchangeRate && (
+            <p className="text-[9px] text-brand-black/50 mt-0.5 leading-tight">
+              ≈ ₹{(parseFloat(retailGlobalUSD) * exchangeRate).toLocaleString('en-IN', { maximumFractionDigits: 0 })} INR
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -796,24 +870,24 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between border-b border-brand-gray/20 pb-3">
+    <div className="space-y-3">
+      <div className="flex items-center justify-between border-b border-brand-gray/20 pb-2">
         <div className="flex-1">
-          <h3 className="text-sm font-semibold text-brand-black uppercase tracking-wide mb-1">
-            Size Variants ({sizes.length}) <span className="text-red-600 font-normal">*</span>
+          <h3 className="text-xs font-semibold text-brand-black uppercase tracking-wide mb-0.5 leading-tight">
+            Size Variants <span className="font-mono-numeric">({sizes.length})</span> <span className="text-red-600 font-normal">*</span>
           </h3>
-          <p className="text-xs text-brand-black/60">
+          <p className="text-[10px] text-brand-black/60 leading-tight">
             Define size-specific pricing ranges for each market channel. At least one size is required since market data is size-dependent.
           </p>
         </div>
       </div>
 
-      <div className="border border-brand-gray/30 rounded-none p-4 bg-brand-white">
-        <div className="mb-3">
-          <label className="block text-xs font-semibold text-brand-black uppercase tracking-wide mb-2">
+      <div className="border border-brand-gray/30 rounded-none p-3 bg-brand-white">
+        <div className="mb-2">
+          <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
             Add Sizes <span className="text-red-600 font-normal">*</span>
           </label>
-          <p className="text-xs text-brand-black/60 mb-2">
+          <p className="text-[10px] text-brand-black/60 mb-1.5 leading-tight">
             Enter sizes separated by commas or new lines (e.g., "UK 7, UK 8, UK 9" or one per line). You can edit individual sizes later. At least one size is required.
           </p>
           <textarea
@@ -825,23 +899,23 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
                 handleQuickAddSubmit();
               }
             }}
-            className="w-full border border-brand-gray/30 rounded-none px-3 py-2 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black resize-none"
+            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black resize-none leading-tight"
             placeholder="UK 7, UK 8, UK 9, UK 10"
-            rows={3}
+            rows={2}
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           <button
             type="button"
             onClick={handleQuickAddSubmit}
-            className="px-4 py-2 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90"
+            className="px-2.5 py-1 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 leading-tight"
           >
             Add Sizes
           </button>
           <button
             type="button"
             onClick={() => setQuickAddInput("")}
-            className="px-4 py-2 rounded-none border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10"
+            className="px-2.5 py-1 rounded-none border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 leading-tight"
           >
             Clear
           </button>
@@ -859,27 +933,30 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
         />
       )}
 
-      <div className="space-y-2">
-        {sizes.map((size, index) => (
+      <div className="space-y-1.5">
+        {sortSizesByValue(sizes).map((size) => {
+          // Find the original index for editing/deleting
+          const originalIndex = sizes.findIndex(s => s.size === size.size);
+          return (
           <div
-            key={index}
-            className="border border-brand-gray/30 rounded-none p-4 bg-brand-white"
+            key={size.size}
+            className="border border-brand-gray/30 rounded-none p-2.5 bg-brand-white"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-medium text-brand-black">{size.size}</span>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className="text-xs font-medium text-brand-black leading-tight">{size.size}</span>
                   {size.size === defaultSize && (
-                    <span className="text-xs px-2 py-0.5 bg-brand-gray/20 text-brand-black">Default</span>
+                    <span className="text-[10px] px-1.5 py-0.5 bg-brand-gray/20 text-brand-black leading-tight">Default</span>
                   )}
                 </div>
-        <div className="grid grid-cols-3 gap-2 text-xs text-brand-black">
+        <div className="grid grid-cols-3 gap-2 text-[10px] text-brand-black leading-tight">
                   <div>
                     <span className="text-brand-black/60">WhatsApp/Reseller:</span> {size.b2bMarketPrice || "—"}
                     {(() => {
                       const pricePoints = size.pricePoints || size.legacyPricePoints;
                       const count = pricePoints ? ('whatsapp' in pricePoints ? pricePoints.whatsapp?.length : pricePoints.b2b?.length) || 0 : 0;
-                      return count > 0 ? <span className="text-brand-black/50 ml-1">({count} listings)</span> : null;
+                      return count > 0 ? <span className="text-brand-black/50 ml-1 font-mono-numeric">({count})</span> : null;
                     })()}
                   </div>
                   <div>
@@ -887,7 +964,7 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
                     {(() => {
                       const pricePoints = size.pricePoints || size.legacyPricePoints;
                       const count = pricePoints ? ('marketplace' in pricePoints ? pricePoints.marketplace?.length : pricePoints.endCustomer?.length) || 0 : 0;
-                      return count > 0 ? <span className="text-brand-black/50 ml-1">({count} listings)</span> : null;
+                      return count > 0 ? <span className="text-brand-black/50 ml-1 font-mono-numeric">({count})</span> : null;
                     })()}
                   </div>
                   <div>
@@ -895,7 +972,7 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
                     {(() => {
                       const pricePoints = size.pricePoints || size.legacyPricePoints;
                       const count = pricePoints ? ('international' in pricePoints ? pricePoints.international?.length : pricePoints.stockxGoat?.length) || 0 : 0;
-                      return count > 0 ? <span className="text-brand-black/50 ml-1">({count} listings)</span> : null;
+                      return count > 0 ? <span className="text-brand-black/50 ml-1 font-mono-numeric">({count})</span> : null;
                     })()}
                   </div>
                 </div>
@@ -904,24 +981,25 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
                 <button
                   type="button"
                   onClick={() => {
-                    setEditingIndex(index);
+                    setEditingIndex(originalIndex);
                     setShowForm(true);
                   }}
-                  className="text-xs px-3 py-1.5 border border-brand-gray/30 hover:border-brand-black text-brand-black font-medium uppercase tracking-wide transition"
+                  className="text-[10px] px-2 py-1 border border-brand-gray/30 hover:border-brand-black text-brand-black font-medium uppercase tracking-wide transition leading-tight"
                 >
                   Edit
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleDeleteSize(index)}
-                  className="text-xs px-3 py-1.5 border border-red-500/30 hover:border-red-600 hover:bg-red-600 hover:text-white text-red-600 font-medium uppercase tracking-wide transition"
+                  onClick={() => handleDeleteSize(originalIndex)}
+                  className="text-[10px] px-2 py-1 border border-red-500/30 hover:border-red-600 hover:bg-red-600 hover:text-white text-red-600 font-medium uppercase tracking-wide transition leading-tight"
                 >
-                  Delete
+                  Del
                 </button>
               </div>
             </div>
           </div>
-        ))}
+        );
+        })}
       </div>
     </div>
   );
@@ -978,22 +1056,22 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
   };
 
   return (
-    <div className="border border-brand-gray/30 rounded-none p-5 bg-brand-white size-variant-form-container" style={{ borderRadius: '0px' }} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-      <div className="mb-4 pb-3 border-b border-brand-gray/20">
-        <h4 className="text-sm font-semibold text-brand-black uppercase tracking-wide mb-1">
+    <div className="border border-brand-gray/30 rounded-none p-3 bg-brand-white size-variant-form-container" style={{ borderRadius: '0px' }} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+      <div className="mb-3 pb-2 border-b border-brand-gray/20">
+        <h4 className="text-xs font-semibold text-brand-black uppercase tracking-wide mb-0.5 leading-tight">
           {sizeVariant ? "Edit Size Variant" : "New Size Variant"}
         </h4>
-        <p className="text-xs text-brand-black/60">
+        <p className="text-[10px] text-brand-black/60 leading-tight">
           Define size structure and liquidity. All pricing data and metrics are calculated dynamically from market data.
         </p>
       </div>
       
-      <div className="space-y-5" onClick={(e) => e.stopPropagation()}>
-        {/* Basic Info */}
-        <div className="border-b border-brand-gray/20 pb-4" style={{ borderRadius: '0px' }}>
-          <h5 className="text-xs font-semibold text-brand-black uppercase tracking-wide mb-3">Basic Information</h5>
+      <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
+        {/* Basic Info - more compact */}
+        <div className="border-b border-brand-gray/20 pb-2" style={{ borderRadius: '0px' }}>
+          <h5 className="text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-2 leading-tight">Basic Information</h5>
           <div>
-            <label className="block text-xs font-semibold text-brand-black uppercase tracking-wide mb-2">
+            <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
               Size <span className="text-red-600 font-normal">*</span>
             </label>
             <input
@@ -1011,19 +1089,19 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
                   handleSubmit();
                 }
               }}
-              className="w-full border border-brand-gray/30 rounded-none px-3 py-2 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black"
+              className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
               placeholder="e.g., UK 9"
               required
               autoFocus
             />
-            <p className="text-xs text-brand-black/50 mt-2">
+            <p className="text-[10px] text-brand-black/50 mt-1 leading-tight">
               Liquidity and other metrics will be calculated automatically from market data.
             </p>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t border-brand-gray/20">
+        {/* Actions - more compact */}
+        <div className="flex gap-2 pt-2 border-t border-brand-gray/20">
           <button
             type="button"
             onClick={(e) => {
@@ -1031,14 +1109,14 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
               e.stopPropagation();
               handleSubmit();
             }}
-            className="px-5 py-2 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition"
+            className="px-3 py-1.5 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition leading-tight"
           >
             Save Size
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="px-5 py-2 rounded-none border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition"
+            className="px-3 py-1.5 rounded-none border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition leading-tight"
           >
             Cancel
           </button>
@@ -1059,12 +1137,12 @@ const AssetDetailsView: React.FC<AssetDetailsViewProps> = ({ asset }) => {
     : 'Never';
 
   return (
-    <div className="border border-brand-gray/30 rounded-none p-6 bg-brand-white">
-      <div className="mb-6 pb-4 border-b border-brand-gray/20">
-        <h2 className="text-xl font-semibold text-brand-black mb-2 uppercase tracking-wide">
+    <div className="border border-brand-gray/30 rounded-none p-3 bg-brand-white">
+      <div className="mb-3 pb-3 border-b border-brand-gray/20">
+        <h2 className="text-sm font-semibold text-brand-black mb-1 leading-tight uppercase tracking-wide">
           {asset.name}
         </h2>
-        <div className="flex items-center gap-4 text-xs text-brand-black/60">
+        <div className="flex items-center gap-2 text-[10px] text-brand-black/60 leading-tight">
           <span className="font-medium">{asset.sku}</span>
           <span>•</span>
           <span>{asset.brand}</span>
@@ -1073,25 +1151,25 @@ const AssetDetailsView: React.FC<AssetDetailsViewProps> = ({ asset }) => {
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <p className="text-xs font-semibold text-brand-black/60 uppercase tracking-wide mb-2">Size Variants</p>
-          <p className="text-lg font-semibold text-brand-black">{asset.sizes?.length || 0}</p>
+          <p className="text-[10px] font-semibold text-brand-black/60 uppercase tracking-wide mb-1 leading-tight">Size Variants</p>
+          <p className="text-sm font-mono-numeric font-semibold text-brand-black leading-tight">{asset.sizes?.length || 0}</p>
         </div>
         <div>
-          <p className="text-xs font-semibold text-brand-black/60 uppercase tracking-wide mb-2">Last Updated</p>
-          <p className="text-sm font-medium text-brand-black">{lastUpdated}</p>
+          <p className="text-[10px] font-semibold text-brand-black/60 uppercase tracking-wide mb-1 leading-tight">Last Updated</p>
+          <p className="text-xs font-mono-numeric font-medium text-brand-black leading-tight">{lastUpdated}</p>
         </div>
         {asset.volatility && (
           <div>
-            <p className="text-xs font-semibold text-brand-black/60 uppercase tracking-wide mb-2">Volatility</p>
-            <p className="text-sm font-medium text-brand-black capitalize">{asset.volatility}</p>
+            <p className="text-[10px] font-semibold text-brand-black/60 uppercase tracking-wide mb-1 leading-tight">Volatility</p>
+            <p className="text-xs font-medium text-brand-black capitalize leading-tight">{asset.volatility}</p>
           </div>
         )}
         {asset.priceAnchors?.retailIndia && (
           <div>
-            <p className="text-xs font-semibold text-brand-black/60 uppercase tracking-wide mb-2">Retail (IN)</p>
-            <p className="text-sm font-medium text-brand-black">₹{asset.priceAnchors.retailIndia.toLocaleString('en-IN')}</p>
+            <p className="text-[10px] font-semibold text-brand-black/60 uppercase tracking-wide mb-1 leading-tight">Retail (IN)</p>
+            <p className="text-xs font-mono-numeric font-medium text-brand-black leading-tight">₹{asset.priceAnchors.retailIndia.toLocaleString('en-IN')}</p>
           </div>
         )}
       </div>
@@ -1181,11 +1259,64 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
       const category = (parts[3] || "Sneakers").trim();
       const image = (parts[4] || "").trim();
       
-      // Handle sizes: collect all parts from index 5 onwards
+      // Parse retail prices (optional) - dynamically detect retail prices after image field
+      // Scan forward from index 5 to find numeric values that could be retail prices
+      // Retail prices are numbers that don't start with letters (to distinguish from sizes like "UK 7")
+      let retailIndia: number | undefined = undefined;
+      let retailGlobal: number | undefined = undefined;
+      let sizeStartIndex = 5; // Default: sizes start after image
+      
+      // Helper function to check if a value looks like a number (retail price) vs a size
+      const isRetailPrice = (value: string): boolean => {
+        if (!value || !value.trim()) return false;
+        const trimmed = value.trim();
+        // If it starts with a letter, it's likely a size (e.g., "UK 7", "US 9")
+        if (/^[A-Za-z]/.test(trimmed)) return false;
+        // Try to parse as number
+        const num = parseFloat(trimmed.replace(/,/g, ''));
+        return !isNaN(num) && isFinite(num);
+      };
+      
+      // Scan from index 5 onwards to find retail prices
+      // Look for 1-2 consecutive numeric values that could be retail prices
+      let currentIndex = 5;
+      
+      // Skip empty fields after image
+      while (currentIndex < parts.length && !parts[currentIndex]?.trim()) {
+        currentIndex++;
+      }
+      
+      // Check if current field could be retail India
+      if (currentIndex < parts.length) {
+        const candidate1 = (parts[currentIndex] || "").trim();
+        if (isRetailPrice(candidate1)) {
+          retailIndia = parseFloat(candidate1.replace(/,/g, ''));
+          sizeStartIndex = currentIndex + 1;
+          
+          // Skip empty fields
+          while (sizeStartIndex < parts.length && !parts[sizeStartIndex]?.trim()) {
+            sizeStartIndex++;
+          }
+          
+          // Check if next field could be retail Global (in USD, will convert to INR)
+          if (sizeStartIndex < parts.length) {
+            const candidate2 = (parts[sizeStartIndex] || "").trim();
+            if (isRetailPrice(candidate2)) {
+              const usdValue = parseFloat(candidate2.replace(/,/g, ''));
+              // Convert USD to INR asynchronously - we'll handle this in the asset creation
+              // For now, store a flag that this needs conversion
+              retailGlobal = usdValue; // Will be converted to INR below
+              sizeStartIndex = sizeStartIndex + 1;
+            }
+          }
+        }
+      }
+      
+      // Handle sizes: collect all parts from sizeStartIndex onwards
       // This handles both cases:
-      // 1. "UK 9, UK 10, UK 11" in one column (parts[5])
-      // 2. UK 9, UK 10, UK 11 as separate columns (parts[5], parts[6], parts[7])
-      const sizeParts = parts.slice(5).filter(p => p.trim().length > 0);
+      // 1. "UK 9, UK 10, UK 11" in one column
+      // 2. UK 9, UK 10, UK 11 as separate columns
+      const sizeParts = parts.slice(sizeStartIndex).filter(p => p.trim().length > 0);
       
       if (!name || !sku || !brand) {
         parseErrors.push(`Line ${lineNum}: Missing required fields (Name, SKU, or Brand).`);
@@ -1224,6 +1355,7 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
         return;
       }
 
+      // Store retailGlobalUSD separately - will be converted to INR when creating assets
       assets.push({
         name,
         sku,
@@ -1232,6 +1364,14 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
         image,
         sizes,
         defaultSize: sizes[0].size,
+        // Store retail prices - retailGlobal is in USD, will be converted to INR in handleSubmit
+        ...(retailIndia !== undefined || retailGlobal !== undefined ? {
+          priceAnchors: {
+            ...(retailIndia !== undefined ? { retailIndia } : {}),
+            // Store USD value temporarily - will convert to INR
+            ...(retailGlobal !== undefined ? { _retailGlobalUSD: retailGlobal } : {}),
+          }
+        } : {}),
       });
     });
 
@@ -1307,10 +1447,41 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
     }
 
     // Convert to full Asset objects (without IDs, they'll be generated)
-    const assetsToSave: Asset[] = parsedAssets.map(asset => ({
-      ...asset,
+    // Also convert retailGlobal from USD to INR
+    const assetsToSavePromises = parsedAssets.map(async (asset) => {
+      const assetCopy: any = { ...asset };
+      
+      // Convert retailGlobal from USD to INR if present
+      if (assetCopy.priceAnchors?._retailGlobalUSD !== undefined) {
+        try {
+          const usdValue = assetCopy.priceAnchors._retailGlobalUSD as number;
+          const inrValue = await convertUSDToINR(usdValue);
+          const { _retailGlobalUSD, ...restAnchors } = assetCopy.priceAnchors;
+          assetCopy.priceAnchors = {
+            ...restAnchors,
+            retailGlobal: inrValue,
+          };
+        } catch (error) {
+          console.error("Failed to convert USD to INR for asset:", asset.name, error);
+          // Fallback: use approximate rate
+          const fallbackRate = 83;
+          const usdValue = assetCopy.priceAnchors._retailGlobalUSD as number;
+          const inrValue = usdValue * fallbackRate;
+          const { _retailGlobalUSD, ...restAnchors } = assetCopy.priceAnchors;
+          assetCopy.priceAnchors = {
+            ...restAnchors,
+            retailGlobal: inrValue,
+          };
+        }
+      }
+      
+      return {
+        ...assetCopy,
       id: 0, // Will be generated by createAsset
-    })) as Asset[];
+      } as Asset;
+    });
+    
+    const assetsToSave = await Promise.all(assetsToSavePromises);
 
     setIsCreating(true);
     setCreationProgress({ created: 0, total: assetsToSave.length });
@@ -1326,40 +1497,44 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-4">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-3">
       <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-brand-white border border-brand-gray/30 shadow-2xl" style={{ borderRadius: '0px' }}>
-        <div className="sticky top-0 z-10 flex justify-between items-center px-6 py-4 bg-brand-white border-b border-brand-gray/30">
-          <h2 className="text-xl font-heading font-normal text-brand-black uppercase tracking-wide">
+        <div className="sticky top-0 z-10 flex justify-between items-center px-3 py-2 bg-brand-white border-b border-brand-gray/30">
+          <h2 className="text-base font-heading font-normal text-brand-black uppercase tracking-wide leading-tight">
             Bulk Add Instruments
           </h2>
           <button
             onClick={onClose}
-            className="text-brand-black hover:text-brand-black text-lg px-2 py-1"
+            className="text-brand-black hover:text-brand-black text-base px-2 py-1 leading-tight"
           >
             ✕
           </button>
         </div>
-        <div className="p-6 md:p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="p-3 md:p-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-brand-black uppercase tracking-wide mb-2">
+              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
                 Upload CSV or Enter Data
               </label>
-              <p className="text-xs text-brand-black/60 mb-3">
-                Upload a CSV file or paste data. Format: <strong>Name, SKU, Brand, Category, Image URL, Sizes</strong>
+              <p className="text-[10px] text-brand-black/60 mb-2 leading-tight">
+                Upload a CSV file or paste data. Format: <strong>Name, SKU, Brand, Category, Image URL, [Retail India ₹], [Retail Global $], Sizes</strong>
                 <br />
-                Example: <code className="bg-brand-gray/10 px-1">Nike Dunk Low Panda, DN1234, Nike, Sneakers, https://..., UK 7, UK 8, UK 9</code>
+                <strong>With all fields:</strong> <code className="bg-brand-gray/10 px-1">Nike Dunk Low Panda, DN1234, Nike, Sneakers, https://..., 12999, 150, UK 7, UK 8, UK 9</code>
                 <br />
-                Category and Image URL are optional. Sizes should be comma or semicolon separated.
+                <strong>Without image URL:</strong> <code className="bg-brand-gray/10 px-1">Nike Dunk Low Panda, DN1234, Nike, Sneakers, , 12999, 150, UK 7, UK 8, UK 9</code>
+                <br />
+                <strong>Without retail prices:</strong> <code className="bg-brand-gray/10 px-1">Nike Dunk Low Panda, DN1234, Nike, Sneakers, https://..., UK 7, UK 8, UK 9</code>
+                <br />
+                Category and Image URL are optional. Retail India is in ₹ (INR). Retail Global is in $ (USD) and will be automatically converted to INR using today's exchange rate. Sizes should be comma or semicolon separated.
               </p>
               
-              {/* File Upload */}
-              <div className="mb-4">
-                <label className="block text-xs font-semibold text-brand-black uppercase tracking-wide mb-2">
+              {/* File Upload - more compact */}
+              <div className="mb-3">
+                <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
                   Upload CSV File
                 </label>
-                <div className="flex items-center gap-3">
-                  <label className="px-4 py-2 border border-brand-black bg-brand-white text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-black hover:text-brand-white transition cursor-pointer" style={{ borderRadius: '0px' }}>
+                <div className="flex items-center gap-2">
+                  <label className="px-2.5 py-1 border border-brand-black bg-brand-white text-brand-black text-[10px] font-semibold uppercase tracking-wide hover:bg-brand-black hover:text-brand-white transition cursor-pointer leading-tight" style={{ borderRadius: '0px' }}>
                     Choose File
                     <input
                       type="file"
@@ -1369,30 +1544,30 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
                     />
                   </label>
                   {fileName && (
-                    <span className="text-xs text-brand-black/60">
+                    <span className="text-[10px] text-brand-black/60 leading-tight">
                       {fileName}
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* Text Input */}
+              {/* Text Input - more compact */}
               <div>
-                <label className="block text-xs font-semibold text-brand-black uppercase tracking-wide mb-2">
+                <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
                   Or Paste Data
                 </label>
                 <textarea
                   value={bulkInput}
                   onChange={(e) => setBulkInput(e.target.value)}
-                  className="w-full border border-brand-gray/30 px-3 py-2 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black resize-none font-mono"
-                  placeholder="Name, SKU, Brand, Category, Image URL, Sizes&#10;Nike Dunk Low Panda, DN1234, Nike, Sneakers, https://example.com/image.jpg, UK 7, UK 8, UK 9&#10;Jordan 1 High OG, J1-5678, Jordan, Sneakers, https://example.com/jordan.jpg, UK 8, UK 9, UK 10"
-                  rows={12}
+                  className="w-full border border-brand-gray/30 px-2 py-1.5 text-xs font-mono font-medium text-brand-black focus:outline-none focus:border-brand-black resize-none leading-tight"
+                  placeholder="Name, SKU, Brand, Category, Image URL, Retail India (₹), Retail Global ($), Sizes&#10;Nike Dunk Low Panda, DN1234, Nike, Sneakers, https://example.com/image.jpg, 12999, 150, UK 7, UK 8, UK 9&#10;Jordan 1 High OG, J1-5678, Jordan, Sneakers, https://example.com/jordan.jpg, 14999, 180, UK 8, UK 9, UK 10"
+                  rows={10}
                   style={{ borderRadius: '0px' }}
                 />
                 <button
                   type="button"
                   onClick={() => parseBulkInput()}
-                  className="mt-2 px-4 py-2 border border-brand-gray/30 bg-brand-white text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition"
+                  className="mt-1.5 px-2.5 py-1 border border-brand-gray/30 bg-brand-white text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition leading-tight"
                   style={{ borderRadius: '0px' }}
                 >
                   Parse & Validate
@@ -1401,51 +1576,62 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
             </div>
 
             {errors.length > 0 && (
-              <div className="border border-red-500/30 bg-red-500/5 p-4" style={{ borderRadius: '0px' }}>
-                <h3 className="text-xs font-semibold text-red-700 mb-2 uppercase">Errors ({errors.length})</h3>
-                <ul className="space-y-1">
+              <div className="border border-red-500/30 bg-red-500/5 p-2.5" style={{ borderRadius: '0px' }}>
+                <h3 className="text-[10px] font-semibold text-red-700 mb-1.5 uppercase leading-tight">Errors <span className="font-mono-numeric">({errors.length})</span></h3>
+                <ul className="space-y-0.5">
                   {errors.map((error, index) => (
-                    <li key={index} className="text-xs text-red-600">{error}</li>
+                    <li key={index} className="text-[10px] text-red-600 leading-tight">{error}</li>
                   ))}
                 </ul>
               </div>
             )}
 
             {parsedAssets.length > 0 && (
-              <div className="border border-brand-gray/30 p-4" style={{ borderRadius: '0px' }}>
-                <h3 className="text-xs font-semibold text-brand-black mb-3 uppercase tracking-wide">
-                  Preview ({parsedAssets.length} asset{parsedAssets.length !== 1 ? 's' : ''} ready)
+              <div className="border border-brand-gray/30 p-2.5" style={{ borderRadius: '0px' }}>
+                <h3 className="text-xs font-semibold text-brand-black mb-2 uppercase tracking-wide leading-tight">
+                  Preview <span className="font-mono-numeric">({parsedAssets.length})</span> asset{parsedAssets.length !== 1 ? 's' : ''} ready
                   {duplicateWarnings.size > 0 && (
-                    <span className="ml-2 text-yellow-600">
-                      • {duplicateWarnings.size} potential duplicate{duplicateWarnings.size !== 1 ? 's' : ''}
+                    <span className="ml-1.5 text-yellow-600 font-mono-numeric">
+                      • {duplicateWarnings.size} duplicate{duplicateWarnings.size !== 1 ? 's' : ''}
                     </span>
                   )}
                 </h3>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
+                <div className="space-y-1.5 max-h-60 overflow-y-auto">
                   {parsedAssets.map((asset, index) => {
                     const duplicates = duplicateWarnings.get(index);
                     return (
                       <div 
                         key={index} 
-                        className={`border p-3 ${
+                        className={`border p-2 ${
                           duplicates ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-brand-gray/20 bg-brand-gray/5'
                         }`}
                         style={{ borderRadius: '0px' }}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="text-xs font-semibold text-brand-black">{asset.name}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-xs font-semibold text-brand-black leading-tight">{asset.name}</p>
                               {duplicates && (
-                                <span className="text-xs text-yellow-600">⚠</span>
+                                <span className="text-[10px] text-yellow-600">⚠</span>
                               )}
                             </div>
-                            <p className="text-xs text-brand-black/60">{asset.sku} • {asset.brand} • {asset.category}</p>
-                            <p className="text-xs text-brand-black/50 mt-1">
+                            <p className="text-[10px] text-brand-black/60 leading-tight">{asset.sku} • {asset.brand} • {asset.category}</p>
+                            {(asset.priceAnchors?.retailIndia || (asset.priceAnchors as any)?._retailGlobalUSD || asset.priceAnchors?.retailGlobal) && (
+                              <p className="text-[10px] text-brand-black/50 mt-0.5 leading-tight">
+                                Retail: {asset.priceAnchors?.retailIndia ? `₹${asset.priceAnchors.retailIndia.toLocaleString('en-IN')} (IN)` : ''}
+                                {asset.priceAnchors?.retailIndia && ((asset.priceAnchors as any)?._retailGlobalUSD || asset.priceAnchors?.retailGlobal) ? ' • ' : ''}
+                                {(asset.priceAnchors as any)?._retailGlobalUSD 
+                                  ? `$${(asset.priceAnchors as any)._retailGlobalUSD} (Global, will convert to INR)` 
+                                  : asset.priceAnchors?.retailGlobal 
+                                    ? `₹${asset.priceAnchors.retailGlobal.toLocaleString('en-IN')} (Global)` 
+                                    : ''}
+                              </p>
+                            )}
+                            <p className="text-[10px] text-brand-black/50 mt-0.5 leading-tight">
                               Sizes: {asset.sizes?.map(s => s.size).join(', ') || 'None'}
                             </p>
                             {duplicates && duplicates.length > 0 && (
-                              <p className="text-xs text-yellow-600 mt-1">
+                              <p className="text-[10px] text-yellow-600 mt-0.5 leading-tight">
                                 Duplicate: matches {duplicates.map(d => `"${d.name}"`).join(', ')}
                               </p>
                             )}
@@ -1459,43 +1645,43 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
             )}
 
             {isCreating && (
-              <div className="border border-brand-gray/30 bg-brand-gray/5 p-4" style={{ borderRadius: '0px' }}>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-brand-black border-t-transparent"></div>
-                  <span className="text-xs font-semibold text-brand-black uppercase tracking-wide">
+              <div className="border border-brand-gray/30 bg-brand-gray/5 p-2.5" style={{ borderRadius: '0px' }}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="animate-spin rounded-full h-3 w-3 border-2 border-brand-black border-t-transparent"></div>
+                  <span className="text-xs font-semibold text-brand-black uppercase tracking-wide leading-tight">
                     Creating Assets...
                   </span>
                 </div>
-                <div className="w-full bg-brand-gray/20 h-2 mb-2" style={{ borderRadius: '0px' }}>
+                <div className="w-full bg-brand-gray/20 h-1.5 mb-1.5" style={{ borderRadius: '0px' }}>
                   <div 
-                    className="bg-brand-black h-2 transition-all duration-300"
+                    className="bg-brand-black h-1.5 transition-all duration-300"
                     style={{ 
                       width: `${creationProgress.total > 0 ? (creationProgress.created / creationProgress.total) * 100 : 0}%`,
                       borderRadius: '0px'
                     }}
                   ></div>
                 </div>
-                <p className="text-xs text-brand-black/60">
+                <p className="text-[10px] text-brand-black/60 font-mono-numeric leading-tight">
                   {creationProgress.created} of {creationProgress.total} assets created
                 </p>
               </div>
             )}
 
-            <div className="flex gap-3 pt-4 border-t border-brand-gray/20">
+            <div className="flex gap-2 pt-3 border-t border-brand-gray/20">
               <button
                 type="submit"
                 disabled={parsedAssets.length === 0 || isCreating}
-                className="px-6 py-2 border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-3 py-1.5 border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 leading-tight"
                 style={{ borderRadius: '0px' }}
               >
                 {isCreating ? (
                   <>
-                    <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
+                    <div className="animate-spin rounded-full h-2.5 w-2.5 border-2 border-white border-t-transparent"></div>
                     <span>Creating...</span>
                   </>
                 ) : (
                   <>
-                    Create {parsedAssets.length > 0 ? `${parsedAssets.length} ` : ''}Asset{parsedAssets.length !== 1 ? 's' : ''}
+                    Create {parsedAssets.length > 0 ? <span className="font-mono-numeric">{parsedAssets.length}</span> : ''} Asset{parsedAssets.length !== 1 ? 's' : ''}
                   </>
                 )}
               </button>
@@ -1503,7 +1689,7 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
                 type="button"
                 onClick={onClose}
                 disabled={isCreating}
-                className="px-6 py-2 border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition disabled:opacity-50 disabled:cursor-not-allowed leading-tight"
                 style={{ borderRadius: '0px' }}
               >
                 Cancel

@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Asset, PricePoint } from "../types";
+import { convertUSDToINR, getUSDToINRRate } from "../utils/exchangeRate";
+import { sortSizesByValue } from "../utils/sizeSort";
 
 interface DailyPriceUpdatesProps {
   assets: Asset[];
@@ -275,6 +277,7 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
   onUpdatePricePoints,
 }) => {
   const [activeTab, setActiveTab] = useState<"whatsapp" | "marketplace" | "international">("whatsapp");
+  const [showBulkListingModal, setShowBulkListingModal] = useState(false);
   const sizeVariant = asset.sizes?.find(s => s.size === selectedSize);
   
   // Helper to get price points from either structure
@@ -363,8 +366,10 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
     size?: string,
     url?: string
   ) => {
-    if (!selectedSize && channel !== "international") {
-      alert("Please select a size first");
+    // Use provided size or fall back to selectedSize
+    const targetSize = size || selectedSize;
+    if (!targetSize && channel !== "international") {
+      alert("Please provide a size for the listing");
       return;
     }
 
@@ -379,40 +384,40 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
       sellerContact,
       sellerLocation,
       reshippingCost,
-      size: size || selectedSize || undefined,
+      size: targetSize || undefined,
       url,
       lastSeen: new Date(),
     };
 
     if (channel === "whatsapp") {
-      const size = selectedSize || newPoint.size || '';
+      const sizeToUse = targetSize || newPoint.size || '';
       if (transactionType === "buy") {
         const updated = [...whatsappBuyPrices, newPoint].sort((a, b) => a.price - b.price);
         setWhatsappBuyPrices(updated);
         // Combine buy and sell for WhatsApp channel
         const allWhatsapp = [...updated, ...whatsappSellPrices];
-        onUpdatePricePoints(asset.id, size, "whatsapp", allWhatsapp);
+        onUpdatePricePoints(asset.id, sizeToUse, "whatsapp", allWhatsapp);
       } else if (transactionType === "sell") {
         const updated = [...whatsappSellPrices, newPoint].sort((a, b) => b.price - a.price);
         setWhatsappSellPrices(updated);
         // Combine buy and sell for WhatsApp channel
         const allWhatsapp = [...whatsappBuyPrices, ...updated];
-        onUpdatePricePoints(asset.id, size, "whatsapp", allWhatsapp);
+        onUpdatePricePoints(asset.id, sizeToUse, "whatsapp", allWhatsapp);
       } else {
         // Both or undefined - add to buy
         const updated = [...whatsappBuyPrices, newPoint].sort((a, b) => a.price - b.price);
         setWhatsappBuyPrices(updated);
         const allWhatsapp = [...updated, ...whatsappSellPrices];
-        onUpdatePricePoints(asset.id, size, "whatsapp", allWhatsapp);
+        onUpdatePricePoints(asset.id, sizeToUse, "whatsapp", allWhatsapp);
       }
     } else if (channel === "marketplace") {
       const updated = [...marketplacePrices, newPoint].sort((a, b) => a.price - b.price);
       setMarketplacePrices(updated);
-      onUpdatePricePoints(asset.id, selectedSize || '', "marketplace", updated);
+      onUpdatePricePoints(asset.id, targetSize || '', "marketplace", updated);
     } else {
       const updated = [...internationalPrices, newPoint].sort((a, b) => a.price - b.price);
       setInternationalPrices(updated);
-      onUpdatePricePoints(asset.id, selectedSize || newPoint.size || '', "international", updated);
+      onUpdatePricePoints(asset.id, targetSize || newPoint.size || '', "international", updated);
     }
   };
 
@@ -480,7 +485,7 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
             Size Variant {!selectedSize && <span className="text-red-600 font-normal">(Required)</span>}
           </label>
           <div className="flex flex-wrap gap-2">
-            {asset.sizes.map((size) => (
+            {sortSizesByValue(asset.sizes).map((size) => (
               <button
                 key={size.size}
                 onClick={() => onSizeChange(size.size)}
@@ -520,6 +525,7 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
               Capture live market data by channel. Each entry represents a real listing with actionable details.
             </p>
           </div>
+          <div className="flex items-center gap-3">
           {asset.lastUpdated && (
             <div className="text-right">
               <p className="text-xs text-brand-black/60 uppercase tracking-wide">Last Update</p>
@@ -528,6 +534,14 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
               </p>
             </div>
           )}
+            <button
+              onClick={() => setShowBulkListingModal(true)}
+              className="px-3 py-1.5 border border-brand-black bg-brand-white text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-black hover:text-brand-white transition leading-tight"
+              style={{ borderRadius: '0px' }}
+            >
+              Bulk Add
+            </button>
+          </div>
         </div>
 
         {/* Channel Tabs */}
@@ -607,6 +621,77 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
           onRemove={(index) => handleRemovePricePoint("international", undefined, index)}
         />
       )}
+
+      {/* Bulk Listing Modal */}
+      {showBulkListingModal && (
+        <BulkListingModal
+          selectedSize={selectedSize}
+          channel={activeTab}
+          onAddListings={async (listings) => {
+            for (const listing of listings) {
+              // Skip listings with invalid price or listingCount
+              if (!listing.price || !listing.listingCount || !listing.size) {
+                continue;
+              }
+              
+              // Validate that the size exists for this asset
+              const sizeExists = asset.sizes?.some(s => s.size === listing.size);
+              if (!sizeExists) {
+                console.warn(`Size ${listing.size} not found for asset ${asset.name}, skipping listing`);
+                continue;
+              }
+              
+              if (listing.channel === "whatsapp") {
+                handleAddPricePoint(
+                  "whatsapp",
+                  listing.transactionType as "buy" | "sell" | undefined,
+                  listing.price,
+                  listing.listingCount,
+                  listing.source,
+                  undefined,
+                  listing.sellerName,
+                  listing.sellerContact,
+                  listing.sellerLocation,
+                  undefined,
+                  listing.size
+                );
+              } else if (listing.channel === "marketplace") {
+                handleAddPricePoint(
+                  "marketplace",
+                  undefined,
+                  listing.price,
+                  listing.listingCount,
+                  listing.source,
+                  listing.marketplaceName,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  listing.size,
+                  listing.url
+                );
+              } else {
+                handleAddPricePoint(
+                  "international",
+                  undefined,
+                  listing.price,
+                  listing.listingCount,
+                  listing.source,
+                  listing.marketplaceName,
+                  undefined,
+                  undefined,
+                  undefined,
+                  listing.reshippingCost,
+                  listing.size,
+                  listing.url
+                );
+              }
+            }
+            setShowBulkListingModal(false);
+          }}
+          onClose={() => setShowBulkListingModal(false)}
+        />
+      )}
     </div>
   );
 };
@@ -629,13 +714,15 @@ const InternationalPriceSection: React.FC<InternationalPriceSectionProps> = ({
   onAdd,
   onRemove,
 }) => {
-  const [newPrice, setNewPrice] = useState("");
+  const [newPriceUSD, setNewPriceUSD] = useState("");
   const [newCount, setNewCount] = useState("");
   const [newSize, setNewSize] = useState(selectedSize);
   const [newReshippingCost, setNewReshippingCost] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState("stockx");
   const [newUrl, setNewUrl] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  const [isLoadingRate, setIsLoadingRate] = useState(false);
 
   const platformOptions = [
     { value: 'stockx', label: 'StockX' },
@@ -644,18 +731,35 @@ const InternationalPriceSection: React.FC<InternationalPriceSectionProps> = ({
     { value: 'other', label: 'Other' },
   ];
 
+  // Load exchange rate on mount
+  useEffect(() => {
+    const loadExchangeRate = async () => {
+      setIsLoadingRate(true);
+      try {
+        const rate = await getUSDToINRRate();
+        setExchangeRate(rate);
+      } catch (error) {
+        console.error("Failed to load exchange rate:", error);
+      } finally {
+        setIsLoadingRate(false);
+      }
+    };
+    
+    loadExchangeRate();
+  }, []);
+
   React.useEffect(() => {
     setNewSize(selectedSize);
   }, [selectedSize]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const price = parseFloat(newPrice);
+    const priceUSD = parseFloat(newPriceUSD);
     const count = parseInt(newCount);
     const reshipping = newReshippingCost ? parseFloat(newReshippingCost) : undefined;
     
-    if (isNaN(price) || price <= 0) {
-      alert("Please enter a valid platform price greater than 0");
+    if (isNaN(priceUSD) || priceUSD <= 0) {
+      alert("Please enter a valid platform price in USD greater than 0");
       return;
     }
     
@@ -674,9 +778,20 @@ const InternationalPriceSection: React.FC<InternationalPriceSectionProps> = ({
       return;
     }
     
+    // Convert USD to INR
+    let priceINR: number;
+    try {
+      priceINR = await convertUSDToINR(priceUSD);
+    } catch (error) {
+      console.error("Failed to convert USD to INR:", error);
+      // Fallback: use approximate rate
+      const fallbackRate = exchangeRate || 83;
+      priceINR = priceUSD * fallbackRate;
+    }
+    
     const selected = platformOptions.find(opt => opt.value === selectedPlatform);
-    onAdd(price, count, selectedPlatform, selected?.label, newSize, reshipping, newUrl || undefined);
-    setNewPrice("");
+    onAdd(priceINR, count, selectedPlatform, selected?.label, newSize, reshipping, newUrl || undefined);
+    setNewPriceUSD("");
     setNewCount("");
     setNewReshippingCost("");
     setNewUrl("");
@@ -779,14 +894,27 @@ const InternationalPriceSection: React.FC<InternationalPriceSectionProps> = ({
           />
         </div>
         <div className="grid grid-cols-2 gap-2">
+          <div>
           <input 
             type="number" 
-            value={newPrice} 
-            onChange={(e) => setNewPrice(e.target.value)} 
-            placeholder="Platform Price (₹)" 
-            className="border border-brand-gray/20 rounded-none px-3 py-2 text-xs font-body text-brand-black focus:outline-none focus:border-brand-black" 
+              value={newPriceUSD} 
+              onChange={(e) => setNewPriceUSD(e.target.value)} 
+              placeholder="Platform Price ($)" 
+              className="w-full border border-brand-gray/20 rounded-none px-3 py-2 text-xs font-body text-brand-black focus:outline-none focus:border-brand-black" 
             required 
+              disabled={isLoadingRate}
           />
+            {exchangeRate && newPriceUSD && !isNaN(parseFloat(newPriceUSD)) && (
+              <p className="text-[10px] text-brand-black/50 mt-0.5 leading-tight">
+                ≈ ₹{(parseFloat(newPriceUSD) * exchangeRate).toLocaleString('en-IN', { maximumFractionDigits: 0 })} INR
+              </p>
+            )}
+            {exchangeRate && (
+              <p className="text-[9px] text-brand-black/40 mt-0.5 leading-tight">
+                Rate: ₹{exchangeRate.toFixed(2)}/USD
+              </p>
+            )}
+          </div>
           <input 
             type="number" 
             value={newReshippingCost} 
@@ -1126,6 +1254,441 @@ const MarketplacePriceSection: React.FC<MarketplacePriceSectionProps> = ({
           </div>
         )}
       </form>
+    </div>
+  );
+};
+
+// Bulk Listing Modal Component
+interface BulkListingModalProps {
+  selectedSize: string | null;
+  channel: "whatsapp" | "marketplace" | "international";
+  onAddListings: (listings: Partial<PricePoint>[]) => Promise<void>;
+  onClose: () => void;
+}
+
+const BulkListingModal: React.FC<BulkListingModalProps> = ({
+  selectedSize,
+  channel,
+  onAddListings,
+  onClose,
+}) => {
+  const [bulkInput, setBulkInput] = useState("");
+  const [parsedListings, setParsedListings] = useState<Partial<PricePoint>[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [fileName, setFileName] = useState<string>("");
+  const [isAdding, setIsAdding] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+
+  // Load exchange rate for international listings
+  useEffect(() => {
+    if (channel === "international") {
+      getUSDToINRRate().then(rate => setExchangeRate(rate)).catch(console.error);
+    }
+  }, [channel]);
+
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    
+    result.push(current.trim());
+    return result;
+  };
+
+  const parseBulkInput = (inputText?: string) => {
+    const textToParse = inputText || bulkInput;
+    const lines = textToParse.split('\n').filter(line => line.trim().length > 0);
+    const listings: Partial<PricePoint>[] = [];
+    const parseErrors: string[] = [];
+
+    // Check if first line is a header
+    let startIndex = 0;
+    if (lines.length > 0) {
+      const firstLine = lines[0].toLowerCase();
+      if (firstLine.includes('price') || firstLine.includes('channel') || firstLine.includes('size')) {
+        startIndex = 1;
+      }
+    }
+
+    lines.slice(startIndex).forEach((line, index) => {
+      const lineNum = index + startIndex + 1;
+      const trimmed = line.trim();
+      
+      if (!trimmed) return;
+      
+      const parts = parseCSVLine(trimmed);
+      
+      try {
+        if (channel === "whatsapp") {
+          // Format: Size, Transaction Type, Price (₹), Listings, Seller Name, Location, Contact, Source
+          if (parts.length < 4) {
+            parseErrors.push(`Line ${lineNum}: Insufficient data. Need at least: Size, Transaction Type, Price, Listings`);
+            return;
+          }
+          
+          const size = (parts[0] || (selectedSize ?? "")).trim();
+          const transactionType = (parts[1] || "").trim().toLowerCase();
+          const price = parseFloat((parts[2] || "").replace(/,/g, ''));
+          const listingCount = parseInt((parts[3] || "").replace(/,/g, ''));
+          const sellerName = (parts[4] || "").trim();
+          const sellerLocation = (parts[5] || "").trim();
+          const sellerContact = (parts[6] || "").trim();
+          const source = (parts[7] || "whatsapp-group").trim();
+
+          if (!size) {
+            parseErrors.push(`Line ${lineNum}: Size is required`);
+            return;
+          }
+          if (isNaN(price) || price <= 0) {
+            parseErrors.push(`Line ${lineNum}: Invalid price`);
+            return;
+          }
+          if (isNaN(listingCount) || listingCount <= 0) {
+            parseErrors.push(`Line ${lineNum}: Invalid listing count`);
+            return;
+          }
+          if (transactionType !== "buy" && transactionType !== "sell") {
+            parseErrors.push(`Line ${lineNum}: Transaction type must be "buy" or "sell"`);
+            return;
+          }
+
+          listings.push({
+            channel: "whatsapp",
+            transactionType: transactionType as "buy" | "sell",
+            price,
+            listingCount,
+            size: size,
+            sellerName: sellerName || undefined,
+            sellerLocation: sellerLocation || undefined,
+            sellerContact: sellerContact || undefined,
+            source: source || undefined,
+            lastSeen: new Date(),
+          });
+        } else if (channel === "marketplace") {
+          // Format: Size, Price (₹), Listings, Marketplace, URL
+          if (parts.length < 3) {
+            parseErrors.push(`Line ${lineNum}: Insufficient data. Need at least: Size, Price, Listings`);
+            return;
+          }
+          
+          const size = (parts[0] || (selectedSize ?? "")).trim();
+          const price = parseFloat((parts[1] || "").replace(/,/g, ''));
+          const listingCount = parseInt((parts[2] || "").replace(/,/g, ''));
+          const marketplaceName = (parts[3] || "").trim();
+          const url = (parts[4] || "").trim();
+
+          if (!size) {
+            parseErrors.push(`Line ${lineNum}: Size is required`);
+            return;
+          }
+          if (isNaN(price) || price <= 0) {
+            parseErrors.push(`Line ${lineNum}: Invalid price`);
+            return;
+          }
+          if (isNaN(listingCount) || listingCount <= 0) {
+            parseErrors.push(`Line ${lineNum}: Invalid listing count`);
+            return;
+          }
+
+          listings.push({
+            channel: "marketplace",
+            price,
+            listingCount,
+            size: size,
+            marketplaceName: marketplaceName || undefined,
+            url: url || undefined,
+            source: "marketplace",
+            lastSeen: new Date(),
+          });
+        } else {
+          // Format: Size, Price ($), Listings, Platform, Reshipping (₹), URL
+          if (parts.length < 3) {
+            parseErrors.push(`Line ${lineNum}: Insufficient data. Need at least: Size, Price, Listings`);
+            return;
+          }
+          
+          const size = (parts[0] || (selectedSize ?? "")).trim();
+          const priceUSD = parseFloat((parts[1] || "").replace(/,/g, ''));
+          const listingCount = parseInt((parts[2] || "").replace(/,/g, ''));
+          const platform = (parts[3] || "stockx").trim();
+          const reshippingCost = parts[4] ? parseFloat((parts[4] || "").replace(/,/g, '')) : undefined;
+          const url = (parts[5] || "").trim();
+
+          if (isNaN(priceUSD) || priceUSD <= 0) {
+            parseErrors.push(`Line ${lineNum}: Invalid price`);
+            return;
+          }
+          if (isNaN(listingCount) || listingCount <= 0) {
+            parseErrors.push(`Line ${lineNum}: Invalid listing count`);
+            return;
+          }
+
+          // Convert USD to INR
+          const rate = exchangeRate || 83;
+          const priceINR = priceUSD * rate;
+
+          if (!size) {
+            parseErrors.push(`Line ${lineNum}: Size is required`);
+            return;
+          }
+
+          listings.push({
+            channel: "international",
+            price: priceINR,
+            listingCount,
+            size: size,
+            marketplaceName: platform || undefined,
+            source: platform || "stockx",
+            reshippingCost: reshippingCost || undefined,
+            url: url || undefined,
+            lastSeen: new Date(),
+          });
+        }
+      } catch (error) {
+        parseErrors.push(`Line ${lineNum}: Parse error - ${error instanceof Error ? error.message : String(error)}`);
+      }
+    });
+
+    setParsedListings(listings);
+    setErrors(parseErrors);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      setBulkInput(text);
+      parseBulkInput(text);
+    };
+    reader.onerror = () => {
+      alert("Failed to read file. Please try again.");
+    };
+    reader.readAsText(file);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (parsedListings.length === 0) {
+      alert("Please parse the input first to validate the data.");
+      return;
+    }
+
+    if (errors.length > 0) {
+      const proceed = confirm(
+        `There are ${errors.length} error(s) in the input. Do you want to proceed with the valid listings only?`
+      );
+      if (!proceed) return;
+    }
+
+    setIsAdding(true);
+    try {
+      await onAddListings(parsedListings);
+      alert(`Successfully added ${parsedListings.length} listing(s)`);
+      setBulkInput("");
+      setParsedListings([]);
+      setErrors([]);
+    } catch (error) {
+      console.error("Failed to add listings:", error);
+      alert("Failed to add some listings. Please check the console for details.");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const getFormatDescription = () => {
+    if (channel === "whatsapp") {
+      return "Format: Size, Transaction Type, Price (₹), Listings, Seller Name, Location, Contact, Source\nExample: UK 9, buy, 12000, 2, John Doe, Delhi, +91 98765 43210, whatsapp-group-mumbai\nNote: Size is required. You can import listings for multiple sizes in one batch.";
+    } else if (channel === "marketplace") {
+      return "Format: Size, Price (₹), Listings, Marketplace, URL\nExample: UK 9, 13000, 3, CrepdogCrew, https://example.com/listing\nNote: Size is required. You can import listings for multiple sizes in one batch.";
+    } else {
+      return "Format: Size, Price ($), Listings, Platform, Reshipping (₹), URL\nExample: UK 9, 150, 5, stockx, 2000, https://stockx.com/...\nNote: Size is required. You can import listings for multiple sizes in one batch.";
+    }
+  };
+
+  const getPlaceholder = () => {
+    if (channel === "whatsapp") {
+      return "Size, Transaction Type, Price (₹), Listings, Seller Name, Location, Contact, Source\nUK 9, buy, 12000, 2, John Doe, Delhi, +91 98765 43210, whatsapp-group-mumbai\nUK 10, sell, 12500, 1, Jane Smith, Mumbai, +91 98765 43211, whatsapp-group-delhi";
+    } else if (channel === "marketplace") {
+      return "Size, Price (₹), Listings, Marketplace, URL\nUK 9, 13000, 3, CrepdogCrew, https://example.com/listing\nUK 10, 13500, 2, Mainstreet, https://example.com/listing2";
+    } else {
+      return "Size, Price ($), Listings, Platform, Reshipping (₹), URL\nUK 9, 150, 5, stockx, 2000, https://stockx.com/...\nUK 10, 160, 3, goat, 2000, https://goat.com/...";
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-3">
+      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-brand-white border border-brand-gray/30 shadow-2xl" style={{ borderRadius: '0px' }}>
+        <div className="sticky top-0 z-10 flex justify-between items-center px-3 py-2 bg-brand-white border-b border-brand-gray/30">
+          <h2 className="text-base font-heading font-normal text-brand-black uppercase tracking-wide leading-tight">
+            Bulk Add Listings - {channel === "whatsapp" ? "WhatsApp" : channel === "marketplace" ? "Marketplace" : "International"}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-brand-black hover:text-brand-black text-base px-2 py-1 leading-tight"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="p-3 md:p-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div>
+              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
+                Upload CSV or Enter Data
+              </label>
+              <p className="text-[10px] text-brand-black/60 mb-2 leading-tight whitespace-pre-line">
+                {getFormatDescription()}
+              </p>
+              
+              <div className="mb-3">
+                <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
+                  Upload CSV File
+                </label>
+                <div className="flex items-center gap-2">
+                  <label className="px-2.5 py-1 border border-brand-black bg-brand-white text-brand-black text-[10px] font-semibold uppercase tracking-wide hover:bg-brand-black hover:text-white transition cursor-pointer leading-tight" style={{ borderRadius: '0px' }}>
+                    Choose File
+                    <input
+                      type="file"
+                      accept=".csv,.txt"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+                  {fileName && (
+                    <span className="text-[10px] text-brand-black/60 leading-tight">
+                      {fileName}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
+                  Or Paste Data
+                </label>
+                <textarea
+                  value={bulkInput}
+                  onChange={(e) => setBulkInput(e.target.value)}
+                  className="w-full border border-brand-gray/30 px-2 py-1.5 text-xs font-mono font-medium text-brand-black focus:outline-none focus:border-brand-black resize-none leading-tight"
+                  placeholder={getPlaceholder()}
+                  rows={10}
+                  style={{ borderRadius: '0px' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => parseBulkInput()}
+                  className="mt-1.5 px-2.5 py-1 border border-brand-gray/30 bg-brand-white text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition leading-tight"
+                  style={{ borderRadius: '0px' }}
+                >
+                  Parse & Validate
+                </button>
+              </div>
+            </div>
+
+            {errors.length > 0 && (
+              <div className="border border-red-500/30 bg-red-500/5 p-2.5" style={{ borderRadius: '0px' }}>
+                <h3 className="text-[10px] font-semibold text-red-700 mb-1.5 uppercase leading-tight">Errors <span className="font-mono-numeric">({errors.length})</span></h3>
+                <ul className="space-y-0.5">
+                  {errors.map((error, index) => (
+                    <li key={index} className="text-[10px] text-red-600 leading-tight">{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {parsedListings.length > 0 && (
+              <div className="border border-brand-gray/30 p-2.5" style={{ borderRadius: '0px' }}>
+                <h3 className="text-xs font-semibold text-brand-black mb-2 uppercase tracking-wide leading-tight">
+                  Preview <span className="font-mono-numeric">({parsedListings.length})</span> listing{parsedListings.length !== 1 ? 's' : ''} ready
+                </h3>
+                <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                  {parsedListings.map((listing, index) => (
+                    <div 
+                      key={index} 
+                      className="border border-brand-gray/20 bg-brand-gray/5 p-2"
+                      style={{ borderRadius: '0px' }}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-brand-black leading-tight">
+                            {listing.size || selectedSize} • ₹{listing.price?.toLocaleString('en-IN')} • {listing.listingCount} listing{listing.listingCount !== 1 ? 's' : ''}
+                          </p>
+                          {listing.channel === "whatsapp" && (
+                            <p className="text-[10px] text-brand-black/60 leading-tight">
+                              {listing.transactionType} • {listing.sellerName || 'No seller'} • {listing.sellerLocation || 'No location'}
+                            </p>
+                          )}
+                          {listing.channel === "marketplace" && (
+                            <p className="text-[10px] text-brand-black/60 leading-tight">
+                              {listing.marketplaceName || 'No marketplace'}
+                            </p>
+                          )}
+                          {listing.channel === "international" && (
+                            <p className="text-[10px] text-brand-black/60 leading-tight">
+                              {listing.marketplaceName || 'No platform'} • Reshipping: {listing.reshippingCost ? `₹${listing.reshippingCost.toLocaleString('en-IN')}` : 'None'}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-3 border-t border-brand-gray/20">
+              <button
+                type="submit"
+                disabled={parsedListings.length === 0 || isAdding}
+                className="px-3 py-1.5 border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 leading-tight"
+                style={{ borderRadius: '0px' }}
+              >
+                {isAdding ? (
+                  <>
+                    <div className="animate-spin rounded-full h-2.5 w-2.5 border-2 border-white border-t-transparent"></div>
+                    <span>Adding...</span>
+                  </>
+                ) : (
+                  <>
+                    Add {parsedListings.length > 0 ? <span className="font-mono-numeric">{parsedListings.length}</span> : ''} Listing{parsedListings.length !== 1 ? 's' : ''}
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isAdding}
+                className="px-3 py-1.5 border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition disabled:opacity-50 disabled:cursor-not-allowed leading-tight"
+                style={{ borderRadius: '0px' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };
