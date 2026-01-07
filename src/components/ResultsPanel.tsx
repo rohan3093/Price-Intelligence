@@ -7,7 +7,8 @@ interface ResultsPanelProps {
   setSelectedId: (id: number) => void;
   isLoading?: boolean;
   searchQuery?: string;
-  onCompare?: (asset: Asset) => void;
+  watchlistIds?: number[];
+  onToggleWatchlist?: (assetId: number) => void;
 }
 
 /**
@@ -166,7 +167,8 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
   setSelectedId,
   isLoading = false,
   searchQuery = "",
-  onCompare,
+  watchlistIds = [],
+  onToggleWatchlist,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef<HTMLDivElement>(null);
@@ -261,7 +263,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
           assets.map((asset) => {
             const isSelected = selectedId === asset.id;
             const sizeRange = formatSizeRange(asset);
-
+            const isWatchlisted = watchlistIds.includes(asset.id);
             const bestPrice = calculateBestPrice(asset);
             
             return (
@@ -390,22 +392,27 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
                       </div>
                     )}
                     
-                    {/* Compare button - more compact */}
-                    {onCompare && (
+                    {/* Watchlist star button */}
+                    {onToggleWatchlist && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onCompare(asset);
+                          onToggleWatchlist(asset.id);
                         }}
-                        className={`px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide border transition-colors leading-none ${
+                        className={`w-7 h-7 flex items-center justify-center border transition-colors ${
                           isSelected
-                            ? "border-brand-white/30 text-brand-white hover:bg-brand-white/10"
-                            : "border-brand-gray/30 text-brand-black/70 hover:border-brand-black hover:text-brand-black"
+                            ? isWatchlisted
+                              ? "border-yellow-300/40 text-yellow-300 hover:border-yellow-300/60 hover:bg-yellow-300/5"
+                              : "border-brand-white/20 text-brand-white/40 hover:border-brand-white/40 hover:text-brand-white/60 hover:bg-brand-white/5"
+                            : isWatchlisted
+                            ? "border-brand-gray/30 text-yellow-500 hover:border-yellow-500/50 hover:bg-yellow-500/5"
+                            : "border-brand-gray/30 text-brand-black/40 hover:border-brand-black/50 hover:text-brand-black/60 hover:bg-brand-gray/5"
                         }`}
                         style={{ borderRadius: '0px' }}
-                        title="Add to comparison"
+                        title={isWatchlisted ? "Remove from watchlist" : "Add to watchlist"}
+                        aria-label={isWatchlisted ? "Remove from watchlist" : "Add to watchlist"}
                       >
-                        +
+                        <span className="text-xs leading-none">{isWatchlisted ? "★" : "☆"}</span>
                       </button>
                     )}
                   </div>

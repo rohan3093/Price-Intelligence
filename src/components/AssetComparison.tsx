@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Asset } from "../types";
 
 interface AssetComparisonProps {
@@ -16,6 +16,30 @@ const getBestPrice = (asset: Asset): number | undefined => {
 
 export const AssetComparison: React.FC<AssetComparisonProps> = ({ assets, onClose }) => {
   const [selectedAssets, setSelectedAssets] = useState<Asset[]>(assets.slice(0, Math.min(3, assets.length)));
+
+  // Update selectedAssets when assets prop changes
+  // This ensures new assets added via the compare button are shown
+  useEffect(() => {
+    // Keep existing selected assets that are still in the new assets array
+    const existingIds = new Set(selectedAssets.map(a => a.id));
+    const existingAssets = assets.filter(a => existingIds.has(a.id));
+    
+    // Add new assets that aren't already selected
+    const newAssets = assets.filter(a => !existingIds.has(a.id));
+    
+    // Combine existing with new, up to 3 total
+    const merged = [...existingAssets, ...newAssets].slice(0, 3);
+    
+    // Update if there are changes
+    const hasChanges = 
+      merged.length !== selectedAssets.length || 
+      merged.some((asset, idx) => asset.id !== selectedAssets[idx]?.id);
+    
+    if (hasChanges) {
+      setSelectedAssets(merged);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assets]);
 
   const removeAsset = (assetId: number) => {
     setSelectedAssets(selectedAssets.filter(a => a.id !== assetId));

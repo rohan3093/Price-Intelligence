@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Asset, SizeVariant, PricePoint } from "../types";
 import { SizeSelector } from "./SizeSelector";
 import { PriceHistoryChart } from "./PriceHistoryChart";
@@ -8,7 +8,6 @@ interface AssetDetailPanelProps {
   watchlisted?: boolean;
   onToggleWatchlist?: () => void;
   isLoading?: boolean;
-  onCompare?: (asset: Asset) => void;
 }
 
 // Collapsible Section Component
@@ -191,24 +190,24 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
   watchlisted = false,
   onToggleWatchlist,
   isLoading = false,
-  onCompare,
 }) => {
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [activeScrollSection, setActiveScrollSection] = useState<string>("");
-  const [activeMobileTab, setActiveMobileTab] = useState<string>("whatsapp");
   const [sortBy, setSortBy] = useState<'price' | 'quantity' | 'newest'>('price');
   const [filterLocation, setFilterLocation] = useState<string | null>(null);
-  const [isScrolling, setIsScrolling] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [unifiedChannelFilter, setUnifiedChannelFilter] = useState<'all' | 'WhatsApp' | 'Marketplace' | 'International'>('all');
+  const [unifiedSideFilter, setUnifiedSideFilter] = useState<'all' | 'Buy' | 'Sell' | 'Listing'>('all');
+  const [minArbNetPct, setMinArbNetPct] = useState(0.03); // 3%
+  const [minArbNetRs, setMinArbNetRs] = useState(0);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Section navigation items
   const sections = [
     { id: 'price-history', label: 'Price History' },
+    { id: 'listings', label: 'Listings' },
     { id: 'market-summary', label: 'Market Summary' },
-    { id: 'whatsapp', label: 'WhatsApp' },
-    { id: 'marketplace', label: 'Marketplace' },
-    { id: 'international', label: 'International' },
+    { id: 'arbitrage', label: 'Arbitrage' },
     { id: 'performance', label: 'Performance' },
     { id: 'insight', label: 'Insight' },
   ];
@@ -285,11 +284,11 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       } else {
         setSelectedSize(asset.size || "");
       }
-      // Reset mobile tab to default when asset changes
-      setActiveMobileTab("whatsapp");
       // Reset filters when asset changes
       setFilterLocation(null);
       setSortBy('price');
+      setUnifiedChannelFilter('all');
+      setUnifiedSideFilter('all');
     }
   }, [asset]);
 
@@ -470,6 +469,200 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
   const whatsappPrices = getWhatsAppPrices();
   const marketplacePrices = getMarketplacePrices();
   const internationalPrices = getInternationalPrices();
+
+  // Build unified listings view across channels for the selected size
+  type UnifiedListing = {
+    channel: 'WhatsApp' | 'Marketplace' | 'International';
+    side: 'Buy' | 'Sell' | 'Listing';
+    price: number;
+    landedPrice?: number; // For international (price + reshipping)
+    listingCount: number;
+    sourceLabel: string;
+    location?: string;
+    lastSeen?: Date | string;
+    url?: string;
+    contactType?: 'whatsapp' | 'link';
+    contactValue?: string;
+  };
+
+  const unifiedListings: UnifiedListing[] = React.useMemo(() => {
+    const rows: UnifiedListing[] = [];
+
+    // WhatsApp - buy side (you buy from these sellers)
+    whatsappPrices.buy.forEach((p) => {
+      rows.push({
+        channel: 'WhatsApp',
+        side: 'Buy',
+        price: p.price,
+        listingCount: p.listingCount ?? 1,
+        sourceLabel: p.sellerName || p.source || 'Seller',
+        location: p.sellerLocation,
+        lastSeen: p.lastSeen,
+        contactType: p.sellerContact ? 'whatsapp' : undefined,
+        contactValue: p.sellerContact,
+      });
+    });
+
+    // WhatsApp - sell side (you sell to these buyers)
+    whatsappPrices.sell.forEach((p) => {
+      rows.push({
+        channel: 'WhatsApp',
+        side: 'Sell',
+        price: p.price,
+        listingCount: p.listingCount ?? 1,
+        sourceLabel: p.sellerName || p.source || 'Buyer',
+        location: p.sellerLocation,
+        lastSeen: p.lastSeen,
+        contactType: p.sellerContact ? 'whatsapp' : undefined,
+        contactValue: p.sellerContact,
+      });
+    });
+
+    // Indian marketplaces (treated as listings you can buy from)
+    marketplacePrices.forEach((p) => {
+      rows.push({
+        channel: 'Marketplace',
+        side: 'Listing',
+        price: p.price,
+        listingCount: p.listingCount ?? 1,
+        sourceLabel: p.marketplaceName || p.source || 'Marketplace',
+        location: p.sellerLocation,
+        lastSeen: p.lastSeen,
+        url: p.url,
+        contactType: p.url ? 'link' : undefined,
+        contactValue: p.url,
+      });
+    });
+
+    // International platforms (landed cost)
+    internationalPrices.forEach((p) => {
+      const landed = p.price + (p.reshippingCost || 0);
+      rows.push({
+        channel: 'International',
+        side: 'Listing',
+        price: p.price,
+        landedPrice: landed,
+        listingCount: p.listingCount ?? 1,
+        sourceLabel: p.marketplaceName || p.source || 'International',
+        location: p.sellerLocation,
+        lastSeen: p.lastSeen,
+        url: p.url,
+        contactType: p.url ? 'link' : undefined,
+        contactValue: p.url,
+      });
+    });
+
+    // Sort primarily by landed / price ascending, then by channel for readability
+    return rows.sort((a, b) => {
+      const aPrice = a.landedPrice ?? a.price;
+      const bPrice = b.landedPrice ?? b.price;
+      if (aPrice !== bPrice) return aPrice - bPrice;
+      if (a.channel !== b.channel) return a.channel.localeCompare(b.channel);
+      if (a.side !== b.side) return a.side.localeCompare(b.side);
+      return (b.listingCount || 0) - (a.listingCount || 0);
+    });
+  }, [whatsappPrices.buy, whatsappPrices.sell, marketplacePrices, internationalPrices]);
+
+  // Arbitrage opportunities scoped to this asset + selected size
+  const MARKETPLACE_FEE = 0.085; // default midpoint of 7-10%
+  const INTL_RESHIPPING_FALLBACK = 10000; // ₹10k flat if missing
+
+  type ArbSide = {
+    channel: 'WhatsApp' | 'Marketplace' | 'International';
+    source: string;
+    price: number;
+    allIn: number; // buy side all-in
+    net?: number; // sell side net after fees
+    count?: number;
+  };
+
+  const arbitrageOpps = useMemo(() => {
+    if (!asset) return [];
+    const opps: {
+      buy: ArbSide;
+      sell: ArbSide;
+      netProfit: number;
+      netPct: number;
+    }[] = [];
+
+    const buyPool: ArbSide[] = [];
+    const sellPool: ArbSide[] = [];
+
+    // Buy pools
+    whatsappPrices.buy.forEach((p) =>
+      buyPool.push({
+        channel: 'WhatsApp',
+        source: p.sellerName || p.source || 'WhatsApp',
+        price: p.price,
+        allIn: p.price,
+        count: p.listingCount,
+      })
+    );
+    marketplacePrices.forEach((p) =>
+      buyPool.push({
+        channel: 'Marketplace',
+        source: p.marketplaceName || p.source || 'Marketplace',
+        price: p.price,
+        allIn: p.price,
+        count: p.listingCount,
+      })
+    );
+    internationalPrices.forEach((p) => {
+      const landed = p.price + (p.reshippingCost ?? INTL_RESHIPPING_FALLBACK);
+      buyPool.push({
+        channel: 'International',
+        source: p.marketplaceName || p.source || 'International',
+        price: p.price,
+        allIn: landed,
+        count: p.listingCount,
+      });
+    });
+
+    // Sell pools
+    whatsappPrices.sell.forEach((p) =>
+      sellPool.push({
+        channel: 'WhatsApp',
+        source: p.sellerName || p.source || 'WhatsApp',
+        price: p.price,
+        allIn: p.price,
+        net: p.price, // no fee
+        count: p.listingCount,
+      })
+    );
+    marketplacePrices.forEach((p) =>
+      sellPool.push({
+        channel: 'Marketplace',
+        source: p.marketplaceName || p.source || 'Marketplace',
+        price: p.price,
+        allIn: p.price,
+        net: p.price * (1 - MARKETPLACE_FEE),
+        count: p.listingCount,
+      })
+    );
+
+    buyPool.forEach((buy) => {
+      sellPool.forEach((sell) => {
+        // avoid identical pair
+        if (
+          buy.channel === sell.channel &&
+          buy.price === sell.price &&
+          buy.source === sell.source
+        ) {
+          return;
+        }
+        const sellNet = sell.net ?? sell.price;
+        const netProfit = sellNet - buy.allIn;
+        const netPct = netProfit / buy.allIn;
+        if (netProfit < minArbNetRs) return;
+        if (netPct < minArbNetPct) return;
+        opps.push({ buy, sell, netProfit, netPct });
+      });
+    });
+
+    return opps
+      .sort((a, b) => (b.netPct !== a.netPct ? b.netPct - a.netPct : b.netProfit - a.netProfit))
+      .slice(0, 50);
+  }, [asset, marketplacePrices, whatsappPrices.buy, whatsappPrices.sell, internationalPrices, minArbNetPct, minArbNetRs]);
 
   // Calculate best available price (lowest price across all channels)
   // For international prices, use total landed cost (platform price + reshipping cost)
@@ -707,17 +900,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 <span className="text-sm">{watchlisted ? "★" : "☆"}</span>
                 <span className="hidden sm:inline">{watchlisted ? "Watch" : "Add"}</span>
               </button>
-              {onCompare && asset && (
-                <button
-                  onClick={() => onCompare(asset)}
-                  className="px-2.5 py-1.5 rounded-none border border-brand-gray/30 text-xs whitespace-nowrap transition-colors leading-tight text-brand-black hover:bg-brand-gray/10 flex items-center justify-center gap-1.5"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-                  </svg>
-                  <span className="hidden sm:inline">Compare</span>
-                </button>
-              )}
             </div>
           </div>
 
@@ -822,535 +1004,102 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
           historical30d={anchor?.historical30d}
           historical90d={anchor?.historical90d}
           bestAvailablePrice={currentData.bestAvailablePrice}
+          retailPrice={anchor?.retailIndia}
           size={selectedSize}
         />
       </CollapsibleSection>
       </div>
 
-      {/* Market Channels Comparison Summary - Collapsible */}
-      <div ref={(el) => (sectionRefs.current['market-summary'] = el)}>
-        <CollapsibleSection
-        title="Market Comparison Summary"
-        subtitle="Best prices, ranges, and channel statistics"
-        defaultOpen={true}
-      >
-        <div className="space-y-3">
-          {/* Unified Price Comparison Bars - more compact */}
-          <div className="space-y-2.5">
-            <p className="text-[10px] text-brand-black/60 uppercase tracking-wide font-semibold leading-tight">Price Comparison</p>
-            {(() => {
-              // Calculate all prices for scaling
-              const whatsappBest = whatsappPrices.buy.length > 0 ? whatsappPrices.buy[0].price : 0;
-              const whatsappMin = whatsappBest;
-              const whatsappMax = whatsappPrices.buy.length > 0 ? Math.max(...whatsappPrices.buy.map(p => p.price)) : 0;
-              const whatsappAvg = whatsappPrices.buy.length > 0 
-                ? Math.round(whatsappPrices.buy.reduce((sum, p) => sum + p.price, 0) / whatsappPrices.buy.length) 
-                : 0;
-              
-              const marketplaceBest = marketplacePrices.length > 0 ? marketplacePrices[0].price : 0;
-              const marketplaceMin = marketplaceBest;
-              const marketplaceMax = marketplacePrices.length > 0 ? marketplacePrices[marketplacePrices.length - 1].price : 0;
-              const marketplaceAvg = marketplacePrices.length > 0 
-                ? Math.round(marketplacePrices.reduce((sum, p) => sum + p.price, 0) / marketplacePrices.length) 
-                : 0;
-              
-              const internationalBest = internationalPrices.length > 0 
-                ? Math.min(...internationalPrices.map(p => p.price + (p.reshippingCost || 0))) 
-                : 0;
-              const internationalAll = internationalPrices.length > 0 
-                ? internationalPrices.map(p => p.price + (p.reshippingCost || 0)) 
-                : [];
-              const internationalMin = internationalBest;
-              const internationalMax = internationalAll.length > 0 ? Math.max(...internationalAll) : 0;
-              const internationalAvg = internationalAll.length > 0 
-                ? Math.round(internationalAll.reduce((sum, p) => sum + p, 0) / internationalAll.length) 
-                : 0;
-              
-              const maxPrice = Math.max(whatsappMax, marketplaceMax, internationalMax, anchor?.retailIndia || 0);
-              const minPrice = Math.min(
-                whatsappMin || Infinity,
-                marketplaceMin || Infinity,
-                internationalMin || Infinity,
-                anchor?.retailIndia || Infinity
-              );
-              
-              const priceRange = maxPrice - minPrice;
-              
-              const getPosition = (price: number) => priceRange > 0 ? ((price - minPrice) / priceRange) * 100 : 0;
-              const getWidth = (min: number, max: number) => priceRange > 0 ? ((max - min) / priceRange) * 100 : 0;
-              
-              return (
-                <div className="space-y-3">
-                  {/* WhatsApp */}
-                  {whatsappBest > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 bg-green-600"></div>
-                          <span className="text-[10px] font-semibold text-brand-black leading-tight">WhatsApp & Reseller</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px]">
-                          <div className="text-right">
-                            <span className="text-brand-black/60">Best: </span>
-                            <span className="font-mono-numeric font-semibold text-green-600">₹{whatsappBest.toLocaleString('en-IN')}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-brand-black/60">Range: </span>
-                            <span className="font-mono-numeric text-brand-black">₹{whatsappMin.toLocaleString('en-IN')} - ₹{whatsappMax.toLocaleString('en-IN')}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-brand-black/60">Avg: </span>
-                            <span className="font-mono-numeric text-brand-black">₹{whatsappAvg.toLocaleString('en-IN')}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="w-full bg-brand-gray/10 h-6 relative border border-brand-gray/20" style={{ borderRadius: '0px' }}>
-                        {/* Full Range Bar */}
-                        <div 
-                          className="absolute top-0 h-full bg-green-600/20"
-                          style={{ 
-                            left: `${getPosition(whatsappMin)}%`,
-                            width: `${getWidth(whatsappMin, whatsappMax)}%`,
-                            borderRadius: '0px'
-                          }}
-                        />
-                        {/* Best Price Marker (left edge) */}
-                        <div 
-                          className="absolute top-0 h-full w-0.5 bg-green-600"
-                          style={{ left: `${getPosition(whatsappBest)}%` }}
-                        />
-                        {/* Average Marker */}
-                        {whatsappAvg > 0 && (
-                          <div 
-                            className="absolute top-0 h-full w-0.5 bg-green-600/60"
-                            style={{ left: `${getPosition(whatsappAvg)}%` }}
-                            title={`Average: ₹${whatsappAvg.toLocaleString('en-IN')}`}
-                          />
-                        )}
-                        {/* Labels */}
-                        <div 
-                          className="absolute left-0 top-0 h-full flex items-center pl-1"
-                          style={{ left: `${getPosition(whatsappBest)}%`, transform: 'translateX(-50%)' }}
-                        >
-                          <span className="text-[9px] font-mono-numeric font-bold text-green-600 bg-white px-0.5">₹{whatsappBest.toLocaleString('en-IN')}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Marketplace */}
-                  {marketplaceBest > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 bg-blue-600"></div>
-                          <span className="text-[10px] font-semibold text-brand-black leading-tight">Indian Marketplaces</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px]">
-                          <div className="text-right">
-                            <span className="text-brand-black/60">Best: </span>
-                            <span className="font-mono-numeric font-semibold text-blue-600">₹{marketplaceBest.toLocaleString('en-IN')}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-brand-black/60">Range: </span>
-                            <span className="font-mono-numeric text-brand-black">₹{marketplaceMin.toLocaleString('en-IN')} - ₹{marketplaceMax.toLocaleString('en-IN')}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-brand-black/60">Avg: </span>
-                            <span className="font-mono-numeric text-brand-black">₹{marketplaceAvg.toLocaleString('en-IN')}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="w-full bg-brand-gray/10 h-6 relative border border-brand-gray/20" style={{ borderRadius: '0px' }}>
-                        {/* Full Range Bar */}
-                        <div 
-                          className="absolute top-0 h-full bg-blue-600/20"
-                          style={{ 
-                            left: `${getPosition(marketplaceMin)}%`,
-                            width: `${getWidth(marketplaceMin, marketplaceMax)}%`,
-                            borderRadius: '0px'
-                          }}
-                        />
-                        {/* Best Price Marker (left edge) */}
-                        <div 
-                          className="absolute top-0 h-full w-0.5 bg-blue-600"
-                          style={{ left: `${getPosition(marketplaceBest)}%` }}
-                        />
-                        {/* Average Marker */}
-                        {marketplaceAvg > 0 && (
-                          <div 
-                            className="absolute top-0 h-full w-0.5 bg-blue-600/60"
-                            style={{ left: `${getPosition(marketplaceAvg)}%` }}
-                            title={`Average: ₹${marketplaceAvg.toLocaleString('en-IN')}`}
-                          />
-                        )}
-                        {/* Labels */}
-                        <div 
-                          className="absolute left-0 top-0 h-full flex items-center pl-1"
-                          style={{ left: `${getPosition(marketplaceBest)}%`, transform: 'translateX(-50%)' }}
-                        >
-                          <span className="text-[9px] font-mono-numeric font-bold text-blue-600 bg-white px-0.5">₹{marketplaceBest.toLocaleString('en-IN')}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* International */}
-                  {internationalBest > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 bg-purple-600"></div>
-                          <span className="text-[10px] font-semibold text-brand-black leading-tight">International Platforms</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px]">
-                          <div className="text-right">
-                            <span className="text-brand-black/60">Best: </span>
-                            <span className="font-mono-numeric font-semibold text-purple-600">₹{internationalBest.toLocaleString('en-IN')}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-brand-black/60">Range: </span>
-                            <span className="font-mono-numeric text-brand-black">₹{internationalMin.toLocaleString('en-IN')} - ₹{internationalMax.toLocaleString('en-IN')}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-brand-black/60">Avg: </span>
-                            <span className="font-mono-numeric text-brand-black">₹{internationalAvg.toLocaleString('en-IN')}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="w-full bg-brand-gray/10 h-6 relative border border-brand-gray/20" style={{ borderRadius: '0px' }}>
-                        {/* Full Range Bar */}
-                        <div 
-                          className="absolute top-0 h-full bg-purple-600/20"
-                          style={{ 
-                            left: `${getPosition(internationalMin)}%`,
-                            width: `${getWidth(internationalMin, internationalMax)}%`,
-                            borderRadius: '0px'
-                          }}
-                        />
-                        {/* Best Price Marker (left edge) */}
-                        <div 
-                          className="absolute top-0 h-full w-0.5 bg-purple-600"
-                          style={{ left: `${getPosition(internationalBest)}%` }}
-                        />
-                        {/* Average Marker */}
-                        {internationalAvg > 0 && (
-                          <div 
-                            className="absolute top-0 h-full w-0.5 bg-purple-600/60"
-                            style={{ left: `${getPosition(internationalAvg)}%` }}
-                            title={`Average: ₹${internationalAvg.toLocaleString('en-IN')}`}
-                          />
-                        )}
-                        {/* Labels */}
-                        <div 
-                          className="absolute left-0 top-0 h-full flex items-center pl-1"
-                          style={{ left: `${getPosition(internationalBest)}%`, transform: 'translateX(-50%)' }}
-                        >
-                          <span className="text-[9px] font-mono-numeric font-bold text-purple-600 bg-white px-0.5">₹{internationalBest.toLocaleString('en-IN')}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Retail Reference Line - more compact */}
-                  {anchor?.retailIndia && (
-                    <div className="pt-2 border-t border-brand-gray/20 mt-2">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[10px] text-brand-black/60 uppercase tracking-wide leading-tight">Retail (India) Reference</span>
-                        <span className="text-[10px] font-mono-numeric font-semibold text-brand-black leading-tight">₹{anchor.retailIndia.toLocaleString('en-IN')}</span>
-                      </div>
-                      <div className="w-full bg-brand-gray/10 h-1.5 relative border border-brand-gray/20" style={{ borderRadius: '0px' }}>
-                        <div 
-                          className="absolute top-0 h-full w-0.5 bg-brand-black"
-                          style={{ left: `${getPosition(anchor.retailIndia)}%` }}
-                        />
-                        <div 
-                          className="absolute left-0 top-0 h-full flex items-center"
-                          style={{ left: `${getPosition(anchor.retailIndia)}%`, transform: 'translateX(-50%)' }}
-                        >
-                          <span className="text-[9px] font-mono-numeric font-semibold text-brand-black bg-white px-0.5">Retail</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+      {/* Unified Listings View - Collapsible, terminal-style */}
+      {unifiedListings.length > 0 && (
+        <div ref={(el) => (sectionRefs.current['listings'] = el)}>
+          <CollapsibleSection
+            title="All Listings (Across Channels)"
+            subtitle="Unified view of WhatsApp, marketplace, and international listings for this size"
+            defaultOpen={true}
+          >
+            {/* Enhanced Filters */}
+            <div className="space-y-2 mb-3">
+              {/* Channel and Side Filters */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-brand-black/60 uppercase tracking-wide">Channel:</span>
+                  {[
+                    { key: 'all', label: 'All' },
+                    { key: 'WhatsApp', label: 'WhatsApp' },
+                    { key: 'Marketplace', label: 'Marketplace' },
+                    { key: 'International', label: 'International' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() =>
+                        setUnifiedChannelFilter(
+                          opt.key as 'all' | 'WhatsApp' | 'Marketplace' | 'International'
+                        )
+                      }
+                      className={`px-2 py-1 border text-[10px] font-medium uppercase tracking-wide leading-tight transition-colors ${
+                        unifiedChannelFilter === opt.key
+                          ? 'border-brand-black bg-brand-black text-brand-white'
+                          : 'border-brand-gray/30 bg-brand-white text-brand-black hover:border-brand-black hover:bg-brand-gray/5'
+                      }`}
+                      style={{ borderRadius: '0px' }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
-              );
-            })()}
-          </div>
-
-          {/* Quick Access Preview Cards */}
-          {(() => {
-            const whatsappTotal = whatsappPrices.buy.length + whatsappPrices.sell.length;
-            const hasWhatsapp = whatsappTotal > 0;
-            const hasMarketplace = marketplacePrices.length > 0;
-            const hasInternational = internationalPrices.length > 0;
-            const availableChannels = [hasWhatsapp, hasMarketplace, hasInternational].filter(Boolean).length;
-            
-            if (availableChannels === 0) return null;
-            
-            return (
-              <div className="pt-3 border-t border-brand-gray/20">
-                <p className="text-[10px] text-brand-black/60 uppercase tracking-wide font-semibold mb-2 leading-tight">Quick Access to Listings</p>
-                <div className={`grid grid-cols-1 ${availableChannels === 1 ? 'md:grid-cols-1' : availableChannels === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-2`}>
-                  {/* WhatsApp Preview */}
-                  {hasWhatsapp && (
-                    <div 
-                      className={`border border-brand-gray/20 bg-brand-white p-2.5 hover:border-green-600/50 hover:shadow-md transition-all group ${
-                        isScrolling ? 'cursor-wait opacity-60' : 'cursor-pointer'
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-brand-black/60 uppercase tracking-wide">Side:</span>
+                  {[
+                    { key: 'all', label: 'All' },
+                    { key: 'Buy', label: 'Buy' },
+                    { key: 'Sell', label: 'Sell' },
+                    { key: 'Listing', label: 'Listing' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() =>
+                        setUnifiedSideFilter(
+                          opt.key as 'all' | 'Buy' | 'Sell' | 'Listing'
+                        )
+                      }
+                      className={`px-2 py-1 border text-[10px] font-medium uppercase tracking-wide leading-tight transition-colors ${
+                        unifiedSideFilter === opt.key
+                          ? 'border-brand-black bg-brand-black text-brand-white'
+                          : 'border-brand-gray/30 bg-brand-white text-brand-black hover:border-brand-black hover:bg-brand-gray/5'
                       }`}
                       style={{ borderRadius: '0px' }}
-                      onClick={() => {
-                        if (isScrolling) return;
-                        setIsScrolling(true);
-                        const element = sectionRefs.current['whatsapp'];
-                        if (element) {
-                          // Scroll with offset for sticky nav
-                          const yOffset = -80;
-                          const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                          window.scrollTo({ top: y, behavior: 'smooth' });
-                          // Auto-expand if collapsed
-                          setTimeout(() => {
-                            const button = element.querySelector('button[aria-expanded]') as HTMLButtonElement;
-                            if (button && button.getAttribute('aria-expanded') === 'false') {
-                              button.click();
-                            }
-                            setIsScrolling(false);
-                          }, 600);
-                        } else {
-                          setIsScrolling(false);
-                        }
-                      }}
                     >
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        <div className="w-1.5 h-1.5 bg-green-600"></div>
-                        <h4 className="text-[10px] font-semibold text-brand-black uppercase tracking-wide leading-tight">WhatsApp & Reseller</h4>
-                      </div>
-                      <div className="space-y-1.5">
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-[10px] text-brand-black/60 leading-tight">Best Price</span>
-                          <span className="text-sm font-mono-numeric font-bold text-green-600 leading-tight">
-                            {whatsappPrices.buy.length > 0 
-                              ? `₹${whatsappPrices.buy[0].price.toLocaleString('en-IN')}`
-                              : whatsappPrices.sell.length > 0
-                              ? `₹${whatsappPrices.sell[0].price.toLocaleString('en-IN')}`
-                              : '—'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-[10px] text-brand-black/60 leading-tight">
-                          <span>
-                            {whatsappTotal} {whatsappTotal === 1 ? 'listing' : 'listings'}
-                            {whatsappPrices.buy.length > 0 && whatsappPrices.sell.length > 0 && (
-                              <span className="text-brand-black/40"> ({whatsappPrices.buy.length} sellers, {whatsappPrices.sell.length} buyers)</span>
-                            )}
-                          </span>
-                          <span className="group-hover:text-green-600 transition-colors">
-                            View all →
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Marketplace Preview */}
-                  {hasMarketplace && (
-                    <div 
-                      className={`border border-brand-gray/20 bg-brand-white p-2.5 hover:border-blue-600/50 hover:shadow-md transition-all group ${
-                        isScrolling ? 'cursor-wait opacity-60' : 'cursor-pointer'
-                      }`}
-                      style={{ borderRadius: '0px' }}
-                      onClick={() => {
-                        if (isScrolling) return;
-                        setIsScrolling(true);
-                        const element = sectionRefs.current['marketplace'];
-                        if (element) {
-                          const yOffset = -80;
-                          const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                          window.scrollTo({ top: y, behavior: 'smooth' });
-                          setTimeout(() => {
-                            const button = element.querySelector('button[aria-expanded]') as HTMLButtonElement;
-                            if (button && button.getAttribute('aria-expanded') === 'false') {
-                              button.click();
-                            }
-                            setIsScrolling(false);
-                          }, 600);
-                        } else {
-                          setIsScrolling(false);
-                        }
-                      }}
-                    >
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <div className="w-1.5 h-1.5 bg-blue-600"></div>
-                    <h4 className="text-[10px] font-semibold text-brand-black uppercase tracking-wide leading-tight">Indian Marketplaces</h4>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-[10px] text-brand-black/60 leading-tight">Cheapest</span>
-                      <span className="text-sm font-mono-numeric font-bold text-blue-600 leading-tight">
-                        ₹{marketplacePrices[0].price.toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] text-brand-black/60 leading-tight">
-                      <span>{marketplacePrices.length} listings</span>
-                      <span className="group-hover:text-blue-600 transition-colors">
-                        View all →
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-                  {/* International Preview */}
-                  {hasInternational && (
-                    <div 
-                      className={`border border-brand-gray/20 bg-brand-white p-2.5 hover:border-purple-600/50 hover:shadow-md transition-all group ${
-                        isScrolling ? 'cursor-wait opacity-60' : 'cursor-pointer'
-                      }`}
-                      style={{ borderRadius: '0px' }}
-                      onClick={() => {
-                        if (isScrolling) return;
-                        setIsScrolling(true);
-                        const element = sectionRefs.current['international'];
-                        if (element) {
-                          const yOffset = -80;
-                          const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                          window.scrollTo({ top: y, behavior: 'smooth' });
-                          setTimeout(() => {
-                            const button = element.querySelector('button[aria-expanded]') as HTMLButtonElement;
-                            if (button && button.getAttribute('aria-expanded') === 'false') {
-                              button.click();
-                            }
-                            setIsScrolling(false);
-                          }, 600);
-                        } else {
-                          setIsScrolling(false);
-                        }
-                      }}
-                    >
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <div className="w-1.5 h-1.5 bg-purple-600"></div>
-                    <h4 className="text-[10px] font-semibold text-brand-black uppercase tracking-wide leading-tight">International</h4>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-[10px] text-brand-black/60 leading-tight">Best Landed</span>
-                      <span className="text-sm font-mono-numeric font-bold text-purple-600 leading-tight">
-                        ₹{Math.min(...internationalPrices.map(p => p.price + (p.reshippingCost || 0))).toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] text-brand-black/60 leading-tight">
-                      <span>{internationalPrices.length} listings</span>
-                      <span className="group-hover:text-purple-600 transition-colors">
-                        View all →
-                      </span>
-                    </div>
-                  </div>
-                    </div>
-                  )}
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
-            );
-          })()}
-        </div>
-      </CollapsibleSection>
-      </div>
-
-      {/* Market Channels - Channel-Based Structure */}
-      <div className="space-y-3">
-        {/* Mobile: Tab Navigation */}
-        <div className="md:hidden border-b border-brand-gray/20 pb-2 mb-3">
-          <div className="flex overflow-x-auto">
-            <button
-              onClick={() => setActiveMobileTab('whatsapp')}
-              className={`px-4 py-2 text-xs font-semibold uppercase tracking-wide border-b-2 transition-all whitespace-nowrap flex items-center gap-2 ${
-                activeMobileTab === 'whatsapp'
-                  ? 'border-brand-black text-brand-black'
-                  : 'border-transparent text-brand-black/60'
-              }`}
-            >
-              <span>WhatsApp</span>
-              {(whatsappPrices.buy.length + whatsappPrices.sell.length) > 0 && (
-                <span className={`px-1.5 py-0.5 text-[10px] font-bold ${
-                  activeMobileTab === 'whatsapp'
-                    ? 'bg-brand-black text-white'
-                    : 'bg-brand-gray/20 text-brand-black/70'
-                }`}>
-                  {whatsappPrices.buy.length + whatsappPrices.sell.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveMobileTab('marketplace')}
-              className={`px-4 py-2 text-xs font-semibold uppercase tracking-wide border-b-2 transition-all whitespace-nowrap flex items-center gap-2 ${
-                activeMobileTab === 'marketplace'
-                  ? 'border-brand-black text-brand-black'
-                  : 'border-transparent text-brand-black/60'
-              }`}
-            >
-              <span>Marketplace</span>
-              {marketplacePrices.length > 0 && (
-                <span className={`px-1.5 py-0.5 text-[10px] font-bold ${
-                  activeMobileTab === 'marketplace'
-                    ? 'bg-brand-black text-white'
-                    : 'bg-brand-gray/20 text-brand-black/70'
-                }`}>
-                  {marketplacePrices.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveMobileTab('international')}
-              className={`px-4 py-2 text-xs font-semibold uppercase tracking-wide border-b-2 transition-all whitespace-nowrap flex items-center gap-2 ${
-                activeMobileTab === 'international'
-                  ? 'border-brand-black text-brand-black'
-                  : 'border-transparent text-brand-black/60'
-              }`}
-            >
-              <span>International</span>
-              {internationalPrices.length > 0 && (
-                <span className={`px-1.5 py-0.5 text-[10px] font-bold ${
-                  activeMobileTab === 'international'
-                    ? 'bg-brand-black text-white'
-                    : 'bg-brand-gray/20 text-brand-black/70'
-                }`}>
-                  {internationalPrices.length}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-        
-        {/* Full-width stacked sections on desktop, tabbed on mobile */}
-        <div className="space-y-3">
-        
-          {/* WhatsApp Groups & Reseller Networks */}
-          <div 
-            ref={(el) => (sectionRefs.current['whatsapp'] = el)}
-            className={`${activeMobileTab !== 'whatsapp' ? 'hidden md:block' : ''}`}
-            data-section="whatsapp"
-          >
-            <CollapsibleSection
-            title="WhatsApp & Reseller Networks"
-            subtitle="Mixed B2B/B2C transactions • Fast liquidity"
-            defaultOpen={true}
-            listingCount={whatsappPrices.buy.length + whatsappPrices.sell.length}
-            bestPrice={
-              whatsappPrices.buy.length > 0 
-                ? whatsappPrices.buy[0].price 
-                : whatsappPrices.sell.length > 0 
-                ? whatsappPrices.sell[0].price 
-                : undefined
-            }
-            priceLabel="Best"
-          >
-            <div className="space-y-3">
-              {/* Controls */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 pb-3 border-b border-brand-gray/20">
-                <div className="flex-1 min-w-0">
-                  <label className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1.5 block">Sort:</label>
+              
+              {/* Location Filter and Sort */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
+                  <label className="text-[10px] text-brand-black/60 uppercase tracking-wide whitespace-nowrap">Location:</label>
+                  <select
+                    value={filterLocation || ''}
+                    onChange={(e) => setFilterLocation(e.target.value || null)}
+                    className="flex-1 text-xs border border-brand-gray/30 bg-brand-white px-2 py-1 text-brand-black focus:outline-none focus:border-brand-black"
+                    style={{ borderRadius: '0px' }}
+                  >
+                    <option value="">All Locations</option>
+                    {Array.from(new Set(unifiedListings.map(row => row.location).filter((loc): loc is string => Boolean(loc)))).map((loc: string) => (
+                      <option key={loc} value={loc}>{loc}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
+                  <label className="text-[10px] text-brand-black/60 uppercase tracking-wide whitespace-nowrap">Sort:</label>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as 'price' | 'quantity' | 'newest')}
-                    className="w-full text-xs border border-brand-gray/30 bg-brand-white px-3 py-2 text-brand-black focus:outline-none focus:border-brand-black"
+                    className="flex-1 text-xs border border-brand-gray/30 bg-brand-white px-2 py-1 text-brand-black focus:outline-none focus:border-brand-black"
                     style={{ borderRadius: '0px' }}
                   >
                     <option value="price">Price: Low to High</option>
@@ -1358,565 +1107,787 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     <option value="newest">Newest First</option>
                   </select>
                 </div>
-                {whatsappPrices.buy.length > 0 && (
-                  <div className="flex-1 min-w-0">
-                    <label className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1.5 block">Location:</label>
-                    <select
-                      value={filterLocation || ''}
-                      onChange={(e) => setFilterLocation(e.target.value || null)}
-                      className="w-full text-xs border border-brand-gray/30 bg-brand-white px-3 py-2 text-brand-black focus:outline-none focus:border-brand-black"
-                      style={{ borderRadius: '0px' }}
-                    >
-                      <option value="">All Locations</option>
-                      {Array.from(new Set(whatsappPrices.buy.map((p: PricePoint) => p.sellerLocation).filter((loc): loc is string => Boolean(loc)))).map((loc: string) => (
-                        <option key={loc} value={loc}>{loc}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
               </div>
-
-              {/* Buy From (Sellers) */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm text-brand-black/70 uppercase tracking-wide font-semibold">
-                    Buy From (Sellers)
-                  </p>
-                  {whatsappPrices.buy.length > 0 && (
-                    <span className="text-xs text-brand-black/50">
-                      {whatsappPrices.buy.length} {whatsappPrices.buy.length === 1 ? 'seller' : 'sellers'}
-                    </span>
-                  )}
-                </div>
-                {whatsappPrices.buy.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {whatsappPrices.buy.map((point: PricePoint, idx: number) => {
-                      const minPrice = Math.min(...whatsappPrices.buy.map((p: PricePoint) => p.price));
-                      const maxPrice = Math.max(...whatsappPrices.buy.map((p: PricePoint) => p.price));
-                      const priceRange = maxPrice - minPrice;
-                      const pricePercent = priceRange > 0 ? ((point.price - minPrice) / priceRange) * 100 : 0;
-                      
-                      return (
-                        <div key={idx} className="p-5 bg-brand-white border border-brand-gray/20 hover:border-green-600/50 hover:shadow-md transition-all group" style={{ borderRadius: '0px' }}>
-                          <div className="flex flex-col h-full">
-                            {/* Price - Most Prominent */}
-                            <div className="flex items-baseline justify-between gap-2 mb-3">
-                              <p className="text-2xl font-bold text-green-600">
-                                ₹{point.price.toLocaleString('en-IN')}
-                              </p>
-                              {idx === 0 && (
-                                <span className="px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-green-600 text-white">
-                                  Best
-                                </span>
-                              )}
-                            </div>
-                            
-                            {/* Visual Price Comparison Bar */}
-                            {whatsappPrices.buy.length > 1 && (
-                              <div className="mb-3">
-                                <div 
-                                  className="h-1.5 bg-brand-gray/20 relative overflow-hidden cursor-help"
-                                  title={`Price comparison: Longer bar = better deal. This listing is ${pricePercent.toFixed(0)}% above the lowest price.`}
-                                >
-                                  <div 
-                                    className="h-full bg-green-600/40 absolute left-0"
-                                    style={{ width: `${100 - pricePercent}%` }}
-                                  />
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Seller Info */}
-                            <p className="text-sm font-semibold text-brand-black truncate mb-2">
-                              {point.sellerName || point.source || 'Seller'}
-                            </p>
-                            
-                            {/* Metadata - Simplified */}
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-brand-black/60 mb-4">
-                              <span className="flex items-center gap-1.5">
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                </svg>
-                                {point.listingCount} {point.listingCount === 1 ? 'pair' : 'pairs'}
-                              </span>
-                              {point.lastSeen && (
-                                <span className="flex items-center gap-1.5">
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  {formatLastSeen(point.lastSeen)}
-                                </span>
-                              )}
-                              {point.sellerLocation && (
-                                <span className="truncate flex items-center gap-1.5">
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                  </svg>
-                                  {point.sellerLocation}
-                                </span>
-                              )}
-                            </div>
-                            
-                            {/* Action Button */}
-                            {point.sellerContact && (
-                              <div className="mt-auto">
-                                <a
-                                  href={`https://wa.me/${point.sellerContact.replace(/[^0-9]/g, '')}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center justify-center w-full py-2.5 bg-green-600 text-white hover:bg-green-700 transition-colors text-sm font-medium"
-                                  style={{ borderRadius: '0px' }}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                                  </svg>
-                                  Contact
-                                </a>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <EmptyState
-                    title="No sellers available"
-                    description="No WhatsApp sellers found for this size"
-                  />
-                )}
-              </div>
-
-              {/* Sell To (Buyers) */}
-              {whatsappPrices.sell.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm text-brand-black/70 uppercase tracking-wide font-semibold">
-                      Sell To (Buyers)
-                    </p>
-                    <span className="text-xs text-brand-black/50">
-                      {whatsappPrices.sell.length} {whatsappPrices.sell.length === 1 ? 'buyer' : 'buyers'}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {whatsappPrices.sell.map((point: PricePoint, idx: number) => {
-                      const maxPrice = Math.max(...whatsappPrices.sell.map((p: PricePoint) => p.price));
-                      const minPrice = Math.min(...whatsappPrices.sell.map((p: PricePoint) => p.price));
-                      const priceRange = maxPrice - minPrice;
-                      const pricePercent = priceRange > 0 ? ((point.price - minPrice) / priceRange) * 100 : 0;
-                      
-                      return (
-                        <div key={idx} className="p-5 bg-brand-white border border-brand-gray/20 hover:border-blue-600/50 hover:shadow-md transition-all group" style={{ borderRadius: '0px' }}>
-                          <div className="flex flex-col h-full">
-                            {/* Price - Most Prominent */}
-                            <div className="flex items-baseline justify-between gap-2 mb-3">
-                              <p className="text-2xl font-bold text-blue-600">
-                                ₹{point.price.toLocaleString('en-IN')}
-                              </p>
-                              {idx === 0 && (
-                                <span className="px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-blue-600 text-white">
-                                  Highest
-                                </span>
-                              )}
-                            </div>
-                            
-                            {/* Visual Price Comparison Bar */}
-                            {whatsappPrices.sell.length > 1 && (
-                              <div className="mb-3">
-                                <div 
-                                  className="h-1.5 bg-brand-gray/20 relative overflow-hidden cursor-help"
-                                  title={`Price comparison: Longer bar = higher offer. This listing is ${pricePercent.toFixed(0)}% above the lowest offer.`}
-                                >
-                                  <div 
-                                    className="h-full bg-blue-600/40 absolute left-0"
-                                    style={{ width: `${pricePercent}%` }}
-                                  />
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Buyer Info */}
-                            <p className="text-sm font-semibold text-brand-black truncate mb-2">
-                              {point.sellerName || point.source || 'Buyer'}
-                            </p>
-                            
-                            {/* Metadata - Simplified */}
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-brand-black/60 mb-4">
-                              <span className="flex items-center gap-1.5">
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                </svg>
-                                {point.listingCount} {point.listingCount === 1 ? 'pair' : 'pairs'}
-                              </span>
-                              {point.lastSeen && (
-                                <span className="flex items-center gap-1.5">
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  {formatLastSeen(point.lastSeen)}
-                                </span>
-                              )}
-                              {point.sellerLocation && (
-                                <span className="truncate flex items-center gap-1.5">
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                  </svg>
-                                  {point.sellerLocation}
-                                </span>
-                              )}
-                            </div>
-                            
-                            {/* Action Button */}
-                            {point.sellerContact && (
-                              <div className="mt-auto">
-                                <a
-                                  href={`https://wa.me/${point.sellerContact.replace(/[^0-9]/g, '')}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center justify-center w-full py-2.5 bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium"
-                                  style={{ borderRadius: '0px' }}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                                  </svg>
-                                  Contact
-                                </a>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
-          </CollapsibleSection>
-          </div>
 
-          {/* Indian Marketplaces */}
-          <div 
-            ref={(el) => (sectionRefs.current['marketplace'] = el)}
-            className={`${activeMobileTab !== 'marketplace' ? 'hidden md:block' : ''}`}
-            data-section="marketplace"
-          >
-            <CollapsibleSection
-            title="Indian Marketplaces"
-            subtitle="All marketplace listings • Transparent pricing"
-            defaultOpen={true}
-            listingCount={marketplacePrices.length}
-            bestPrice={marketplacePrices.length > 0 ? marketplacePrices[0].price : undefined}
-            priceLabel="Cheapest"
-          >
-            <div className="space-y-3">
-              {/* Controls */}
-              <div className="pb-3 border-b border-brand-gray/20">
-                <label className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1.5 block">Sort:</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'price' | 'quantity' | 'newest')}
-                  className="w-full text-xs border border-brand-gray/30 bg-brand-white px-3 py-2 text-brand-black focus:outline-none focus:border-brand-black"
-                  style={{ borderRadius: '0px' }}
-                >
-                  <option value="price">Price: Low to High</option>
-                  <option value="quantity">Quantity: High to Low</option>
-                  <option value="newest">Newest First</option>
-                </select>
-              </div>
-
-              {/* Listings */}
-              {marketplacePrices.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {marketplacePrices.map((point: PricePoint, idx: number) => {
-                    const minPrice = Math.min(...marketplacePrices.map((p: PricePoint) => p.price));
-                    const maxPrice = Math.max(...marketplacePrices.map((p: PricePoint) => p.price));
-                    const priceRange = maxPrice - minPrice;
-                    const pricePercent = priceRange > 0 ? ((point.price - minPrice) / priceRange) * 100 : 0;
-                    
+            <div className="overflow-x-auto -mx-2 md:mx-0">
+              {(() => {
+                let filtered = unifiedListings;
+                
+                // Apply channel filter
+                if (unifiedChannelFilter !== 'all') {
+                  filtered = filtered.filter((row) => row.channel === unifiedChannelFilter);
+                }
+                
+                // Apply side filter
+                if (unifiedSideFilter !== 'all') {
+                  filtered = filtered.filter((row) => row.side === unifiedSideFilter);
+                }
+                
+                // Apply location filter
+                if (filterLocation) {
+                  filtered = filtered.filter((row) => 
+                    row.location?.toLowerCase().includes(filterLocation.toLowerCase())
+                  );
+                }
+                
+                // Apply sorting
+                filtered = [...filtered].sort((a, b) => {
+                  if (sortBy === 'price') {
+                    const aPrice = a.landedPrice ?? a.price;
+                    const bPrice = b.landedPrice ?? b.price;
+                    return aPrice - bPrice;
+                  } else if (sortBy === 'quantity') {
+                    return b.listingCount - a.listingCount;
+                  } else if (sortBy === 'newest') {
+                    const aDate = a.lastSeen ? (typeof a.lastSeen === 'string' ? new Date(a.lastSeen) : a.lastSeen) : new Date(0);
+                    const bDate = b.lastSeen ? (typeof b.lastSeen === 'string' ? new Date(b.lastSeen) : b.lastSeen) : new Date(0);
+                    return bDate.getTime() - aDate.getTime();
+                  }
+                  return 0;
+                });
+                
+                return (
+              <table className="min-w-full text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-brand-gray/30 bg-brand-gray/5">
+                    <th className="text-left px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Channel</th>
+                    <th className="text-left px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Side</th>
+                    <th className="text-right px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Price</th>
+                    <th className="text-right px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Landed</th>
+                    <th className="text-right px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Qty</th>
+                    <th className="text-left px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Source</th>
+                    <th className="text-left px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Location</th>
+                    <th className="text-left px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Last Seen</th>
+                    <th className="text-center px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((row, idx) => {
+                    const priceDisplay = row.price ? `₹${row.price.toLocaleString('en-IN')}` : '—';
+                    const landedDisplay =
+                      row.landedPrice && row.landedPrice !== row.price
+                        ? `₹${row.landedPrice.toLocaleString('en-IN')}`
+                        : '—';
                     return (
-                      <div key={idx} className="p-5 bg-brand-white border border-brand-gray/20 hover:border-blue-600/50 hover:shadow-md transition-all group" style={{ borderRadius: '0px' }}>
-                        <div className="flex flex-col h-full">
-                          {/* Price - Most Prominent */}
-                          <div className="flex items-baseline justify-between gap-2 mb-3">
-                            <p className="text-2xl font-bold text-blue-600">
-                              ₹{point.price.toLocaleString('en-IN')}
-                            </p>
-                            {idx === 0 && (
-                              <span className="px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-blue-600 text-white">
-                                Cheapest
-                              </span>
-                            )}
-                          </div>
-                          
-                          {/* Visual Price Comparison Bar */}
-                          {marketplacePrices.length > 1 && (
-                            <div className="mb-3">
-                              <div 
-                                className="h-1.5 bg-brand-gray/20 relative overflow-hidden cursor-help"
-                                title={`Price comparison: Longer bar = better deal. This listing is ${pricePercent.toFixed(0)}% above the cheapest price.`}
-                              >
-                                <div 
-                                  className="h-full bg-blue-600/40 absolute left-0"
-                                  style={{ width: `${100 - pricePercent}%` }}
-                                />
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Marketplace Info */}
-                          <p className="text-sm font-semibold text-brand-black truncate mb-2">
-                            {point.marketplaceName || point.source || 'Marketplace'}
-                          </p>
-                          
-                          {/* Metadata - Simplified */}
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-brand-black/60 mb-4">
-                            <span className="flex items-center gap-1.5">
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                              </svg>
-                              {point.listingCount} {point.listingCount === 1 ? 'listing' : 'listings'}
-                            </span>
-                            {point.lastSeen && (
-                              <span className="flex items-center gap-1.5">
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                {formatLastSeen(point.lastSeen)}
-                              </span>
-                            )}
-                          </div>
-                          
-                          {/* Action Button */}
-                          {point.url && (
-                            <div className="mt-auto">
+                      <tr
+                        key={idx}
+                        className="border-b border-brand-gray/10 hover:bg-brand-gray/5 transition-colors"
+                      >
+                        <td className="px-2 py-1.5 text-brand-black/80">
+                          {row.channel}
+                        </td>
+                        <td className="px-2 py-1.5 text-brand-black/80">
+                          {row.side}
+                        </td>
+                        <td className="px-2 py-1.5 text-right font-mono-numeric text-brand-black">
+                          {priceDisplay}
+                        </td>
+                        <td className="px-2 py-1.5 text-right font-mono-numeric text-brand-black/80">
+                          {landedDisplay}
+                        </td>
+                        <td className="px-2 py-1.5 text-right font-mono-numeric text-brand-black/80">
+                          {row.listingCount}
+                        </td>
+                        <td className="px-2 py-1.5 text-brand-black/80 truncate max-w-[120px]">
+                          {row.sourceLabel}
+                        </td>
+                        <td className="px-2 py-1.5 text-brand-black/60 truncate max-w-[100px]">
+                          {row.location || '—'}
+                        </td>
+                        <td className="px-2 py-1.5 text-brand-black/60 whitespace-nowrap">
+                          {row.lastSeen ? formatLastSeen(row.lastSeen) : '—'}
+                        </td>
+                        <td className="px-2 py-1.5 text-center">
+                          {row.contactType && row.contactValue ? (
+                            row.contactType === 'whatsapp' ? (
                               <a
-                                href={point.url}
+                                href={`https://wa.me/${row.contactValue.replace(/[^0-9]/g, '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center justify-center w-full py-2.5 border border-brand-gray/30 hover:border-brand-black hover:bg-brand-black hover:text-white transition-all text-sm font-medium"
+                                className="inline-flex items-center justify-center px-2.5 py-1 text-[10px] font-medium border border-green-600 text-green-700 hover:bg-green-600 hover:text-white transition-colors"
                                 style={{ borderRadius: '0px' }}
-                                onClick={(e) => e.stopPropagation()}
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                                View Listing
+                                {row.side === 'Sell' ? 'Sell to' : 'Buy from'}
                               </a>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <EmptyState
-                  title="No marketplace listings"
-                  description="No listings found on Indian marketplaces"
-                />
-              )}
-            </div>
-          </CollapsibleSection>
-          </div>
-
-          {/* International Platforms */}
-          <div 
-            ref={(el) => (sectionRefs.current['international'] = el)}
-            className={`${activeMobileTab !== 'international' ? 'hidden md:block' : ''}`}
-            data-section="international"
-          >
-            <CollapsibleSection
-            title="International Platforms"
-            subtitle="StockX, Goat, eBay • Authentication included"
-            defaultOpen={true}
-            listingCount={internationalPrices.length}
-            bestPrice={internationalPrices.length > 0 
-              ? Math.min(...internationalPrices.map(p => p.price + (p.reshippingCost || 0)))
-              : undefined}
-            priceLabel="Best Landed"
-          >
-            <div className="space-y-3">
-              {/* Controls */}
-              <div className="pb-3 border-b border-brand-gray/20">
-                <label className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1.5 block">Sort:</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'price' | 'quantity' | 'newest')}
-                  className="w-full text-xs border border-brand-gray/30 bg-brand-white px-3 py-2 text-brand-black focus:outline-none focus:border-brand-black"
-                  style={{ borderRadius: '0px' }}
-                >
-                  <option value="price">Total Landed: Low to High</option>
-                  <option value="quantity">Quantity: High to Low</option>
-                  <option value="newest">Newest First</option>
-                </select>
-              </div>
-
-              {/* Platform Listings */}
-              {internationalPrices.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {internationalPrices.map((point: PricePoint, idx: number) => {
-                    const reshippingCost = point.reshippingCost || 0;
-                    const platformPrice = point.price;
-                    const totalLanded = platformPrice + reshippingCost;
-                    const allTotals = internationalPrices.map(p => p.price + (p.reshippingCost || 0));
-                    const minTotal = Math.min(...allTotals);
-                    const maxTotal = Math.max(...allTotals);
-                    const totalRange = maxTotal - minTotal;
-                    const totalPercent = totalRange > 0 ? ((totalLanded - minTotal) / totalRange) * 100 : 0;
-                    const isCheapest = idx === 0 || totalLanded === minTotal;
-                    
-                    return (
-                      <div key={idx} className="p-5 bg-brand-white border border-brand-gray/20 hover:border-purple-600/50 hover:shadow-md transition-all group" style={{ borderRadius: '0px' }}>
-                        <div className="flex flex-col h-full">
-                          {/* Price - Most Prominent */}
-                          <div className="flex items-baseline justify-between gap-2 mb-3">
-                            <p className="text-2xl font-bold text-purple-600">
-                              ₹{totalLanded.toLocaleString('en-IN')}
-                            </p>
-                            {isCheapest && (
-                              <span className="px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-purple-600 text-white">
-                                Best
-                              </span>
-                            )}
-                          </div>
-                          
-                          {/* Visual Price Comparison Bar */}
-                          {internationalPrices.length > 1 && (
-                            <div className="mb-3">
-                              <div 
-                                className="h-1.5 bg-brand-gray/20 relative overflow-hidden cursor-help"
-                                title={`Price comparison: Longer bar = better deal. This listing is ${totalPercent.toFixed(0)}% above the best landed price.`}
-                              >
-                                <div 
-                                  className="h-full bg-purple-600/40 absolute left-0"
-                                  style={{ width: `${100 - totalPercent}%` }}
-                                />
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Price Breakdown - Inline */}
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2 text-xs text-brand-black/60">
-                            <span>Platform: ₹{platformPrice.toLocaleString('en-IN')}</span>
-                            {reshippingCost > 0 && (
-                              <>
-                                <span>+</span>
-                                <span>Shipping: ₹{reshippingCost.toLocaleString('en-IN')}</span>
-                              </>
-                            )}
-                          </div>
-                          
-                          {/* Platform Info */}
-                          <p className="text-sm font-semibold text-brand-black truncate mb-2">
-                            {point.marketplaceName || point.source || 'International Platform'}
-                          </p>
-                          
-                          {/* Metadata - Simplified */}
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-brand-black/60 mb-4">
-                            <span className="flex items-center gap-1.5">
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                              </svg>
-                              {point.listingCount} {point.listingCount === 1 ? 'listing' : 'listings'}
-                            </span>
-                            {point.lastSeen && (
-                              <span className="flex items-center gap-1.5">
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                {formatLastSeen(point.lastSeen)}
-                              </span>
-                            )}
-                          </div>
-                          
-                          {/* Action Button */}
-                          {point.url && (
-                            <div className="mt-auto">
+                            ) : (
                               <a
-                                href={point.url}
+                                href={row.contactValue}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center justify-center w-full py-2.5 border border-brand-gray/30 hover:border-brand-black hover:bg-brand-black hover:text-white transition-all text-sm font-medium"
+                                className="inline-flex items-center justify-center px-2.5 py-1 text-[10px] font-medium border border-brand-gray/40 text-brand-black hover:border-brand-black hover:bg-brand-black hover:text-white transition-colors"
                                 style={{ borderRadius: '0px' }}
-                                onClick={(e) => e.stopPropagation()}
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                                View Listing
+                                {row.side === 'Sell' ? 'Sell to' : 'Buy from'}
                               </a>
-                            </div>
+                            )
+                          ) : (
+                            <span className="text-[10px] text-brand-black/30">—</span>
                           )}
-                        </div>
-                      </div>
+                        </td>
+                      </tr>
                     );
                   })}
-                </div>
-              ) : (
-                <EmptyState
-                  title="No international listings"
-                  description="No listings found on international platforms"
-                />
-              )}
+                </tbody>
+              </table>
+                );
+              })()}
             </div>
           </CollapsibleSection>
-          </div>
         </div>
+      )}
+
+      {/* Arbitrage Opportunities - per asset/size */}
+      <div ref={(el) => (sectionRefs.current['arbitrage'] = el)}>
+        <CollapsibleSection
+          title="Arbitrage Opportunities"
+          subtitle="Cross-channel ideas for this asset/size using current listings"
+          defaultOpen={true}
+        >
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <div className="flex items-center gap-1.5 text-[10px]">
+              <label className="text-brand-black/60 uppercase tracking-wide">Min Net %</label>
+              <input
+                type="number"
+                value={(minArbNetPct * 100).toFixed(1)}
+                onChange={(e) => setMinArbNetPct(Math.max(0, Number(e.target.value) / 100))}
+                className="w-16 border border-brand-gray/30 px-1.5 py-1 text-[10px] text-brand-black focus:outline-none focus:border-brand-black"
+                style={{ borderRadius: '0px' }}
+                step="0.5"
+              />
+              <label className="text-brand-black/60 uppercase tracking-wide">Min Net ₹</label>
+              <input
+                type="number"
+                value={minArbNetRs}
+                onChange={(e) => setMinArbNetRs(Math.max(0, Number(e.target.value)))}
+                className="w-20 border border-brand-gray/30 px-1.5 py-1 text-[10px] text-brand-black focus:outline-none focus:border-brand-black"
+                style={{ borderRadius: '0px' }}
+                step="500"
+              />
+            </div>
+            <div className="text-[10px] text-brand-black/50 font-mono-numeric">
+              {arbitrageOpps.length} idea{arbitrageOpps.length === 1 ? "" : "s"}
+            </div>
+          </div>
+
+          <div className="overflow-x-auto -mx-2 md:mx-0">
+            <table className="min-w-full text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-brand-gray/30 bg-brand-gray/5">
+                  <th className="text-left px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Buy</th>
+                  <th className="text-left px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Sell</th>
+                  <th className="text-right px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Net ₹</th>
+                  <th className="text-right px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Net %</th>
+                  <th className="text-center px-2 py-1.5 font-semibold text-brand-black/70 uppercase tracking-wide">Liquidity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {arbitrageOpps.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-2 py-6 text-center text-brand-black/50">
+                      No opportunities match the filters.
+                    </td>
+                  </tr>
+                ) : (
+                  arbitrageOpps.map((opp, idx) => (
+                    <tr
+                      key={idx}
+                      className="border-b border-brand-gray/10 hover:bg-brand-gray/5 transition-colors"
+                    >
+                      <td className="px-2 py-1.5">
+                        <div className="text-brand-black font-semibold">
+                          {opp.buy.channel}
+                        </div>
+                        <div className="text-[10px] text-brand-black/60 truncate max-w-[160px]">
+                          {opp.buy.source}
+                        </div>
+                        <div className="text-[10px] text-brand-black/80 font-mono-numeric">
+                          Buy: ₹{opp.buy.price.toLocaleString("en-IN")}
+                          {opp.buy.allIn !== opp.buy.price && (
+                            <span className="text-brand-black/60"> → All-in ₹{opp.buy.allIn.toLocaleString("en-IN")}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <div className="text-brand-black font-semibold">
+                          {opp.sell.channel}
+                        </div>
+                        <div className="text-[10px] text-brand-black/60 truncate max-w-[160px]">
+                          {opp.sell.source}
+                        </div>
+                        <div className="text-[10px] text-brand-black/80 font-mono-numeric">
+                          Sell: ₹{opp.sell.price.toLocaleString("en-IN")}
+                          {opp.sell.net && opp.sell.net !== opp.sell.price && (
+                            <span className="text-brand-black/60"> → Net ₹{opp.sell.net.toLocaleString("en-IN")}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-2 py-1.5 text-right font-mono-numeric font-semibold text-green-700">
+                        ₹{opp.netProfit.toLocaleString("en-IN")}
+                      </td>
+                      <td className="px-2 py-1.5 text-right font-mono-numeric font-semibold">
+                        {(opp.netPct * 100).toFixed(1)}%
+                      </td>
+                      <td className="px-2 py-1.5 text-center text-[10px] text-brand-black/70">
+                        <div>Buy: {opp.buy.count ?? 1}</div>
+                        <div>Sell: {opp.sell.count ?? 1}</div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CollapsibleSection>
       </div>
 
-      {/* Performance Metrics - Collapsible */}
+      {/* Market Channels Comparison Summary - Enhanced Bloomberg Terminal Style */}
+      <div ref={(el) => (sectionRefs.current['market-summary'] = el)}>
+        <CollapsibleSection
+        title="Market Comparison Summary"
+        subtitle="Unified market view, arbitrage opportunities, and liquidity assessment"
+        defaultOpen={false}
+      >
+        {(() => {
+          // Calculate all prices for unified view
+          const whatsappBest = whatsappPrices.buy.length > 0 ? whatsappPrices.buy[0].price : 0;
+          const whatsappMax = whatsappPrices.buy.length > 0 ? Math.max(...whatsappPrices.buy.map(p => p.price)) : 0;
+          const whatsappAvg = whatsappPrices.buy.length > 0 
+            ? Math.round(whatsappPrices.buy.reduce((sum, p) => sum + p.price, 0) / whatsappPrices.buy.length) 
+            : 0;
+          
+          const marketplaceBest = marketplacePrices.length > 0 ? marketplacePrices[0].price : 0;
+          const marketplaceMax = marketplacePrices.length > 0 ? marketplacePrices[marketplacePrices.length - 1].price : 0;
+          const marketplaceAvg = marketplacePrices.length > 0 
+            ? Math.round(marketplacePrices.reduce((sum, p) => sum + p.price, 0) / marketplacePrices.length) 
+            : 0;
+          
+          const internationalBest = internationalPrices.length > 0 
+            ? Math.min(...internationalPrices.map(p => p.price + (p.reshippingCost || 0))) 
+            : 0;
+          const internationalAll = internationalPrices.length > 0 
+            ? internationalPrices.map(p => p.price + (p.reshippingCost || 0)) 
+            : [];
+          const internationalMax = internationalAll.length > 0 ? Math.max(...internationalAll) : 0;
+          const internationalAvg = internationalAll.length > 0 
+            ? Math.round(internationalAll.reduce((sum, p) => sum + p, 0) / internationalAll.length) 
+            : 0;
+          
+          // Unified market range
+          const allPrices = [
+            whatsappBest, whatsappMax,
+            marketplaceBest, marketplaceMax,
+            internationalBest, internationalMax,
+            anchor?.retailIndia || 0
+          ].filter(p => p > 0);
+          
+          const marketMin = allPrices.length > 0 ? Math.min(...allPrices) : 0;
+          const marketMax = allPrices.length > 0 ? Math.max(...allPrices) : 0;
+          const marketRange = marketMax - marketMin;
+          
+          // Best arbitrage opportunity
+          const bestArb = arbitrageOpps.length > 0 ? arbitrageOpps[0] : null;
+          
+          // Liquidity calculations
+          const totalListings = {
+            whatsapp: whatsappPrices.buy.length + whatsappPrices.sell.length,
+            marketplace: marketplacePrices.length,
+            international: internationalPrices.length,
+          };
+          const totalListingsCount = totalListings.whatsapp + totalListings.marketplace + totalListings.international;
+          
+          // Market depth at best price
+          const bestPriceListings = {
+            whatsapp: whatsappBest > 0 ? whatsappPrices.buy.filter(p => p.price === whatsappBest).reduce((sum, p) => sum + (p.listingCount || 1), 0) : 0,
+            marketplace: marketplaceBest > 0 ? marketplacePrices.filter(p => p.price === marketplaceBest).reduce((sum, p) => sum + (p.listingCount || 1), 0) : 0,
+            international: internationalBest > 0 ? internationalPrices.filter(p => (p.price + (p.reshippingCost || 0)) === internationalBest).reduce((sum, p) => sum + (p.listingCount || 1), 0) : 0,
+          };
+          const totalBestPriceListings = bestPriceListings.whatsapp + bestPriceListings.marketplace + bestPriceListings.international;
+          
+          // Liquidity assessment
+          const getLiquidityScore = () => {
+            if (totalListingsCount === 0) return { level: 'None', label: 'No Data', color: 'text-brand-black/40' };
+            if (totalListingsCount >= 20) return { level: 'High', label: 'Fast', color: 'text-green-600' };
+            if (totalListingsCount >= 10) return { level: 'Medium', label: 'Moderate', color: 'text-yellow-600' };
+            return { level: 'Low', label: 'Slow', color: 'text-red-600' };
+          };
+          
+          const liquidity = getLiquidityScore();
+          
+          // Best channel to sell (most listings)
+          const bestSellChannel = totalListings.marketplace >= totalListings.whatsapp && totalListings.marketplace >= totalListings.international
+            ? { name: 'Marketplace', count: totalListings.marketplace }
+            : totalListings.whatsapp >= totalListings.international
+            ? { name: 'WhatsApp', count: totalListings.whatsapp }
+            : { name: 'International', count: totalListings.international };
+          
+          const getPosition = (price: number) => marketRange > 0 ? ((price - marketMin) / marketRange) * 100 : 0;
+          
+          return (
+            <div className="space-y-4">
+              {/* 1. Best Arbitrage Opportunity - Prominent */}
+              {bestArb && (
+                <div className={`border-l-4 p-4 ${
+                  bestArb.netPct >= 0.1 
+                    ? 'bg-green-500/5 border-green-600' 
+                    : bestArb.netPct >= 0.05
+                    ? 'bg-yellow-500/5 border-yellow-600'
+                    : 'bg-brand-gray/5 border-brand-gray/30'
+                }`} style={{ borderRadius: '0px' }}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`text-xs font-bold uppercase tracking-wide ${
+                          bestArb.netPct >= 0.1 ? 'text-green-700' : bestArb.netPct >= 0.05 ? 'text-yellow-700' : 'text-brand-black/70'
+                        }`}>
+                          Best Arbitrage Opportunity
+                        </span>
+                        {bestArb.netPct >= 0.1 && (
+                          <span className="px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-green-600 text-white">
+                            High Profit
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-[10px] text-brand-black/60 uppercase tracking-wide">Buy from:</span>
+                          <span className="text-sm font-mono-numeric font-semibold text-brand-black">
+                            {bestArb.buy.channel} @ ₹{bestArb.buy.allIn.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-[10px] text-brand-black/60 uppercase tracking-wide">Sell to:</span>
+                          <span className="text-sm font-mono-numeric font-semibold text-brand-black">
+                            {bestArb.sell.channel} @ ₹{(bestArb.sell.net || bestArb.sell.price).toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <div className="pt-2 border-t border-brand-gray/20">
+                          <div className="flex items-baseline gap-3">
+                            <div>
+                              <span className="text-[10px] text-brand-black/60 uppercase tracking-wide block mb-0.5">Net Profit</span>
+                              <span className={`text-xl font-mono-numeric font-bold ${bestArb.netPct >= 0.1 ? 'text-green-600' : bestArb.netPct >= 0.05 ? 'text-yellow-600' : 'text-brand-black'}`}>
+                                ₹{bestArb.netProfit.toLocaleString('en-IN')}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-brand-black/60 uppercase tracking-wide block mb-0.5">Return %</span>
+                              <span className={`text-xl font-mono-numeric font-bold ${bestArb.netPct >= 0.1 ? 'text-green-600' : bestArb.netPct >= 0.05 ? 'text-yellow-600' : 'text-brand-black'}`}>
+                                {(bestArb.netPct * 100).toFixed(1)}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => scrollToSection('arbitrage')}
+                      className="px-3 py-1.5 text-xs font-medium border border-brand-black hover:bg-brand-black hover:text-white transition-colors whitespace-nowrap"
+                      style={{ borderRadius: '0px' }}
+                    >
+                      View All →
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* 2. Unified Market Price View */}
+              <div className="border border-brand-gray/30 p-4" style={{ borderRadius: '0px' }}>
+                <h4 className="text-[10px] font-semibold uppercase tracking-wide text-brand-black mb-3">Unified Market Price View</h4>
+                {marketRange > 0 ? (
+                  <div className="space-y-4">
+                    {/* Single unified bar */}
+                    <div className="w-full bg-brand-gray/10 h-8 relative border border-brand-gray/20" style={{ borderRadius: '0px' }}>
+                      {/* Channel segments */}
+                      {whatsappBest > 0 && (
+                        <>
+                          <div 
+                            className="absolute top-0 h-full bg-green-600/30"
+                            style={{ 
+                              left: `${getPosition(whatsappBest)}%`,
+                              width: `${getPosition(whatsappMax) - getPosition(whatsappBest)}%`,
+                            }}
+                            title={`WhatsApp: ₹${whatsappBest.toLocaleString('en-IN')} - ₹${whatsappMax.toLocaleString('en-IN')}`}
+                          />
+                          <div 
+                            className="absolute top-0 h-full w-0.5 bg-green-600"
+                            style={{ left: `${getPosition(whatsappBest)}%` }}
+                            title={`WhatsApp Best: ₹${whatsappBest.toLocaleString('en-IN')}`}
+                          />
+                        </>
+                      )}
+                      {marketplaceBest > 0 && (
+                        <>
+                          <div 
+                            className="absolute top-0 h-full bg-blue-600/30"
+                            style={{ 
+                              left: `${getPosition(marketplaceBest)}%`,
+                              width: `${getPosition(marketplaceMax) - getPosition(marketplaceBest)}%`,
+                            }}
+                            title={`Marketplace: ₹${marketplaceBest.toLocaleString('en-IN')} - ₹${marketplaceMax.toLocaleString('en-IN')}`}
+                          />
+                          <div 
+                            className="absolute top-0 h-full w-0.5 bg-blue-600"
+                            style={{ left: `${getPosition(marketplaceBest)}%` }}
+                            title={`Marketplace Best: ₹${marketplaceBest.toLocaleString('en-IN')}`}
+                          />
+                        </>
+                      )}
+                      {internationalBest > 0 && (
+                        <>
+                          <div 
+                            className="absolute top-0 h-full bg-purple-600/30"
+                            style={{ 
+                              left: `${getPosition(internationalBest)}%`,
+                              width: `${getPosition(internationalMax) - getPosition(internationalBest)}%`,
+                            }}
+                            title={`International: ₹${internationalBest.toLocaleString('en-IN')} - ₹${internationalMax.toLocaleString('en-IN')}`}
+                          />
+                          <div 
+                            className="absolute top-0 h-full w-0.5 bg-purple-600"
+                            style={{ left: `${getPosition(internationalBest)}%` }}
+                            title={`International Best: ₹${internationalBest.toLocaleString('en-IN')}`}
+                          />
+                        </>
+                      )}
+                      {/* Retail reference */}
+                      {anchor?.retailIndia && (
+                        <div 
+                          className="absolute top-0 h-full w-0.5 bg-brand-black/40"
+                          style={{ left: `${getPosition(anchor.retailIndia)}%` }}
+                          title={`Retail (India): ₹${anchor.retailIndia.toLocaleString('en-IN')}`}
+                        />
+                      )}
+                      {/* Price labels at bottom */}
+                      <div className="absolute -bottom-5 left-0 right-0 flex justify-between text-[9px] font-mono-numeric text-brand-black/60">
+                        <span>₹{marketMin.toLocaleString('en-IN')}</span>
+                        {anchor?.retailIndia && (
+                          <span className="text-brand-black/40">Retail: ₹{anchor.retailIndia.toLocaleString('en-IN')}</span>
+                        )}
+                        <span>₹{marketMax.toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Channel legend */}
+                    <div className="grid grid-cols-3 gap-3 pt-2">
+                      {whatsappBest > 0 && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-green-600"></div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[9px] font-semibold text-brand-black uppercase tracking-wide">WhatsApp</div>
+                            <div className="text-xs font-mono-numeric font-bold text-green-600">₹{whatsappBest.toLocaleString('en-IN')}</div>
+                          </div>
+                        </div>
+                      )}
+                      {marketplaceBest > 0 && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-blue-600"></div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[9px] font-semibold text-brand-black uppercase tracking-wide">Marketplace</div>
+                            <div className="text-xs font-mono-numeric font-bold text-blue-600">₹{marketplaceBest.toLocaleString('en-IN')}</div>
+                          </div>
+                        </div>
+                      )}
+                      {internationalBest > 0 && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-purple-600"></div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[9px] font-semibold text-brand-black uppercase tracking-wide">International</div>
+                            <div className="text-xs font-mono-numeric font-bold text-purple-600">₹{internationalBest.toLocaleString('en-IN')}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-xs text-brand-black/50">No price data available</div>
+                )}
+              </div>
+              
+              {/* 3. Liquidity Assessment */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="border border-brand-gray/30 p-3" style={{ borderRadius: '0px' }}>
+                  <div className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1">Liquidity Score</div>
+                  <div className={`text-2xl font-bold ${liquidity.color} mb-1`}>{liquidity.level}</div>
+                  <div className="text-xs text-brand-black/70">{liquidity.label} to sell</div>
+                </div>
+                <div className="border border-brand-gray/30 p-3" style={{ borderRadius: '0px' }}>
+                  <div className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1">Market Depth</div>
+                  <div className="text-2xl font-mono-numeric font-bold text-brand-black mb-1">
+                    {totalBestPriceListings}
+                  </div>
+                  <div className="text-xs text-brand-black/70">listings at best price</div>
+                </div>
+                <div className="border border-brand-gray/30 p-3" style={{ borderRadius: '0px' }}>
+                  <div className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1">Best Channel to Sell</div>
+                  <div className="text-lg font-semibold text-brand-black mb-1">{bestSellChannel.name}</div>
+                  <div className="text-xs text-brand-black/70">{bestSellChannel.count} listings</div>
+                </div>
+              </div>
+              
+              {/* 4. Compact Channel Comparison Table */}
+              <div className="border border-brand-gray/30" style={{ borderRadius: '0px' }}>
+                <div className="bg-brand-gray/5 border-b border-brand-gray/20 px-3 py-2">
+                  <h4 className="text-[10px] font-semibold uppercase tracking-wide text-brand-black">Channel Comparison</h4>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-brand-gray/20 bg-brand-gray/5">
+                        <th className="text-left px-3 py-2 font-semibold text-brand-black/70 uppercase tracking-wide">Channel</th>
+                        <th className="text-right px-3 py-2 font-semibold text-brand-black/70 uppercase tracking-wide">Best Price</th>
+                        <th className="text-right px-3 py-2 font-semibold text-brand-black/70 uppercase tracking-wide">Avg Price</th>
+                        <th className="text-right px-3 py-2 font-semibold text-brand-black/70 uppercase tracking-wide">Listings</th>
+                        <th className="text-right px-3 py-2 font-semibold text-brand-black/70 uppercase tracking-wide">At Best</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {whatsappBest > 0 && (
+                        <tr className="border-b border-brand-gray/10 hover:bg-brand-gray/5">
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-1.5 h-1.5 bg-green-600"></div>
+                              <span className="font-semibold text-brand-black">WhatsApp</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono-numeric font-bold text-green-600">
+                            ₹{whatsappBest.toLocaleString('en-IN')}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono-numeric text-brand-black">
+                            ₹{whatsappAvg.toLocaleString('en-IN')}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono-numeric text-brand-black">
+                            {totalListings.whatsapp}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono-numeric text-brand-black/70">
+                            {bestPriceListings.whatsapp}
+                          </td>
+                        </tr>
+                      )}
+                      {marketplaceBest > 0 && (
+                        <tr className="border-b border-brand-gray/10 hover:bg-brand-gray/5">
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-1.5 h-1.5 bg-blue-600"></div>
+                              <span className="font-semibold text-brand-black">Marketplace</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono-numeric font-bold text-blue-600">
+                            ₹{marketplaceBest.toLocaleString('en-IN')}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono-numeric text-brand-black">
+                            ₹{marketplaceAvg.toLocaleString('en-IN')}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono-numeric text-brand-black">
+                            {totalListings.marketplace}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono-numeric text-brand-black/70">
+                            {bestPriceListings.marketplace}
+                          </td>
+                        </tr>
+                      )}
+                      {internationalBest > 0 && (
+                        <tr className="border-b border-brand-gray/10 hover:bg-brand-gray/5">
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-1.5 h-1.5 bg-purple-600"></div>
+                              <span className="font-semibold text-brand-black">International</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono-numeric font-bold text-purple-600">
+                            ₹{internationalBest.toLocaleString('en-IN')}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono-numeric text-brand-black">
+                            ₹{internationalAvg.toLocaleString('en-IN')}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono-numeric text-brand-black">
+                            {totalListings.international}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono-numeric text-brand-black/70">
+                            {bestPriceListings.international}
+                          </td>
+                        </tr>
+                      )}
+                      {whatsappBest === 0 && marketplaceBest === 0 && internationalBest === 0 && (
+                        <tr>
+                          <td colSpan={5} className="px-3 py-6 text-center text-brand-black/50">
+                            No market data available
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </CollapsibleSection>
+      </div>
+
+
+      {/* Performance Metrics - Enhanced */}
       <div ref={(el) => (sectionRefs.current['performance'] = el)}>
         <CollapsibleSection
         title="Performance Metrics"
-        subtitle="Historical performance and volatility data"
+        subtitle="Price trends, volatility, and market efficiency"
         defaultOpen={false}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
-          <div>
-            <p className="text-xs text-brand-black/60 uppercase tracking-wide mb-2">30d Change</p>
-            <p
-              className={`text-2xl font-semibold ${
-                currentData.change30d?.startsWith("-")
-                  ? "text-red-600"
-                  : currentData.change30d?.startsWith("+")
-                  ? "text-green-600"
-                  : "text-brand-black"
-              }`}
-            >
-              {currentData.change30d || "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-brand-black/60 uppercase tracking-wide mb-2">90d Change</p>
-            <p
-              className={`text-2xl font-semibold ${
-                currentData.change90d?.startsWith("-")
-                  ? "text-red-600"
-                  : currentData.change90d?.startsWith("+")
-                  ? "text-green-600"
-                  : "text-brand-black"
-              }`}
-            >
-              {currentData.change90d || "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-brand-black/60 uppercase tracking-wide mb-2">Volatility</p>
-            <p className="text-2xl font-semibold text-brand-black capitalize">{asset.volatility || "—"}</p>
-          </div>
-          <div>
-            <p className="text-xs text-brand-black/60 uppercase tracking-wide mb-2">Last Updated</p>
-            <p className="text-sm font-medium text-brand-black">
-              {currentData.lastUpdated 
-                ? new Date(currentData.lastUpdated).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-                : "—"}
-            </p>
-          </div>
-        </div>
+        {(() => {
+          // Calculate price range width
+          const whatsappBest = whatsappPrices.buy.length > 0 ? whatsappPrices.buy[0].price : 0;
+          const whatsappMax = whatsappPrices.buy.length > 0 ? Math.max(...whatsappPrices.buy.map(p => p.price)) : 0;
+          const marketplaceBest = marketplacePrices.length > 0 ? marketplacePrices[0].price : 0;
+          const marketplaceMax = marketplacePrices.length > 0 ? marketplacePrices[marketplacePrices.length - 1].price : 0;
+          const internationalBest = internationalPrices.length > 0 
+            ? Math.min(...internationalPrices.map(p => p.price + (p.reshippingCost || 0))) 
+            : 0;
+          const internationalAll = internationalPrices.length > 0 
+            ? internationalPrices.map(p => p.price + (p.reshippingCost || 0)) 
+            : [];
+          const internationalMax = internationalAll.length > 0 ? Math.max(...internationalAll) : 0;
+          
+          const allPrices = [whatsappBest, whatsappMax, marketplaceBest, marketplaceMax, internationalBest, internationalMax].filter(p => p > 0);
+          const marketMin = allPrices.length > 0 ? Math.min(...allPrices) : 0;
+          const marketMax = allPrices.length > 0 ? Math.max(...allPrices) : 0;
+          const priceRangeWidth = marketMax - marketMin;
+          const priceRangePct = marketMin > 0 ? (priceRangeWidth / marketMin) * 100 : 0;
+          
+          // Price stability assessment
+          const getPriceStability = () => {
+            if (priceRangePct === 0) return { level: 'N/A', label: 'No Data', color: 'text-brand-black/40' };
+            if (priceRangePct <= 5) return { level: 'Tight', label: 'Very Stable', color: 'text-green-600' };
+            if (priceRangePct <= 15) return { level: 'Moderate', label: 'Stable', color: 'text-yellow-600' };
+            return { level: 'Wide', label: 'Volatile', color: 'text-red-600' };
+          };
+          
+          const priceStability = getPriceStability();
+          
+          // Market efficiency (how close best prices are to average)
+          const whatsappAvg = whatsappPrices.buy.length > 0 
+            ? whatsappPrices.buy.reduce((sum, p) => sum + p.price, 0) / whatsappPrices.buy.length 
+            : 0;
+          const marketplaceAvg = marketplacePrices.length > 0 
+            ? marketplacePrices.reduce((sum, p) => sum + p.price, 0) / marketplacePrices.length 
+            : 0;
+          
+          const whatsappEfficiency = whatsappBest > 0 && whatsappAvg > 0 
+            ? ((whatsappAvg - whatsappBest) / whatsappAvg) * 100 
+            : 0;
+          const marketplaceEfficiency = marketplaceBest > 0 && marketplaceAvg > 0 
+            ? ((marketplaceAvg - marketplaceBest) / marketplaceAvg) * 100 
+            : 0;
+          
+          const avgEfficiency = (whatsappEfficiency + marketplaceEfficiency) / 2;
+          
+          // Parse change strings to numbers
+          const parseChange = (changeStr: string | undefined): number | null => {
+            if (!changeStr) return null;
+            const match = changeStr.match(/[+-]?[\d.]+/);
+            return match ? parseFloat(match[0]) : null;
+          };
+          
+          const change30d = parseChange(currentData.change30d);
+          const change90d = parseChange(currentData.change90d);
+          
+          return (
+            <div className="space-y-4 pt-4">
+              {/* Primary Metrics Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '0px' }}>
+                  <p className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1">30d Change</p>
+                  <p
+                    className={`text-2xl font-mono-numeric font-bold ${
+                      change30d && change30d < 0
+                        ? "text-red-600"
+                        : change30d && change30d > 0
+                        ? "text-green-600"
+                        : "text-brand-black"
+                    }`}
+                  >
+                    {currentData.change30d || "—"}
+                  </p>
+                  {change30d && (
+                    <p className="text-[9px] text-brand-black/50 mt-0.5">
+                      {change30d > 0 ? '↑' : change30d < 0 ? '↓' : '→'} {Math.abs(change30d).toFixed(1)}%
+                    </p>
+                  )}
+                </div>
+                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '0px' }}>
+                  <p className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1">90d Change</p>
+                  <p
+                    className={`text-2xl font-mono-numeric font-bold ${
+                      change90d && change90d < 0
+                        ? "text-red-600"
+                        : change90d && change90d > 0
+                        ? "text-green-600"
+                        : "text-brand-black"
+                    }`}
+                  >
+                    {currentData.change90d || "—"}
+                  </p>
+                  {change90d && (
+                    <p className="text-[9px] text-brand-black/50 mt-0.5">
+                      {change90d > 0 ? '↑' : change90d < 0 ? '↓' : '→'} {Math.abs(change90d).toFixed(1)}%
+                    </p>
+                  )}
+                </div>
+                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '0px' }}>
+                  <p className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1">Volatility</p>
+                  <p className="text-2xl font-semibold text-brand-black capitalize">{asset.volatility || "—"}</p>
+                  <p className="text-[9px] text-brand-black/50 mt-0.5">
+                    {priceStability.label}
+                  </p>
+                </div>
+                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '0px' }}>
+                  <p className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1">Last Updated</p>
+                  <p className="text-sm font-medium text-brand-black">
+                    {currentData.lastUpdated 
+                      ? new Date(currentData.lastUpdated).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+                      : "—"}
+                  </p>
+                  {currentData.dataPoints && (
+                    <p className="text-[9px] text-brand-black/50 mt-0.5">
+                      {currentData.dataPoints} data points
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Secondary Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-brand-gray/20">
+                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '0px' }}>
+                  <p className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1">Price Range</p>
+                  <p className="text-lg font-mono-numeric font-bold text-brand-black">
+                    ₹{priceRangeWidth.toLocaleString('en-IN')}
+                  </p>
+                  <p className="text-[9px] text-brand-black/50 mt-0.5">
+                    {priceRangePct.toFixed(1)}% spread • {priceStability.level} market
+                  </p>
+                </div>
+                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '0px' }}>
+                  <p className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1">Market Efficiency</p>
+                  <p className={`text-lg font-mono-numeric font-bold ${
+                    avgEfficiency <= 5 ? 'text-green-600' : avgEfficiency <= 10 ? 'text-yellow-600' : 'text-red-600'
+                  }`}>
+                    {avgEfficiency > 0 ? avgEfficiency.toFixed(1) : '—'}%
+                  </p>
+                  <p className="text-[9px] text-brand-black/50 mt-0.5">
+                    {avgEfficiency <= 5 ? 'Highly efficient' : avgEfficiency <= 10 ? 'Moderately efficient' : 'Inefficient'} pricing
+                  </p>
+                </div>
+                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '0px' }}>
+                  <p className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-1">Price Stability</p>
+                  <p className={`text-lg font-semibold ${priceStability.color}`}>
+                    {priceStability.level}
+                  </p>
+                  <p className="text-[9px] text-brand-black/50 mt-0.5">
+                    {priceRangePct > 0 ? `${priceRangePct.toFixed(1)}%` : '—'} price spread
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </CollapsibleSection>
       </div>
 

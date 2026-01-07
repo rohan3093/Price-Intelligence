@@ -5,14 +5,13 @@ import { ResultsPanel } from "./components/ResultsPanel";
 import { AssetDetailModal } from "./components/AssetDetailModal";
 import { AssetDetailPanel } from "./components/AssetDetailPanel";
 import { WatchlistView } from "./components/WatchlistView";
-import { AssetComparison } from "./components/AssetComparison";
 import { GettingStartedView } from "./components/GettingStartedView";
 import { EducationHub } from "./components/EducationHub";
 import { AnalystDashboard } from "./components/AnalystDashboard";
 import { AnalystLogin } from "./components/AnalystLogin";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { View, Asset } from "./types";
+import { View, Asset, PricePoint } from "./types";
 import { storage } from "./utils/storage";
 import { analytics } from "./utils/analytics";
 import { fetchAllAssets } from "./utils/assetsApi";
@@ -39,8 +38,6 @@ const PriceDiscoveryApp: React.FC = () => {
   const [isAnalystAuthenticated, setIsAnalystAuthenticated] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [pendingAnalystView, setPendingAnalystView] = useState(false);
-  const [showComparison, setShowComparison] = useState(false);
-  const [comparisonAssets, setComparisonAssets] = useState<Asset[]>([]);
 
   // Fetch assets from Firebase on mount and set up real-time listener
   useEffect(() => {
@@ -175,11 +172,62 @@ const PriceDiscoveryApp: React.FC = () => {
   };
 
   // Helper function to calculate best price for an asset
+  // Uses pre-computed bestAvailablePrice when available, and falls back to deriving
+  // the best price from channel price points (WhatsApp, marketplaces, international).
   const getAssetBestPrice = (asset: Asset): number | undefined => {
-    if (asset.bestAvailablePrice) return asset.bestAvailablePrice;
+    // 1) Asset-level best price (precomputed)
+    if (asset.bestAvailablePrice !== undefined) return asset.bestAvailablePrice;
+
+    // 2) Size-level best price for default/primary size
     const defaultSize = asset.defaultSize || asset.size;
-    const sizeVariant = asset.sizes?.find(s => s.size === defaultSize);
-    return sizeVariant?.bestAvailablePrice;
+    const sizeVariant =
+      asset.sizes?.find((s) => s.size === defaultSize) ?? asset.sizes?.[0];
+
+    if (sizeVariant?.bestAvailablePrice !== undefined) {
+      return sizeVariant.bestAvailablePrice;
+    }
+
+    // 3) Fallback: derive best price from available price points
+    const allPrices: number[] = [];
+
+    // Prefer size-level price points; fall back to asset-level legacy pricePoints
+    const pricePoints = sizeVariant?.pricePoints || asset.pricePoints;
+
+    if (pricePoints) {
+      // WhatsApp prices
+      const whatsapp = (
+        "whatsapp" in pricePoints
+          ? pricePoints.whatsapp
+          : (pricePoints.b2b || [])
+      ) as PricePoint[];
+      if (whatsapp?.length) {
+        allPrices.push(...whatsapp.map((p) => p.price));
+      }
+
+      // Marketplace prices
+      const marketplace = (
+        "marketplace" in pricePoints
+          ? pricePoints.marketplace
+          : (pricePoints.endCustomer || [])
+      ) as PricePoint[];
+      if (marketplace?.length) {
+        allPrices.push(...marketplace.map((p) => p.price));
+      }
+
+      // International prices (include reshipping)
+      const international = (
+        "international" in pricePoints
+          ? pricePoints.international
+          : (pricePoints.stockxGoat || [])
+      ) as PricePoint[];
+      if (international?.length) {
+        allPrices.push(
+          ...international.map((p) => p.price + (p.reshippingCost || 0))
+        );
+      }
+    }
+
+    return allPrices.length ? Math.min(...allPrices) : undefined;
   };
 
   const filteredAssets = assets.filter((asset) => {
@@ -244,19 +292,6 @@ const PriceDiscoveryApp: React.FC = () => {
     <ErrorBoundary>
     <div className="min-h-screen bg-brand-white text-brand-black flex flex-col">
         <Header view={view} setView={handleViewChange} />
-        {/* Comparison Tool Button */}
-        {view === "home" && comparisonAssets.length > 0 && (
-          <div className="fixed bottom-20 md:bottom-6 right-4 z-30">
-            <button
-              onClick={() => setShowComparison(true)}
-              className="px-4 py-3 bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-colors shadow-lg border border-brand-black min-h-[44px]"
-              style={{ borderRadius: '0px' }}
-            >
-              Compare ({comparisonAssets.length}/3)
-            </button>
-          </div>
-        )}
-
       {view === "home" ? (
         <main className="flex-1 bg-brand-white px-3 py-3 md:px-4 md:py-4 pb-20 md:pb-4 w-full max-w-7xl mx-auto">
           {/* Desktop layout: left list + right detail */}
@@ -281,17 +316,19 @@ const PriceDiscoveryApp: React.FC = () => {
                 selectedId={selectedId}
                 isLoading={assetsLoading}
                 searchQuery={query}
+                watchlistIds={watchlistIds}
+                onToggleWatchlist={(assetId) => {
+                  setWatchlistIds((prev) =>
+                    prev.includes(assetId)
+                      ? prev.filter((id) => id !== assetId)
+                      : [...prev, assetId]
+                  );
+                }}
                 setSelectedId={(id) => {
                   setSelectedId(id);
                   const asset = filteredAssets.find(a => a.id === id);
                   if (asset) {
                     analytics.trackAssetView(asset.id, asset.name);
-                  }
-                }}
-                onCompare={(asset) => {
-                  if (comparisonAssets.length < 3 && !comparisonAssets.find(a => a.id === asset.id)) {
-                    setComparisonAssets([...comparisonAssets, asset]);
-                    setShowComparison(true);
                   }
                 }}
               />
@@ -314,12 +351,6 @@ const PriceDiscoveryApp: React.FC = () => {
                           ? prev.filter((id) => id !== selectedAsset.id)
                           : [...prev, selectedAsset.id]
                       );
-                    }}
-                    onCompare={(asset) => {
-                      if (comparisonAssets.length < 3 && !comparisonAssets.find(a => a.id === asset.id)) {
-                        setComparisonAssets([...comparisonAssets, asset]);
-                        setShowComparison(true);
-                      }
                     }}
                   />
                 </div>
@@ -354,6 +385,14 @@ const PriceDiscoveryApp: React.FC = () => {
               selectedId={selectedId}
               isLoading={assetsLoading}
               searchQuery={query}
+              watchlistIds={watchlistIds}
+              onToggleWatchlist={(assetId) => {
+                setWatchlistIds((prev) =>
+                  prev.includes(assetId)
+                    ? prev.filter((id) => id !== assetId)
+                    : [...prev, assetId]
+                );
+              }}
               setSelectedId={(id) => {
                 setSelectedId(id);
                 setDetailOpen(true);
@@ -416,12 +455,6 @@ const PriceDiscoveryApp: React.FC = () => {
               : [...prev, selectedAsset.id]
           );
         }}
-        onCompare={(asset) => {
-          if (comparisonAssets.length < 3 && !comparisonAssets.find(a => a.id === asset.id)) {
-            setComparisonAssets([...comparisonAssets, asset]);
-            setShowComparison(true);
-          }
-        }}
       />
       {showLogin && (
         <AnalystLogin
@@ -432,15 +465,6 @@ const PriceDiscoveryApp: React.FC = () => {
             if (view === "analyst") {
               setView("home");
             }
-          }}
-        />
-      )}
-      {showComparison && comparisonAssets.length > 0 && (
-        <AssetComparison
-          assets={comparisonAssets}
-          onClose={() => {
-            setShowComparison(false);
-            setComparisonAssets([]);
           }}
         />
       )}

@@ -8,7 +8,6 @@ interface AssetDetailModalProps {
   onClose: () => void;
   watchlisted?: boolean;
   onToggleWatchlist?: () => void;
-  onCompare?: (asset: Asset) => void;
 }
 
 export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
@@ -17,7 +16,6 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
   onClose,
   watchlisted = false,
   onToggleWatchlist,
-  onCompare,
 }) => {
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -73,7 +71,6 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
             asset={asset}
             watchlisted={watchlisted}
             onToggleWatchlist={onToggleWatchlist}
-            onCompare={onCompare}
           />
         </div>
       </div>

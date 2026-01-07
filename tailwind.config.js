@@ -27,7 +27,7 @@ export default {
       },
       fontFamily: {
         heading: ['"Bebas Neue Pro"', 'Bebas Neue', 'sans-serif'],
-        body: ['Source Sans Pro', 'sans-serif'],
+        body: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'sans-serif'],
         decorative: ['Baskervville', 'serif'],
         mono: ['"SF Mono"', 'Monaco', 'Inconsolata', '"Roboto Mono"', '"Source Code Pro"', 'Menlo', 'Consolas', '"DejaVu Sans Mono"', 'monospace'],
       },

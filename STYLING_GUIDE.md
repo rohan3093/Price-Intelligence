@@ -14,8 +14,9 @@ This document outlines the centralized styling system for the Intelligence Excha
 
 #### Font Families
 - **Heading**: Bebas Neue Pro (for large titles, all-caps)
-- **Body**: Source Sans Pro (for all body text, labels)
+- **Body**: Inter (for all body text, labels - heavier weight for better readability at small sizes)
 - **Decorative**: Baskervville (reserved for special use)
+- **Monospace**: SF Mono (for numbers, prices, metrics - with tabular-nums for alignment)
 
 #### Font Sizes
 - `text-xs`: 12px - Small labels, metadata
