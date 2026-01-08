@@ -174,7 +174,7 @@ export interface MarketInsight {
   expectedMovement?: string; // "Likely to increase 5-8% in next 2 weeks"
 }
 
-export type View = "home" | "watchlist" | "getting-started" | "education" | "portfolio" | "analyst";
+export type View = "home" | "watchlist" | "getting-started" | "education" | "portfolio" | "analyst" | "drops";
 
 // User profile for investment tracking
 export interface UserProfile {
@@ -212,5 +212,71 @@ export interface Guide {
 export interface Category {
   name: string;
   available: boolean;
+}
+
+// Drop/Release types for upcoming sneaker releases
+export type DropStatus = 'pending_review' | 'upcoming' | 'live' | 'sold-out' | 'cancelled' | 'rejected';
+export type DropSourceType = 'nike-snkrs-scrape' | 'house-of-heat-scrape' | 'manual' | 'api';
+export type DropRetailerName = 'nike-snkrs-india' | 'vnv' | 'superkicks' | 'limited-edition' | 'footlocker-india' | 'adidas-confirmed' | 'puma' | 'other';
+export type RetailerPartnershipStatus = 'scraped' | 'manual' | 'api-partner' | 'feed-partner' | 'webhook-partner';
+
+export interface DropRetailer {
+  name: DropRetailerName;
+  displayName: string;
+  url?: string;
+  releaseTime?: string; // e.g., "4:31 AM IST"
+  isExclusive?: boolean; // Only available at this retailer
+  status?: 'available' | 'sold-out' | 'not-live-yet';
+  partnershipStatus: RetailerPartnershipStatus;
+  apiSource?: string; // API endpoint if available
+}
+
+export interface Drop {
+  id: number;
+  name: string;
+  sku?: string;
+  brand: string;
+  image: string;
+  
+  // Release date/time
+  releaseDate: string; // ISO date string
+  releaseTime?: string; // e.g., "4:31 AM IST"
+  retailPrice?: number; // INR
+  
+  // Multiple retailers - key for India market
+  retailers: DropRetailer[];
+  
+  // Link to existing asset (if already in your system)
+  linkedAssetId?: number;
+  
+  // Additional info
+  description?: string;
+  category: string;
+  sizes?: string[]; // Available sizes
+  
+  // Status workflow: pending_review → upcoming → live → sold-out
+  status: DropStatus;
+  
+  // Hype level indicator (optional - can be set manually or calculated)
+  hypeLevel?: 'low' | 'medium' | 'high' | 'extreme';
+  
+  // Source tracking for automation
+  source: {
+    type: DropSourceType;
+    url?: string; // Original source URL
+    lastScraped?: string; // When last fetched from source
+    scrapeId?: string; // Unique ID from source (for deduplication)
+    confidence?: number; // How confident we are in the data (0-100)
+  };
+  
+  // Verification
+  verified: boolean; // Manually verified by analyst
+  verifiedBy?: string; // Analyst email/ID
+  verifiedAt?: string; // ISO timestamp
+  
+  // Metadata
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string; // Analyst who added/verified
 }
 

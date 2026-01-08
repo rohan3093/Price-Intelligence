@@ -8,7 +8,7 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore, collection, CollectionReference } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
-import { Asset } from '../types';
+import { Asset, Drop } from '../types';
 import { B2BListing } from '../components/B2BListings';
 
 // Firebase configuration from environment variables
@@ -55,5 +55,9 @@ export const assetsCollection = db
 
 export const b2bListingsCollection = db
   ? (collection(db, 'b2b_listings') as CollectionReference<B2BListing>)
+  : null;
+
+export const dropsCollection = db
+  ? (collection(db, 'drops') as CollectionReference<Drop>)
   : null;
 

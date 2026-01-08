@@ -7,6 +7,7 @@ import { AssetDetailPanel } from "./components/AssetDetailPanel";
 import { WatchlistView } from "./components/WatchlistView";
 import { GettingStartedView } from "./components/GettingStartedView";
 import { EducationHub } from "./components/EducationHub";
+import { DropsView } from "./components/DropsView";
 import { AnalystDashboard } from "./components/AnalystDashboard";
 import { AnalystLogin } from "./components/AnalystLogin";
 import { MobileBottomNav } from "./components/MobileBottomNav";
@@ -408,6 +409,8 @@ const PriceDiscoveryApp: React.FC = () => {
         <GettingStartedView assets={assets} />
       ) : view === "education" ? (
         <EducationHub />
+      ) : view === "drops" ? (
+        <DropsView />
       ) : view === "analyst" && isAnalystAuthenticated ? (
         <AnalystDashboard
           assets={assets}

@@ -42,6 +42,16 @@ export const Header: React.FC<HeaderProps> = ({ view, setView }) => {
           Watchlist
         </button>
         <button
+          onClick={() => setView("drops")}
+          className={`px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide transition-all leading-tight ${
+            view === "drops"
+              ? "border-b-2 border-brand-black text-brand-black"
+              : "text-brand-black/60 hover:text-brand-black border-b-2 border-transparent"
+          }`}
+        >
+          Drops
+        </button>
+        <button
           onClick={() => setView("education")}
           className={`px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide transition-all leading-tight ${
             view === "education"

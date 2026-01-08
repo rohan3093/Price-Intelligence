@@ -59,6 +59,30 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         <span className="text-[9px] leading-tight font-medium uppercase tracking-wide">Watch</span>
       </button>
       
+      {/* Drops */}
+      <button
+        onClick={() => setView("drops")}
+        className={`flex flex-col items-center gap-0.5 flex-1 py-0.5 transition-colors ${
+          view === "drops" ? "text-brand-black" : "text-brand-black/60"
+        }`}
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="w-4.5 h-4.5"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+        <span className="text-[9px] leading-tight font-medium uppercase tracking-wide">Drops</span>
+      </button>
+      
       {/* Learn / Education */}
       <button
         onClick={() => setView("education")}

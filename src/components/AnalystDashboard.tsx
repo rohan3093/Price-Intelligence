@@ -3,11 +3,12 @@ import { Asset, SizeVariant } from "../types";
 import { DailyPriceUpdates } from "./DailyPriceUpdates";
 import { DesignSettings } from "./DesignSettings";
 import { AnalyticsView } from "./AnalyticsView";
+import { DropsManagement } from "./DropsManagement";
 import { createAsset, updateAsset, deleteAsset, batchCreateAssets } from "../utils/assetsApi";
 import { convertUSDToINR, getUSDToINRRate } from "../utils/exchangeRate";
 import { sortSizesByValue } from "../utils/sizeSort";
 
-type DashboardTab = "assets" | "market-data" | "analytics" | "settings";
+type DashboardTab = "assets" | "market-data" | "drops" | "analytics" | "settings";
 
 interface AnalystDashboardProps {
   assets: Asset[];
@@ -132,6 +133,16 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
           }`}
         >
           Market Data
+        </button>
+        <button
+          onClick={() => setActiveTab("drops")}
+          className={`px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide border-b-2 transition-all leading-tight ${
+            activeTab === "drops"
+              ? "border-brand-black text-brand-black"
+              : "border-transparent text-brand-black/50 hover:text-brand-black/80"
+          }`}
+        >
+          Drops
         </button>
         <button
           onClick={() => setActiveTab("analytics")}
@@ -335,6 +346,8 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
               )}
             </div>
           </div>
+        ) : activeTab === "drops" ? (
+          <DropsManagement />
         ) : activeTab === "analytics" ? (
           <AnalyticsView />
         ) : (

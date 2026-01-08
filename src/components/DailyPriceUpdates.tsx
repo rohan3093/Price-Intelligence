@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Asset, PricePoint } from "../types";
 import { sortSizesByValue } from "../utils/sizeSort";
 import { ListingsSpreadsheet } from "./ListingsSpreadsheet";
+import { BulkAddListingsModal } from "./BulkAddListingsModal";
 import { AddListingModal } from "./AddListingModal";
 
 interface DailyPriceUpdatesProps {
@@ -349,6 +350,7 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
   onUpdatePricePoints,
 }) => {
   const [showAddListingModal, setShowAddListingModal] = useState(false);
+  const [showBulkAddModal, setShowBulkAddModal] = useState(false);
 
   const handleAddListing = async (listing: PricePoint) => {
     if (!selectedSize) {
@@ -375,6 +377,52 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
     // Add new listing
     const updatedListings = [...channelListings, listing].sort((a, b) => a.price - b.price);
     onUpdatePricePoints(asset.id, selectedSize, listing.channel, updatedListings);
+  };
+
+  const handleBulkAddListings = async (listings: PricePoint[]) => {
+    if (!selectedSize) {
+      alert("Please select a size first");
+      return;
+    }
+
+    // Get existing listings for each channel
+    const sizeVariant = asset.sizes?.find(s => s.size === selectedSize);
+    if (!sizeVariant) return;
+
+    const pricePoints = sizeVariant.pricePoints || sizeVariant.legacyPricePoints;
+    if (!pricePoints) return;
+
+    // Group listings by channel
+    const listingsByChannel: Record<string, PricePoint[]> = {
+      whatsapp: [],
+      marketplace: [],
+      international: [],
+    };
+
+    listings.forEach(listing => {
+      const channel = listing.channel;
+      if (channel in listingsByChannel) {
+        listingsByChannel[channel].push(listing);
+      }
+    });
+
+    // Update each channel separately
+    for (const [channel, newListings] of Object.entries(listingsByChannel)) {
+      if (newListings.length === 0) continue;
+
+      let channelListings: PricePoint[] = [];
+      if (channel === "whatsapp") {
+        channelListings = ("whatsapp" in pricePoints ? pricePoints.whatsapp : pricePoints.b2b) || [];
+      } else if (channel === "marketplace") {
+        channelListings = ("marketplace" in pricePoints ? pricePoints.marketplace : pricePoints.endCustomer) || [];
+      } else {
+        channelListings = ("international" in pricePoints ? pricePoints.international : pricePoints.stockxGoat) || [];
+      }
+
+      // Merge and sort
+      const updatedListings = [...channelListings, ...newListings].sort((a, b) => a.price - b.price);
+      onUpdatePricePoints(asset.id, selectedSize, channel as "whatsapp" | "marketplace" | "international", updatedListings);
+    }
   };
 
   const handleUpdateListings = (
@@ -506,6 +554,14 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
             >
               + Add Listing
             </button>
+            <button
+              onClick={() => setShowBulkAddModal(true)}
+              className="px-3 py-1.5 border border-brand-gray/30 bg-brand-white text-brand-black text-xs font-semibold uppercase tracking-wide hover:border-brand-black hover:bg-brand-gray/10 transition leading-tight"
+              style={{ borderRadius: '0px' }}
+              disabled={!selectedSize}
+            >
+              + Bulk Add
+            </button>
           </div>
         </div>
       </div>
@@ -525,6 +581,15 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
           selectedSize={selectedSize}
           onAddListing={handleAddListing}
           onClose={() => setShowAddListingModal(false)}
+        />
+      )}
+
+      {/* Bulk Add Listings Modal */}
+      {showBulkAddModal && (
+        <BulkAddListingsModal
+          selectedSize={selectedSize}
+          onAddListings={handleBulkAddListings}
+          onClose={() => setShowBulkAddModal(false)}
         />
       )}
     </div>

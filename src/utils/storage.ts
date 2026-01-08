@@ -3,12 +3,13 @@
  * Uses localStorage with proper error handling and data versioning
  */
 
-import { Asset } from "../types";
+import { Asset, Drop } from "../types";
 import { B2BListing } from "../components/B2BListings";
 
 const STORAGE_KEYS = {
   ASSETS: "intelligence_exchange_assets",
   B2B_LISTINGS: "intelligence_exchange_b2b_listings",
+  DROPS: "intelligence_exchange_drops",
   WATCHLIST: "intelligence_exchange_watchlist",
   ANALYST_AUTH: "analyst_authenticated",
   ANALYST_EMAIL: "analyst_email",
@@ -88,6 +89,36 @@ export const storage = {
       return JSON.parse(data);
     } catch (e) {
       console.error("Failed to load B2B listings", e);
+      return null;
+    }
+  },
+
+  // Drops
+  saveDrops: (drops: Drop[]): boolean => {
+    if (!isLocalStorageAvailable()) {
+      console.warn("localStorage not available, data will not persist");
+      return false;
+    }
+    try {
+      localStorage.setItem(STORAGE_KEYS.DROPS, JSON.stringify(drops));
+      return true;
+    } catch (e) {
+      if (e instanceof DOMException && e.code === 22) {
+        console.error("localStorage quota exceeded. Consider clearing old data.");
+      } else {
+        console.error("Failed to save drops", e);
+      }
+      return false;
+    }
+  },
+
+  loadDrops: (): Drop[] | null => {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.DROPS);
+      if (!data) return null;
+      return JSON.parse(data);
+    } catch (e) {
+      console.error("Failed to load drops", e);
       return null;
     }
   },
