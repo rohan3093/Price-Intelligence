@@ -123,26 +123,28 @@ export const AnalyticsView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* VC-Focused Metrics */}
-      <div className="border border-brand-gray/20 rounded-none p-4 bg-brand-white">
-        <div className="flex items-center justify-between mb-4">
+      <div>
+        <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-lg font-body font-normal text-brand-black mb-1">
+            <h2 className="text-base font-semibold text-brand-black mb-1">
               User Engagement Metrics
             </h2>
-            <p className="text-xs text-brand-black">
+            <p className="text-sm text-brand-black/60">
               Key metrics for investor presentation
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               onClick={handleExport}
-              className="px-4 py-2 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-body hover:bg-brand-black/90"
+              className="px-4 py-2 bg-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90 transition-all"
+              style={{ borderRadius: '8px' }}
             >
               Export Data
             </button>
             <button
               onClick={handleClear}
-              className="px-4 py-2 rounded-none border border-red-500/20 text-red-600 text-xs font-body hover:border-red-500"
+              className="px-4 py-2 border border-red-200 text-red-600 text-sm font-medium hover:border-red-400 transition-all"
+              style={{ borderRadius: '8px' }}
             >
               Clear Data
             </button>
@@ -151,35 +153,35 @@ export const AnalyticsView: React.FC = () => {
 
         {/* Primary Metrics - VC Care About */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="border border-brand-gray/20 rounded-none p-4 bg-brand-white">
-            <p className="text-xs text-brand-black/70 mb-1">Unique Users</p>
+          <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <p className="text-xs text-brand-black/50 font-medium mb-1.5">Unique Users</p>
             <p className="text-2xl font-semibold text-brand-black">{metrics.uniqueUsers || 0}</p>
-            <p className="text-[10px] text-brand-black/60 mt-1">
+            <p className="text-xs text-brand-black/40 mt-1.5">
               {metrics.newUsers || 0} new, {metrics.returningUsers || 0} returning
             </p>
           </div>
-          <div className="border border-brand-gray/20 rounded-none p-4 bg-brand-white">
-            <p className="text-xs text-brand-black/70 mb-1">Avg Session Duration</p>
+          <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <p className="text-xs text-brand-black/50 font-medium mb-1.5">Avg Session Duration</p>
             <p className="text-2xl font-semibold text-brand-black">
               {formatDuration(metrics.avgSessionDuration || 0)}
             </p>
-            <p className="text-[10px] text-brand-black/60 mt-1">
+            <p className="text-xs text-brand-black/40 mt-1.5">
               {metrics.totalSessions || 0} total sessions
             </p>
           </div>
-          <div className="border border-brand-gray/20 rounded-none p-4 bg-brand-white">
-            <p className="text-xs text-brand-black/70 mb-1">Total Time Spent</p>
+          <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <p className="text-xs text-brand-black/50 font-medium mb-1.5">Total Time Spent</p>
             <p className="text-2xl font-semibold text-brand-black">
               {formatDuration(metrics.totalTimeSpent || 0)}
             </p>
-            <p className="text-[10px] text-brand-black/60 mt-1">
+            <p className="text-xs text-brand-black/40 mt-1.5">
               Across all users
             </p>
           </div>
-          <div className="border border-brand-gray/20 rounded-none p-4 bg-brand-white">
-            <p className="text-xs text-brand-black/70 mb-1">Engagement Rate</p>
+          <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <p className="text-xs text-brand-black/50 font-medium mb-1.5">Engagement Rate</p>
             <p className="text-2xl font-semibold text-brand-black">{metrics.engagementRate || 0}%</p>
-            <p className="text-[10px] text-brand-black/60 mt-1">
+            <p className="text-xs text-brand-black/40 mt-1.5">
               {metrics.engagedUsers || 0} engaged users
             </p>
           </div>
@@ -187,36 +189,36 @@ export const AnalyticsView: React.FC = () => {
 
         {/* Secondary Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="border border-brand-gray/20 rounded-none p-3 bg-brand-white">
-            <p className="text-xs text-brand-black/70 mb-1">Active Users (7d)</p>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <p className="text-xs text-brand-black/50 font-medium mb-1">Active Users (7d)</p>
             <p className="text-xl font-semibold text-brand-black">{metrics.activeUsers || 0}</p>
           </div>
-          <div className="border border-brand-gray/20 rounded-none p-3 bg-brand-white">
-            <p className="text-xs text-brand-black/70 mb-1">Avg Events/User</p>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <p className="text-xs text-brand-black/50 font-medium mb-1">Avg Events/User</p>
             <p className="text-xl font-semibold text-brand-black">{metrics.avgEventsPerUser || 0}</p>
           </div>
-          <div className="border border-brand-gray/20 rounded-none p-3 bg-brand-white">
-            <p className="text-xs text-brand-black/70 mb-1">Avg Sessions/User</p>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <p className="text-xs text-brand-black/50 font-medium mb-1">Avg Sessions/User</p>
             <p className="text-xl font-semibold text-brand-black">{metrics.avgSessionsPerUser || 0}</p>
           </div>
-          <div className="border border-brand-gray/20 rounded-none p-3 bg-brand-white">
-            <p className="text-xs text-brand-black/70 mb-1">Total Events</p>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <p className="text-xs text-brand-black/50 font-medium mb-1">Total Events</p>
             <p className="text-xl font-semibold text-brand-black">{metrics.totalEvents || 0}</p>
           </div>
         </div>
 
         {/* Interaction Breakdown */}
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="border border-brand-gray/20 rounded-none p-3 bg-brand-white">
-            <p className="text-xs text-brand-black/70 mb-1">Page Views</p>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <p className="text-xs text-brand-black/50 font-medium mb-1">Page Views</p>
             <p className="text-lg font-semibold text-brand-black">{metrics.pageViews || 0}</p>
           </div>
-          <div className="border border-brand-gray/20 rounded-none p-3 bg-brand-white">
-            <p className="text-xs text-brand-black/70 mb-1">Asset Views</p>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <p className="text-xs text-brand-black/50 font-medium mb-1">Asset Views</p>
             <p className="text-lg font-semibold text-brand-black">{metrics.assetViews || 0}</p>
           </div>
-          <div className="border border-brand-gray/20 rounded-none p-3 bg-brand-white">
-            <p className="text-xs text-brand-black/70 mb-1">Searches</p>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <p className="text-xs text-brand-black/50 font-medium mb-1">Searches</p>
             <p className="text-lg font-semibold text-brand-black">{metrics.searches || 0}</p>
           </div>
         </div>
@@ -224,31 +226,31 @@ export const AnalyticsView: React.FC = () => {
 
       {/* Most Active Users */}
       {metrics.topUsers && metrics.topUsers.length > 0 && (
-        <div className="border border-brand-gray/20 rounded-none p-4 bg-brand-white">
-          <h3 className="text-sm font-body font-normal text-brand-black mb-3">
+        <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <h3 className="text-sm font-semibold text-brand-black mb-4">
             Most Active Users
           </h3>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-xs text-brand-black">
+            <table className="min-w-full text-sm text-brand-black">
               <thead>
-                <tr className="border-b border-brand-gray/20">
-                  <th className="text-left py-2 font-normal">User ID</th>
-                  <th className="text-left py-2 font-normal">First Seen</th>
-                  <th className="text-left py-2 font-normal">Last Seen</th>
-                  <th className="text-right py-2 font-normal">Sessions</th>
-                  <th className="text-right py-2 font-normal">Time Spent</th>
-                  <th className="text-right py-2 font-normal">Events</th>
+                <tr className="border-b border-brand-gray/15">
+                  <th className="text-left py-2.5 font-medium text-brand-black/50 text-xs">User ID</th>
+                  <th className="text-left py-2.5 font-medium text-brand-black/50 text-xs">First Seen</th>
+                  <th className="text-left py-2.5 font-medium text-brand-black/50 text-xs">Last Seen</th>
+                  <th className="text-right py-2.5 font-medium text-brand-black/50 text-xs">Sessions</th>
+                  <th className="text-right py-2.5 font-medium text-brand-black/50 text-xs">Time Spent</th>
+                  <th className="text-right py-2.5 font-medium text-brand-black/50 text-xs">Events</th>
                 </tr>
               </thead>
               <tbody>
                 {metrics.topUsers.map((user: any, idx: number) => (
                   <tr key={idx} className="border-b border-brand-gray/10">
-                    <td className="py-2 font-mono text-[10px]">{user.id.substring(0, 20)}...</td>
-                    <td className="py-2">{formatDate(user.firstSeen)}</td>
-                    <td className="py-2">{formatDate(user.lastSeen)}</td>
-                    <td className="py-2 text-right">{user.totalSessions}</td>
-                    <td className="py-2 text-right">{formatDuration(user.totalTimeSpent)}</td>
-                    <td className="py-2 text-right font-semibold">{user.totalEvents}</td>
+                    <td className="py-2.5 font-mono text-xs text-brand-black/60">{user.id.substring(0, 20)}...</td>
+                    <td className="py-2.5 text-xs">{formatDate(user.firstSeen)}</td>
+                    <td className="py-2.5 text-xs">{formatDate(user.lastSeen)}</td>
+                    <td className="py-2.5 text-right text-xs">{user.totalSessions}</td>
+                    <td className="py-2.5 text-right text-xs">{formatDuration(user.totalTimeSpent)}</td>
+                    <td className="py-2.5 text-right font-semibold text-xs">{user.totalEvents}</td>
                   </tr>
                 ))}
               </tbody>
@@ -259,15 +261,16 @@ export const AnalyticsView: React.FC = () => {
 
       {/* Top Search Queries */}
       {metrics.searchQueries && metrics.searchQueries.length > 0 && (
-        <div className="border border-brand-gray/20 rounded-none p-4 bg-brand-white">
-          <h3 className="text-sm font-body font-normal text-brand-black mb-2">
+        <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <h3 className="text-sm font-semibold text-brand-black mb-3">
             Top Search Queries
           </h3>
           <div className="flex flex-wrap gap-2">
             {metrics.searchQueries.map((query: string, idx: number) => (
               <span
                 key={idx}
-                className="px-2 py-1 border border-brand-gray/20 rounded-none text-xs text-brand-black bg-brand-gray/5"
+                className="px-3 py-1.5 border border-brand-gray/15 text-xs text-brand-black bg-brand-gray/5"
+                style={{ borderRadius: '20px' }}
               >
                 {query}
               </span>
@@ -277,14 +280,14 @@ export const AnalyticsView: React.FC = () => {
       )}
 
       {/* Recent Events (Collapsible) */}
-      <div className="border border-brand-gray/20 rounded-none p-4 bg-brand-white">
+      <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
         <details>
-          <summary className="text-sm font-body font-normal text-brand-black cursor-pointer mb-2">
+          <summary className="text-sm font-semibold text-brand-black cursor-pointer mb-2">
             Recent Events ({events.length})
           </summary>
           <div className="max-h-96 overflow-y-auto space-y-2 mt-4">
             {events.length === 0 ? (
-              <p className="text-xs text-brand-black/70 text-center py-8">
+              <p className="text-sm text-brand-black/50 text-center py-8">
                 No events tracked yet. User interactions will appear here.
               </p>
             ) : (
@@ -295,16 +298,17 @@ export const AnalyticsView: React.FC = () => {
                 .map((event: any, idx: number) => (
                   <div
                     key={idx}
-                    className="border border-brand-gray/20 rounded-none p-2 bg-brand-white text-xs"
+                    className="border border-brand-gray/15 p-3 bg-brand-white/80 text-xs"
+                    style={{ borderRadius: '8px' }}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-brand-black">{event.event}</span>
-                      <span className="text-brand-black/70">
+                      <span className="text-brand-black/50">
                         {new Date(event.timestamp).toLocaleString()}
                       </span>
                     </div>
                     {event.properties && Object.keys(event.properties).length > 0 && (
-                      <pre className="text-[10px] text-brand-black/70 mt-1 overflow-x-auto">
+                      <pre className="text-[10px] text-brand-black/50 mt-1 overflow-x-auto">
                         {JSON.stringify(event.properties, null, 2)}
                       </pre>
                     )}

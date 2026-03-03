@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market - Intelligence Exchange</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #FAFAFA;
+      color: #0A0E14;
+      line-height: 1.6;
+    }
+
+    .app-container {
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      margin-bottom: 24px;
+    }
+
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: #0A0E14;
+      color: white;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: #6B7280;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 12px;
+      border: 1px solid #E5E7EB;
+      background: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      background: #F3F4F6;
+      border-color: #D1D5DB;
+    }
+
+    .btn-primary {
+      background: #0A0E14;
+      color: white;
+      border-color: #0A0E14;
+    }
+
+    .btn-primary:hover {
+      background: #1A1E24;
+    }
+
+    /* Search Bar */
+    .search-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search-input-wrapper {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 16px 10px 40px;
+      border-radius: 12px;
+      border: 1px solid #E5E7EB;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #0A0E14;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9CA3AF;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pill {
+      padding: 8px 16px;
+      border-radius: 24px;
+      border: 1px solid #E5E7EB;
+      background: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .pill:hover {
+      background: #F3F4F6;
+    }
+
+    .pill.active {
+      background: #0A0E14;
+      color: white;
+      border-color: #0A0E14;
+    }
+
+    /* Main Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 500px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* Card Base */
+    .card {
+      background: white;
+      border: 1px solid #E5E7EB;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #F3F4F6;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #0A0E14;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    /* Asset List (Left Column) */
+    .asset-list {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+    }
+
+    .asset-item {
+      padding: 16px;
+      border-bottom: 1px solid #F3F4F6;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .asset-item:hover {
+      background: #F9FAFB;
+    }
+
+    .asset-item.selected {
+      background: #F3F4F6;
+      border-left: 3px solid #0A0E14;
+    }
+
+    .asset-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .asset-item-name {
+      font-weight: 600;
+      font-size: 14px;
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+
+    .asset-item-meta {
+      font-size: 12px;
+      color: #6B7280;
+    }
+
+    .asset-item-price {
+      text-align: right;
+      min-width: 120px;
+    }
+
+    .asset-item-price-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .asset-item-price-change {
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+
+    .positive {
+      color: #059669;
+    }
+
+    .negative {
+      color: #DC2626;
+    }
+
+    /* Detail View (Right Column) */
+    .detail-view {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Detail Header Card */
+    .detail-header-card {
+      background: white;
+      border: 1px solid #E5E7EB;
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .detail-header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .detail-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .detail-subtitle {
+      font-size: 13px;
+      color: #6B7280;
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-buy {
+      background: rgba(5, 150, 105, 0.1);
+      color: #059669;
+      border: 1px solid rgba(5, 150, 105, 0.2);
+    }
+
+    .badge-sell {
+      background: rgba(220, 38, 38, 0.1);
+      color: #DC2626;
+      border: 1px solid rgba(220, 38, 38, 0.2);
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .metric-card {
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .metric-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .metric-change {
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    /* Confidence/Liquidity Meters */
+    .meters-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .meter-card {
+      background: white;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .meter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .meter-label {
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .meter-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #F3F4F6;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #059669;
+      transition: width 0.5s ease;
+    }
+
+    .meter-hint {
+      font-size: 11px;
+      color: #6B7280;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    /* Chart Card */
+    .chart-card {
+      background: white;
+      border: 1px solid #E5E7EB;
+      border-radius: 16px;
+    }
+
+    .chart-placeholder {
+      height: 200px;
+      background: #F9FAFB;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9CA3AF;
+      font-size: 13px;
+      margin: 16px 20px;
+    }
+
+    /* Tabs */
+    .tabs {
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 4px;
+      display: inline-flex;
+      gap: 4px;
+      background: #F9FAFB;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab:hover {
+      background: white;
+    }
+
+    .tab.active {
+      background: white;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Venue Table */
+    .venue-table {
+      margin-top: 16px;
+    }
+
+    .venue-row {
+      display: grid;
+      grid-template-columns: 2fr 2fr 2fr 2fr 1fr;
+      padding: 12px 16px;
+      border-bottom: 1px solid #F3F4F6;
+      font-size: 13px;
+    }
+
+    .venue-row:last-child {
+      border-bottom: none;
+    }
+
+    .venue-row-header {
+      font-weight: 700;
+      color: #6B7280;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .venue-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+
+    .venue-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #059669;
+    }
+
+    /* Best Deals Section */
+    .deals-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .deal-card {
+      background: white;
+      border: 2px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 16px;
+      position: relative;
+      transition: border-color 0.2s ease;
+    }
+
+    .deal-card:hover {
+      border-color: #0A0E14;
+    }
+
+    .deal-rank {
+      font-size: 10px;
+      font-weight: 700;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .deal-rank.best {
+      color: #F59E0B;
+    }
+
+    .deal-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #F59E0B;
+      color: white;
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 6px;
+    }
+
+    .deal-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .deal-source {
+      font-size: 12px;
+      color: #6B7280;
+      margin-bottom: 12px;
+    }
+
+    .deal-meta {
+      font-size: 11px;
+      color: #9CA3AF;
+    }
+
+    /* AI Signal Card */
+    .signal-card {
+      background: linear-gradient(to br, rgba(5, 150, 105, 0.05), rgba(5, 150, 105, 0.02));
+      border: 1px solid rgba(5, 150, 105, 0.2);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .signal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .signal-recommendation {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .signal-badge {
+      padding: 8px 16px;
+      background: #059669;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .signal-confidence {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: #6B7280;
+      font-size: 13px;
+    }
+
+    .signal-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #374151;
+    }
+
+    .signal-text strong {
+      font-weight: 700;
+      color: #0A0E14;
+    }
+
+    /* Action Buttons */
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .action-btn {
+      padding: 14px;
+      border-radius: 12px;
+      border: 2px solid #0A0E14;
+      background: #0A0E14;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .action-btn:hover {
+      background: #1A1E24;
+    }
+
+    .action-btn.secondary {
+      background: white;
+      color: #0A0E14;
+    }
+
+    .action-btn.secondary:hover {
+      background: #F9FAFB;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .asset-list {
+        position: relative;
+        top: 0;
+        max-height: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="top-header">
+        <div class="brand">
+          <div class="brand-icon">IE</div>
+          <div>
+            <div class="brand-title">Intelligence Exchange</div>
+            <div class="brand-subtitle">Price intelligence for sneakers</div>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="btn">Market</button>
+          <button class="btn">Watchlist</button>
+          <button class="btn-primary btn">Post Intent</button>
+        </div>
+      </div>
+
+      <div class="search-row">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input type="text" class="search-input" placeholder="Search by name or SKU">
+        </div>
+        <div class="filter-pills">
+          <button class="pill active">All</button>
+          <button class="pill">Sneakers</button>
+          <button class="pill">Streetwear</button>
+          <button class="pill">Sort: Opportunity</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid: Asset List + Detail View -->
+    <div class="main-grid">
+      <!-- Left: Asset List -->
+      <div class="card asset-list">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+            Market Watch (247)
+          </div>
+        </div>
+
+        <div class="asset-item selected" onclick="selectAsset('panda')">
+          <div class="asset-item-header">
+            <div>
+              <div class="asset-item-name">Nike Dunk Low "Panda"</div>
+              <div class="asset-item-meta">Sneakers • DD1391-100 • US 10</div>
+            </div>
+            <div class="asset-item-price">
+              <div class="asset-item-price-value">₹18,500</div>
+              <div class="asset-item-price-change positive">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m7 17 9.2-9.2M17 17V7H7"></path>
+                </svg>
+                +7.6% • Disp 8.2%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="asset-item" onclick="selectAsset('jordan')">
+          <div class="asset-item-header">
+            <div>
+              <div class="asset-item-name">Jordan 1 High OG "Chicago"</div>
+              <div class="asset-item-meta">Sneakers • 555088-101 • US 9</div>
+            </div>
+            <div class="asset-item-price">
+              <div class="asset-item-price-value">₹42,000</div>
+              <div class="asset-item-price-change negative">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m7 7 9.2 9.2M17 7v10H7"></path>
+                </svg>
+                -3.2% • Disp 11.5%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="asset-item" onclick="selectAsset('yeezy')">
+          <div class="asset-item-header">
+            <div>
+              <div class="asset-item-name">Adidas Yeezy Boost 350 V2</div>
+              <div class="asset-item-meta">Sneakers • GY7657 • US 10.5</div>
+            </div>
+            <div class="asset-item-price">
+              <div class="asset-item-price-value">₹28,900</div>
+              <div class="asset-item-price-change positive">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m7 17 9.2-9.2M17 17V7H7"></path>
+                </svg>
+                +12.4% • Disp 14.1%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="asset-item" onclick="selectAsset('nb')">
+          <div class="asset-item-header">
+            <div>
+              <div class="asset-item-name">New Balance 550 "White/Green"</div>
+              <div class="asset-item-meta">Sneakers • BB550WT1 • US 11</div>
+            </div>
+            <div class="asset-item-price">
+              <div class="asset-item-price-value">₹15,200</div>
+              <div class="asset-item-price-change positive">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m7 17 9.2-9.2M17 17V7H7"></path>
+                </svg>
+                +5.1% • Disp 9.8%
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Detail View -->
+      <div class="detail-view">
+        <!-- Header Card with Metrics -->
+        <div class="detail-header-card">
+          <div class="detail-header-top">
+            <div>
+              <div class="detail-title">Nike Dunk Low "Panda"</div>
+              <div class="detail-subtitle">Cross-venue view • Updated continuously • SKU DD1391-100</div>
+            </div>
+            <div class="badge badge-buy">BUY Signal</div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 3v18h18"></path>
+                  <path d="m19 9-5 5-4-4-3 3"></path>
+                </svg>
+                Market Price
+              </div>
+              <div class="metric-value">₹18,500</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2v20M2 12h20"></path>
+                </svg>
+                Dispersion
+              </div>
+              <div class="metric-value">8.2%</div>
+              <div class="metric-change">Cross-venue</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 6v6l4 2"></path>
+                </svg>
+                30d Change
+              </div>
+              <div class="metric-value positive">+7.6%</div>
+            </div>
+          </div>
+
+          <div class="meters-grid">
+            <div class="meter-card">
+              <div class="meter-header">
+                <div class="meter-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  </svg>
+                  Market Confidence
+                </div>
+                <div class="meter-value">87%</div>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 87%;"></div>
+              </div>
+              <div class="meter-hint">Based on cross-venue consistency and footprint</div>
+            </div>
+
+            <div class="meter-card">
+              <div class="meter-header">
+                <div class="meter-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 6v6l4 2"></path>
+                  </svg>
+                  Liquidity
+                </div>
+                <div class="meter-value">74/100</div>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 74%;"></div>
+              </div>
+              <div class="meter-hint">How reliably asset clears at market prices</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart Card -->
+        <div class="chart-card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3v18h18"></path>
+                <path d="m19 9-5 5-4-4-3 3"></path>
+              </svg>
+              Price History
+            </div>
+          </div>
+          <div class="chart-placeholder">[Interactive price chart - 90 day composite view]</div>
+          <div class="card-body">
+            <div class="tabs">
+              <button class="tab">Venues</button>
+              <button class="tab active">Chart</button>
+              <button class="tab">Signals</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Signal Card -->
+        <div class="signal-card">
+          <div class="signal-header">
+            <div class="signal-recommendation">
+              <div class="signal-badge">BUY</div>
+              <div class="signal-confidence">87% CONFIDENCE</div>
+            </div>
+          </div>
+          <div class="signal-text">
+            Current price (₹18,500) is <strong>16% below retail</strong> and <strong>7.6% above 30-day low</strong>. 
+            Market momentum is bullish with increasing liquidity. Cross-venue price consistency is <strong>strong</strong>.
+            Recommend acquisition at current levels for medium-term hold or arbitrage execution.
+          </div>
+        </div>
+
+        <!-- Best Deals -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+              </svg>
+              Best 3 Deals Available
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="deals-grid">
+              <div class="deal-card">
+                <div class="deal-badge">#1 BEST</div>
+                <div class="deal-rank best">WhatsApp</div>
+                <div class="deal-price">₹17,200</div>
+                <div class="deal-source">Verified seller • Mumbai</div>
+                <div class="deal-meta">2 available • 5m ago</div>
+              </div>
+
+              <div class="deal-card">
+                <div class="deal-rank">#2</div>
+                <div class="deal-price">₹17,500</div>
+                <div class="deal-source">Marketplace • Bangalore</div>
+                <div class="deal-meta">1 available • 1h ago</div>
+              </div>
+
+              <div class="deal-card">
+                <div class="deal-rank">#3</div>
+                <div class="deal-price">₹17,800</div>
+                <div class="deal-source">StockX • International</div>
+                <div class="deal-meta">In stock • +₹2.1K ship</div>
+              </div>
+            </div>
+
+            <div class="action-grid">
+              <button class="action-btn">Buy Now</button>
+              <button class="action-btn secondary">Add to Watchlist</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function selectAsset(id) {
+      document.querySelectorAll('.asset-item').forEach(el => el.classList.remove('selected'));
+      event.currentTarget.classList.add('selected');
+    }
+  </script>
+</body>
+</html>
+

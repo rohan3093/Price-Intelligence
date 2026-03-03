@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Detail - Individual Section Breakdown</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .header {
+            background: #000;
+            color: white;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 3px solid #000;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #000;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .controls label {
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: 2px solid #000;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #000;
+            color: white;
+        }
+
+        .btn.active {
+            background: #000;
+            color: white;
+        }
+
+        .section-breakdown {
+            background: white;
+            border: 3px solid #000;
+            margin-bottom: 40px;
+        }
+
+        .section-breakdown-header {
+            background: #000;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-breakdown-title {
+            font-size: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-breakdown-rating {
+            background: white;
+            color: #000;
+            padding: 8px 16px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .section-breakdown-rating.excellent {
+            background: #16a34a;
+            color: white;
+        }
+
+        .section-breakdown-rating.good {
+            background: #84cc16;
+            color: white;
+        }
+
+        .section-breakdown-rating.fair {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .section-breakdown-rating.poor {
+            background: #dc2626;
+            color: white;
+        }
+
+        .section-breakdown-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        .section-breakdown-body.full-width {
+            grid-template-columns: 1fr;
+        }
+
+        @media (max-width: 1200px) {
+            .section-breakdown-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .visual-side {
+            padding: 20px;
+            border-right: 2px solid #e0e0e0;
+            background: #fafafa;
+        }
+
+        .section-breakdown-body.full-width .visual-side {
+            border-right: none;
+        }
+
+        .analysis-side {
+            padding: 20px;
+            background: white;
+        }
+
+        .section-title-bar {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .info-block h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .info-block ul {
+            list-style: none;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .info-block ul li {
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .info-block ul li::before {
+            content: '•';
+            position: absolute;
+            left: 5px;
+            font-weight: 700;
+        }
+
+        .info-block ul.checkmarks li::before {
+            content: '✓';
+            color: #16a34a;
+        }
+
+        .info-block ul.warnings li::before {
+            content: '⚠';
+            color: #dc2626;
+        }
+
+        .info-block ul.suggestions li::before {
+            content: '→';
+            color: #2563eb;
+        }
+
+        /* Visual mockup components */
+        .mockup-preview {
+            border: 2px solid #000;
+            background: white;
+        }
+
+        .hero-preview {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .hero-preview.mobile {
+            grid-template-columns: 1fr;
+        }
+
+        .image-box {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #e0e0e0, #f0f0f0);
+            border: 2px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hero-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .product-title {
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        .mobile .product-title {
+            font-size: 20px;
+        }
+
+        .product-meta {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .size-selector-demo {
+            background: #f9f9f9;
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+
+        .size-label-demo {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .size-buttons {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .mobile .size-buttons {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .size-btn {
+            padding: 8px;
+            border: 1px solid #ccc;
+            background: white;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .size-btn.selected {
+            border: 2px solid #000;
+            background: #000;
+            color: white;
+        }
+
+        .quick-metrics {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            padding: 15px;
+        }
+
+        .price-display {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .price-large {
+            font-size: 36px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            color: #16a34a;
+        }
+
+        .mobile .price-large {
+            font-size: 28px;
+        }
+
+        .channel-badge {
+            background: #16a34a;
+            color: white;
+            padding: 4px 8px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+        }
+
+        .metric-item {
+            font-size: 11px;
+        }
+
+        .metric-label {
+            color: #666;
+            margin-bottom: 3px;
+        }
+
+        .metric-value {
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .cta-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .mobile .cta-buttons {
+            grid-template-columns: 1fr;
+        }
+
+        .cta-primary {
+            background: #16a34a;
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            border: 2px solid #16a34a;
+            font-weight: 700;
+        }
+
+        .cta-secondary {
+            background: white;
+            color: #000;
+            padding: 20px 15px;
+            text-align: center;
+            border: 2px solid #000;
+            font-weight: 700;
+        }
+
+        .cta-label {
+            font-size: 9px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .cta-price {
+            font-size: 24px;
+            font-family: 'Courier New', monospace;
+            margin: 5px 0;
+        }
+
+        .cta-action {
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        /* Chart mockup */
+        .chart-mockup {
+            height: 250px;
+            background: white;
+            border: 1px solid #ddd;
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .chart-grid {
+            position: absolute;
+            inset: 20px;
+            border-left: 2px solid #ccc;
+            border-bottom: 2px solid #ccc;
+        }
+
+        .chart-grid::before,
+        .chart-grid::after {
+            content: '';
+            position: absolute;
+            background: #e0e0e0;
+        }
+
+        .chart-grid::before {
+            width: 100%;
+            height: 1px;
+            top: 33%;
+        }
+
+        .chart-grid::after {
+            width: 100%;
+            height: 1px;
+            top: 66%;
+        }
+
+        .chart-line-path {
+            position: absolute;
+            bottom: 30%;
+            left: 5%;
+            width: 90%;
+            height: 50%;
+            border-left: 3px solid #16a34a;
+            border-top: 3px solid #16a34a;
+            border-top-left-radius: 8px;
+        }
+
+        .chart-line-path::before {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: -20px;
+            width: 30%;
+            height: 40%;
+            border-right: 3px solid #16a34a;
+            border-top: 3px solid #16a34a;
+            border-top-right-radius: 8px;
+        }
+
+        .chart-legend {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chart-legend-color {
+            width: 12px;
+            height: 3px;
+        }
+
+        /* Channel cards */
+        .channel-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .channel-card {
+            border-left: 4px solid;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .channel-card.whatsapp {
+            border-color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        .channel-card.marketplace {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .channel-card.international {
+            border-color: #7c3aed;
+            background: #f5f3ff;
+        }
+
+        .channel-name {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .channel-details {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .channel-price {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            text-align: right;
+        }
+
+        .channel-price.green {
+            color: #16a34a;
+        }
+
+        .channel-price.blue {
+            color: #2563eb;
+        }
+
+        .channel-price.purple {
+            color: #7c3aed;
+        }
+
+        /* Order book */
+        .orderbook-mockup {
+            background: white;
+        }
+
+        .orderbook-header {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 8px;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .orderbook-header div {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        .orderbook-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+            position: relative;
+        }
+
+        .orderbook-row.sell {
+            background: linear-gradient(to left, transparent 70%, #fef2f2 100%);
+        }
+
+        .orderbook-row.buy {
+            background: linear-gradient(to left, transparent 70%, #f0fdf4 100%);
+        }
+
+        .orderbook-row.spread {
+            background: #f9f9f9;
+            font-weight: 700;
+            text-align: center;
+            grid-template-columns: 1fr;
+            border: 1px solid #999;
+        }
+
+        .orderbook-price {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+        }
+
+        .orderbook-price.sell-price {
+            color: #dc2626;
+        }
+
+        .orderbook-price.buy-price {
+            color: #16a34a;
+        }
+
+        /* Table mockups */
+        .table-demo {
+            overflow-x: auto;
+            border: 1px solid #ddd;
+        }
+
+        .table-demo table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            min-width: 900px;
+        }
+
+        .table-demo thead {
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .table-demo th {
+            padding: 8px;
+            text-align: left;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        .table-demo td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table-demo tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .badge-demo {
+            display: inline-block;
+            padding: 2px 6px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-demo.whatsapp {
+            background: #16a34a;
+            color: white;
+        }
+
+        .badge-demo.marketplace {
+            background: #2563eb;
+            color: white;
+        }
+
+        .badge-demo.buy {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .badge-demo.sell {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        /* Insight card */
+        .insight-card-demo {
+            border-left: 4px solid #16a34a;
+            background: #f0fdf4;
+            padding: 20px;
+        }
+
+        .insight-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .insight-recommendation {
+            font-size: 24px;
+            font-weight: 700;
+            color: #16a34a;
+        }
+
+        .insight-confidence {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .insight-text {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .insight-cta {
+            background: #000;
+            color: white;
+            padding: 12px 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        /* Annotations */
+        .annotation {
+            background: #fef08a;
+            border: 2px solid #ca8a04;
+            padding: 8px 12px;
+            margin: 10px 0;
+            font-size: 11px;
+            position: relative;
+        }
+
+        .annotation::before {
+            content: '📍';
+            margin-right: 6px;
+        }
+
+        .annotation.positive {
+            background: #d1fae5;
+            border-color: #16a34a;
+        }
+
+        .annotation.positive::before {
+            content: '✓';
+            color: #16a34a;
+            font-weight: 700;
+        }
+
+        .annotation.negative {
+            background: #fee2e2;
+            border-color: #dc2626;
+        }
+
+        .annotation.negative::before {
+            content: '✗';
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        /* Metrics display */
+        .metrics-demo {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .metric-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            background: white;
+        }
+
+        .metric-card-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .metric-card-value {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .metric-card-value.positive {
+            color: #16a34a;
+        }
+
+        .metric-card-value.negative {
+            color: #dc2626;
+        }
+
+        .metric-card-context {
+            font-size: 9px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        /* Priority badges */
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+
+        .priority-badge.critical {
+            background: #dc2626;
+            color: white;
+        }
+
+        .priority-badge.high {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .priority-badge.medium {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .priority-badge.low {
+            background: #6b7280;
+            color: white;
+        }
+
+        /* Comparison boxes */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 15px 0;
+        }
+
+        .comparison-side {
+            padding: 15px;
+            border: 2px solid;
+        }
+
+        .comparison-side.before {
+            border-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .comparison-side.after {
+            border-color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        .comparison-label {
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        /* Mobile warning */
+        .mobile-warning {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 12px;
+        }
+
+        .mobile-warning strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #92400e;
+        }
+
+        /* Recommendations box */
+        .recommendations {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .recommendations h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            color: #1e40af;
+        }
+
+        .recommendations ul {
+            font-size: 13px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🔍 Asset Detail Panel - Individual Section Breakdown</h1>
+    <p>Deep dive into each section's internal structure, layout, and usability</p>
+</div>
+
+<div class="controls">
+    <label>View Mode:</label>
+    <div class="btn-group">
+        <button class="btn active" onclick="setView('desktop')">Desktop</button>
+        <button class="btn" onclick="setView('mobile')">Mobile</button>
+    </div>
+    <label>Jump to:</label>
+    <select onchange="scrollToSection(this.value)" style="padding: 8px; border: 2px solid #000; font-weight: 600; font-size: 11px;">
+        <option value="">Select section...</option>
+        <option value="hero">1. Hero Section (8.5/10)</option>
+        <option value="price-history">2. Price History (7.5/10)</option>
+        <option value="price-comparison">3. Price Comparison (7/10)</option>
+        <option value="order-book">4. Order Book (6.5/10)</option>
+        <option value="listings">5. Listings Table (6/10) ⚠️</option>
+        <option value="arbitrage">6. Arbitrage (7/10)</option>
+        <option value="market-summary">7. Market Summary (5/10) ❌</option>
+        <option value="performance">8. Performance Metrics (6.5/10)</option>
+        <option value="insight">9. Market Insight (8/10)</option>
+    </select>
+</div>
+
+<!-- SECTION 1: HERO -->
+<div id="hero" class="section-breakdown">
+    <div class="section-breakdown-header">
+        <div class="section-breakdown-title">1. Hero Section</div>
+        <div class="section-breakdown-rating excellent">Rating: 8.5/10</div>
+    </div>
+    <div class="section-breakdown-body">
+        <div class="visual-side">
+            <div class="section-title-bar">Visual Structure</div>
+            <div class="mockup-preview">
+                <div class="hero-preview" id="hero-preview">
+                    <div class="image-box">
+                        PRODUCT IMAGE<br>
+                        (Aspect Square)<br>
+                        400×400px
+                    </div>
+                    <div class="hero-info">
+                        <div class="product-title">Nike Dunk Low Retro White Black Panda</div>
+                        <div class="product-meta">Nike · SKU DD1391-100</div>
+                        
+                        <div class="size-selector-demo">
+                            <div class="size-label-demo">Select Size:</div>
+                            <div class="size-buttons">
+                                <div class="size-btn">8</div>
+                                <div class="size-btn">8.5</div>
+                                <div class="size-btn">9</div>
+                                <div class="size-btn selected">9.5</div>
+                                <div class="size-btn">10</div>
+                                <div class="size-btn">10.5</div>
+                                <div class="size-btn">11</div>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-metrics">
+                            <div style="font-size: 10px; text-transform: uppercase; color: #666; font-weight: 700;">Best Available Price</div>
+                            <div class="price-display">
+                                <div class="price-large">₹12,500</div>
+                                <span class="channel-badge">via WhatsApp</span>
+                            </div>
+                            <div class="metrics-row">
+                                <div class="metric-item">
+                                    <div class="metric-label">30d</div>
+                                    <div class="metric-value" style="color: #16a34a;">+8%</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Liquidity</div>
+                                    <div class="metric-value">High</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Stock</div>
+                                    <div class="metric-value" style="color: #16a34a;">15+ avail</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="cta-buttons">
+                            <div class="cta-primary">
+                                <div class="cta-label">Best Available</div>
+                                <div class="cta-price">₹12,500</div>
+                                <div class="cta-action">BUY NOW →</div>
+                            </div>
+                            <div class="cta-secondary">
+                                <div class="cta-label">8 Sellers</div>
+                                <div class="cta-price">SELL</div>
+                                <div class="cta-action" style="font-size: 10px;">Suggested: ₹13,125</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="annotation positive">
+                <strong>What Works:</strong> Clear hierarchy - eye flows naturally from image → title → size → price → CTAs
+            </div>
+            <div class="annotation negative">
+                <strong>Issue:</strong> "Stock: 15+ avail" is vague. Why not show actual number if available?
+            </div>
+            <div class="annotation">
+                <strong>Mobile Consideration:</strong> Grid collapses to single column, may require long scroll before CTAs visible
+            </div>
+        </div>
+        
+        <div class="analysis-side">
+            <div class="info-grid">
+                <div class="info-block">
+                    <h3>✓ Strengths</h3>
+                    <ul class="checkmarks">
+                        <li><strong>Size selector at top</strong> - Critical decision point placed early (good UX)</li>
+                        <li><strong>Quick Decision Card</strong> - Consolidates 4 key metrics in scannable grid</li>
+                        <li><strong>Channel badge</strong> - "via WhatsApp" provides transparency about best price source</li>
+                        <li><strong>Exchange-inspired CTAs</strong> - Large Buy/Sell buttons are unmissable</li>
+                        <li><strong>Visual hierarchy</strong> - Font sizes guide attention: H1 (32px) → Price (36px) → CTAs (24px)</li>
+                        <li><strong>Grid layout</strong> - 2-column structure maximizes space efficiency</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>⚠ Issues & Concerns</h3>
+                    <ul class="warnings">
+                        <li><strong>Best Price lacks context</strong> - Doesn't show if from 1 seller or 10 sellers</li>
+                        <li><strong>Stock indicator binary</strong> - "Available" vs "Limited" isn't actionable. Actual count better.</li>
+                        <li><strong>Sell button copy unclear</strong> - "Avg: ₹X" not explained (users may not understand it's suggested price)</li>
+                        <li><strong>Secondary actions compete</strong> - 3 buttons (Watch, View Suppliers, Alert) below main CTAs draw attention away</li>
+                        <li><strong>Price comparison bar separated</strong> - Currently below hero; should be integrated into Quick Decision Card</li>
+                        <li><strong>Mobile: CTA distance</strong> - On mobile, CTAs may be 2-3 scrolls below fold</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>→ Recommendations</h3>
+                    <ul class="suggestions">
+                        <li><span class="priority-badge critical">Critical</span> Show seller count with best price: "₹12,500 (from 3 sellers)"</li>
+                        <li><span class="priority-badge critical">Critical</span> Replace "Available" with "15 in stock" or "2-5 available"</li>
+                        <li><span class="priority-badge high">High</span> Add timestamp: "Updated 2h ago" for data freshness confidence</li>
+                        <li><span class="priority-badge high">High</span> Clarify Sell button: Change "Avg" to "Suggested" with (?) tooltip</li>
+                        <li><span class="priority-badge medium">Medium</span> Collapse secondary actions on mobile into "More" dropdown</li>
+                        <li><span class="priority-badge medium">Medium</span> Integrate price comparison bar into Quick Decision Card</li>
+                        <li><span class="priority-badge low">Low</span> Add "Why this price?" tooltip explaining best price calculation</li>
+                    </ul>
+                </div>
+
+                <div class="recommendations">
+                    <h4>📱 Mobile-Specific Improvements</h4>
+                    <ul>
+                        <li>Stack CTAs full-width instead of side-by-side</li>
+                        <li>Consider sticky Buy/Sell bar at bottom of screen</li>
+                        <li>Reduce secondary action buttons to 1 visible + "More" menu</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 2: PRICE HISTORY -->
+<div id="price-history" class="section-breakdown">
+    <div class="section-breakdown-header">
+        <div class="section-breakdown-title">2. Price History Chart</div>
+        <div class="section-breakdown-rating good">Rating: 7.5/10</div>
+    </div>
+    <div class="section-breakdown-body">
+        <div class="visual-side">
+            <div class="section-title-bar">Price History</div>
+            <div class="mockup-preview">
+                <div class="chart-mockup">
+                    <div class="chart-legend">
+                        <div class="chart-legend-item">
+                            <div class="chart-legend-color" style="background: #16a34a;"></div>
+                            <span>Current Price</span>
+                        </div>
+                        <div class="chart-legend-item">
+                            <div class="chart-legend-color" style="background: #dc2626;"></div>
+                            <span>Retail Price</span>
+                        </div>
+                        <div class="chart-legend-item">
+                            <div class="chart-legend-color" style="background: #3b82f6;"></div>
+                            <span>30d Avg</span>
+                        </div>
+                    </div>
+                    <div class="chart-grid">
+                        <div class="chart-line-path"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="annotation">
+                <strong>Current behavior:</strong> Defaults to open, shows full chart with 30d/90d/retail overlays
+            </div>
+            
+            <div class="comparison">
+                <div class="comparison-side before">
+                    <div class="comparison-label">❌ When Collapsed (Current)</div>
+                    <div style="background: #f5f5f5; padding: 10px; border: 1px solid #ddd; font-size: 11px; text-align: center;">
+                        <strong>▶ Price History</strong><br>
+                        <span style="color: #999;">(No preview shown)</span>
+                    </div>
+                </div>
+                <div class="comparison-side after">
+                    <div class="comparison-label">✓ Proposed (With Preview)</div>
+                    <div style="background: #f5f5f5; padding: 10px; border: 1px solid #ddd; font-size: 11px;">
+                        <strong>▼ Price History</strong><br>
+                        <div style="display: flex; gap: 10px; margin-top: 5px; font-weight: 700;">
+                            <span style="color: #16a34a;">30d: +8%</span>
+                            <span style="color: #16a34a;">90d: +12%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="analysis-side">
+            <div class="info-grid">
+                <div class="info-block">
+                    <h3>✓ Strengths</h3>
+                    <ul class="checkmarks">
+                        <li><strong>Visual trend representation</strong> - Charts superior to tables for time-series</li>
+                        <li><strong>Multiple overlays</strong> - 30d/90d/retail provide rich context</li>
+                        <li><strong>Collapsible</strong> - Users can hide if not interested in historical data</li>
+                        <li><strong>Persistent state</strong> - Collapse preference saved to localStorage</li>
+                        <li><strong>Legend clarity</strong> - Color-coded legend makes multi-line chart readable</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>⚠ Issues & Concerns</h3>
+                    <ul class="warnings">
+                        <li><strong>No collapsed preview</strong> - Users can't see "up 8%" without expanding</li>
+                        <li><strong>Section title generic</strong> - "Price History" doesn't hint at insights available</li>
+                        <li><strong>No timeframe toggle visible</strong> - Unclear if users can switch 7d/30d/90d/all</li>
+                        <li><strong>Chart complexity unknown</strong> - PriceHistoryChart component needs separate assessment</li>
+                        <li><strong>Y-axis scaling unclear</strong> - Hard to tell if ₹2K range or ₹10K range at glance</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>→ Recommendations</h3>
+                    <ul class="suggestions">
+                        <li><span class="priority-badge critical">Critical</span> Add mini-insight when collapsed: "30d: +8% | 90d: +12%"</li>
+                        <li><span class="priority-badge high">High</span> Enhance title: "Price History & Trends" sets better expectations</li>
+                        <li><span class="priority-badge high">High</span> Show timeframe toggle above chart: [7D] [30D] [90D] [ALL]</li>
+                        <li><span class="priority-badge medium">Medium</span> Add quick stats cards: Small cards showing 7d/30d/90d changes above chart</li>
+                        <li><span class="priority-badge medium">Medium</span> Export button: Let users save chart as image for sharing</li>
+                        <li><span class="priority-badge low">Low</span> Annotations: Mark significant events (restocks, releases) on timeline</li>
+                    </ul>
+                </div>
+
+                <div class="recommendations">
+                    <h4>🎨 Visual Enhancement Ideas</h4>
+                    <ul>
+                        <li>Add shaded area under line to emphasize trend direction</li>
+                        <li>Highlight current price point with larger dot + tooltip</li>
+                        <li>Show min/max range labels on Y-axis for scale context</li>
+                        <li>Add subtle grid lines for easier value reading</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 3: PRICE COMPARISON -->
+<div id="price-comparison" class="section-breakdown">
+    <div class="section-breakdown-header">
+        <div class="section-breakdown-title">3. Price Comparison Card</div>
+        <div class="section-breakdown-rating fair">Rating: 7/10</div>
+    </div>
+    <div class="section-breakdown-body">
+        <div class="visual-side">
+            <div class="section-title-bar">Where to Buy: Price Comparison</div>
+            <div class="mockup-preview">
+                <div style="padding: 15px; background: white;">
+                    <div style="font-size: 13px; font-weight: 700; margin-bottom: 5px;">Where to Buy: Price Comparison</div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 15px;">All-in costs including shipping & fees. Choose the best option for you.</div>
+                    
+                    <div class="channel-cards">
+                        <div class="channel-card whatsapp">
+                            <div>
+                                <div class="channel-name">WhatsApp Network</div>
+                                <div class="channel-details">Direct from sellers • Fast delivery • 12 sellers</div>
+                            </div>
+                            <div class="channel-price green">₹12,500</div>
+                        </div>
+                        <div class="channel-card marketplace">
+                            <div>
+                                <div class="channel-name">Indian Marketplaces</div>
+                                <div class="channel-details">Verified listings • Buyer protection • 5 listings</div>
+                            </div>
+                            <div class="channel-price blue">₹13,200</div>
+                        </div>
+                        <div class="channel-card international">
+                            <div>
+                                <div class="channel-name">International Platforms</div>
+                                <div class="channel-details">StockX, GOAT • Authenticity guaranteed • 8 listings</div>
+                            </div>
+                            <div class="channel-price purple">₹14,800</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="annotation negative">
+                <strong>Redundancy Alert:</strong> Best Price (₹12,500) already shown in Hero section above
+            </div>
+            <div class="annotation positive">
+                <strong>What Works:</strong> Color consistency - Green/Blue/Purple matches throughout app
+            </div>
+        </div>
+        
+        <div class="analysis-side">
+            <div class="info-grid">
+                <div class="info-block">
+                    <h3>✓ Strengths</h3>
+                    <ul class="checkmarks">
+                        <li><strong>Decision-support focus</strong> - Directly answers "Where should I buy?"</li>
+                        <li><strong>All-in costs stated</strong> - Upfront clarity: "including shipping & fees"</li>
+                        <li><strong>Scannable cards</strong> - Large price + supporting details layout easy to parse</li>
+                        <li><strong>Color consistency</strong> - WhatsApp=green, Marketplace=blue, International=purple used throughout</li>
+                        <li><strong>Comparison friendly</strong> - Vertical stack makes price comparison effortless</li>
+                        <li><strong>Channel details helpful</strong> - Delivery time + seller count aids decision</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>⚠ Issues & Concerns</h3>
+                    <ul class="warnings">
+                        <li><strong>MAJOR: Redundant with hero</strong> - Best Price already shown above; this duplicates</li>
+                        <li><strong>Delivery times static</strong> - "2-3 days" appears hardcoded, not data-driven</li>
+                        <li><strong>No trust signals</strong> - Missing authenticity guarantees, protection indicators</li>
+                        <li><strong>International shipping unclear</strong> - "Incl. shipping" but what about customs/duties?</li>
+                        <li><strong>"Request Introduction" button confusing</strong> - Top-right button's purpose unclear</li>
+                        <li><strong>Empty state weak</strong> - Just says "No listings" without alternatives</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>→ Recommendations</h3>
+                    <ul class="suggestions">
+                        <li><span class="priority-badge critical">Critical</span> <strong>Remove or merge with hero</strong> - Consolidate to reduce redundancy</li>
+                        <li><span class="priority-badge critical">Critical</span> Add trust badges: "✓ Verified" or "⚠️ No auth guarantee" per channel</li>
+                        <li><span class="priority-badge high">High</span> Make delivery times dynamic or show ranges: "2-4 days typically"</li>
+                        <li><span class="priority-badge high">High</span> Add "Why choose?" bullets per channel (WhatsApp: "Fastest + cheapest")</li>
+                        <li><span class="priority-badge medium">Medium</span> Show price trend arrows: Indicate if channel prices rising/falling</li>
+                        <li><span class="priority-badge medium">Medium</span> International cost breakdown: Expandable "Item + Ship + Est. Customs"</li>
+                        <li><span class="priority-badge low">Low</span> "Negotiate" indicators: Show which channels allow haggling</li>
+                    </ul>
+                </div>
+
+                <div class="recommendations">
+                    <h4>💡 Consolidation Suggestion</h4>
+                    <ul>
+                        <li><strong>Option A:</strong> Remove this section entirely; users can view full listings table below</li>
+                        <li><strong>Option B:</strong> Keep but move to "Where to Buy" tab in tabbed interface</li>
+                        <li><strong>Option C:</strong> Merge into hero: Show "Best: WhatsApp ₹12,500 | View all channels →"</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 4: ORDER BOOK -->
+<div id="order-book" class="section-breakdown">
+    <div class="section-breakdown-header">
+        <div class="section-breakdown-title">4. Order Book</div>
+        <div class="section-breakdown-rating fair">Rating: 6.5/10</div>
+    </div>
+    <div class="section-breakdown-body">
+        <div class="visual-side">
+            <div class="section-title-bar">Order Book <span style="background: #7c3aed; color: white; padding: 2px 6px; font-size: 9px; margin-left: 8px;">ADVANCED</span></div>
+            <div class="mockup-preview">
+                <div class="orderbook-mockup">
+                    <div class="orderbook-header">
+                        <div>PRICE</div>
+                        <div>QUANTITY</div>
+                        <div>DEPTH</div>
+                    </div>
+                    <div class="orderbook-row sell">
+                        <div class="orderbook-price sell-price">₹14,000</div>
+                        <div>3</div>
+                        <div>[████░░░░░░]</div>
+                    </div>
+                    <div class="orderbook-row sell">
+                        <div class="orderbook-price sell-price">₹13,500</div>
+                        <div>5</div>
+                        <div>[████████░░]</div>
+                    </div>
+                    <div class="orderbook-row sell">
+                        <div class="orderbook-price sell-price">₹13,200</div>
+                        <div>2</div>
+                        <div>[████░░░░░░]</div>
+                    </div>
+                    <div class="orderbook-row spread">
+                        — SPREAD: ₹700 —
+                    </div>
+                    <div class="orderbook-row buy">
+                        <div class="orderbook-price buy-price">₹12,500</div>
+                        <div>8</div>
+                        <div>[████████████]</div>
+                    </div>
+                    <div class="orderbook-row buy">
+                        <div class="orderbook-price buy-price">₹12,200</div>
+                        <div>4</div>
+                        <div>[████████░░░]</div>
+                    </div>
+                    <div class="orderbook-row buy">
+                        <div class="orderbook-price buy-price">₹12,000</div>
+                        <div>2</div>
+                        <div>[████░░░░░░]</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="annotation negative">
+                <strong>Complexity Warning:</strong> Order books intimidating for non-finance users. Currently defaults to OPEN.
+            </div>
+            <div class="mobile-warning">
+                <strong>📱 Mobile Issue:</strong> Order books notoriously difficult on small screens. Depth bars become tiny, hard to interpret.
+            </div>
+        </div>
+        
+        <div class="analysis-side">
+            <div class="info-grid">
+                <div class="info-block">
+                    <h3>✓ Strengths</h3>
+                    <ul class="checkmarks">
+                        <li><strong>Professional aesthetic</strong> - Exchange-inspired design aligns with platform positioning</li>
+                        <li><strong>Info tooltip provided</strong> - Explains spread, liquidity concepts for novices</li>
+                        <li><strong>Depth visualization</strong> - Visual bars show quantity at each level (powerful for traders)</li>
+                        <li><strong>Collapsible</strong> - Power users can expand, others can ignore</li>
+                        <li><strong>Color coding</strong> - Red=sell, Green=buy follows exchange conventions</li>
+                        <li><strong>Spread highlighted</strong> - Clear visual separator shows bid-ask gap</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>⚠ Issues & Concerns</h3>
+                    <ul class="warnings">
+                        <li><strong>Too complex for beginners</strong> - Most users just want lowest price, not full order book</li>
+                        <li><strong>Currently defaults OPEN</strong> - Should be closed by default for casual users</li>
+                        <li><strong>Value unclear</strong> - Does this help decisions more than Price Comparison Card?</li>
+                        <li><strong>Mobile rendering poor</strong> - Depth bars too small, columns cramped</li>
+                        <li><strong>No timestamp</strong> - Users don't know when book was last updated</li>
+                        <li><strong>Liquidity assessment missing</strong> - Is 8 units "good" depth? No guidance provided</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>→ Recommendations</h3>
+                    <ul class="suggestions">
+                        <li><span class="priority-badge critical">Critical</span> <strong>Default to CLOSED</strong> - Too advanced; open only for returning power users</li>
+                        <li><span class="priority-badge critical">Critical</span> Add visual spread indicator badge: 🟢 Tight / 🟡 Moderate / 🔴 Wide</li>
+                        <li><span class="priority-badge high">High</span> Include timestamp: "Updated 5 min ago"</li>
+                        <li><span class="priority-badge high">High</span> Add educational overlay for first-time viewers: "Green = buy orders, Red = sell orders"</li>
+                        <li><span class="priority-badge medium">Medium</span> Simplify mobile: Show only top 3 buy + top 3 sell, hide depth bars</li>
+                        <li><span class="priority-badge medium">Medium</span> Add context labels: "Good liquidity" or "Low liquidity" based on depth</li>
+                        <li><span class="priority-badge low">Low</span> Click-to-quote: Clicking price level should populate Buy/Sell modal</li>
+                    </ul>
+                </div>
+
+                <div class="recommendations">
+                    <h4>🎯 User Segmentation Idea</h4>
+                    <ul>
+                        <li><strong>New users:</strong> Section hidden by default</li>
+                        <li><strong>After 5 visits:</strong> Show tooltip: "Try the Order Book for deeper market insight"</li>
+                        <li><strong>Power users:</strong> Auto-expand if user has expanded it 3+ times</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 5: LISTINGS TABLE -->
+<div id="listings" class="section-breakdown">
+    <div class="section-breakdown-header">
+        <div class="section-breakdown-title">5. Unified Listings Table</div>
+        <div class="section-breakdown-rating poor">Rating: 6/10 <span style="background: #dc2626; padding: 4px 8px; margin-left: 10px; font-size: 11px;">MOBILE CRITICAL</span></div>
+    </div>
+    <div class="section-breakdown-body">
+        <div class="visual-side">
+            <div class="section-title-bar">All Listings (Across Channels)</div>
+            <div class="mockup-preview">
+                <div style="padding: 10px; background: #f9f9f9; border-bottom: 1px solid #ddd; display: flex; gap: 10px; flex-wrap: wrap; font-size: 10px;">
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        <span style="font-weight: 700; text-transform: uppercase;">Channel:</span>
+                        <button style="padding: 4px 8px; border: 2px solid #000; background: #000; color: white; font-size: 10px;">All</button>
+                        <button style="padding: 4px 8px; border: 1px solid #999; background: white; font-size: 10px;">WhatsApp</button>
+                        <button style="padding: 4px 8px; border: 1px solid #999; background: white; font-size: 10px;">Marketplace</button>
+                    </div>
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        <span style="font-weight: 700; text-transform: uppercase;">Side:</span>
+                        <button style="padding: 4px 8px; border: 2px solid #000; background: #000; color: white; font-size: 10px;">All</button>
+                        <button style="padding: 4px 8px; border: 1px solid #999; background: white; font-size: 10px;">Buy</button>
+                        <button style="padding: 4px 8px; border: 1px solid #999; background: white; font-size: 10px;">Sell</button>
+                    </div>
+                </div>
+                <div class="table-demo">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>CHANNEL</th>
+                                <th>SIDE</th>
+                                <th>PRICE</th>
+                                <th>LANDED</th>
+                                <th>QTY</th>
+                                <th>SOURCE</th>
+                                <th>LOCATION</th>
+                                <th>LAST SEEN</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge-demo whatsapp">WA</span></td>
+                                <td><span class="badge-demo buy">BUY</span></td>
+                                <td style="font-weight: 700; font-family: 'Courier New', monospace;">₹12,500</td>
+                                <td style="font-family: 'Courier New', monospace;">₹12,500</td>
+                                <td>2</td>
+                                <td>Seller #5</td>
+                                <td>Delhi</td>
+                                <td>2h ago</td>
+                                <td><button style="font-size: 9px; padding: 2px 6px; border: 1px solid #16a34a;">Buy</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge-demo marketplace">MKT</span></td>
+                                <td><span class="badge-demo buy">BUY</span></td>
+                                <td style="font-weight: 700; font-family: 'Courier New', monospace;">₹13,200</td>
+                                <td style="font-family: 'Courier New', monospace;">₹13,500</td>
+                                <td>1</td>
+                                <td>Marketplace</td>
+                                <td>Mumbai</td>
+                                <td>1d ago</td>
+                                <td><button style="font-size: 9px; padding: 2px 6px; border: 1px solid #999;">View</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge-demo whatsapp">WA</span></td>
+                                <td><span class="badge-demo sell">SELL</span></td>
+                                <td style="font-weight: 700; font-family: 'Courier New', monospace;">₹14,000</td>
+                                <td style="font-family: 'Courier New', monospace;">₹13,600</td>
+                                <td>1</td>
+                                <td>Seller #12</td>
+                                <td>Bangalore</td>
+                                <td>5h ago</td>
+                                <td><button style="font-size: 9px; padding: 2px 6px; border: 1px solid #dc2626;">Sell</button></td>
+                            </tr>
+                            <tr>
+                                <td colspan="9" style="text-align: center; color: #999; padding: 20px; font-style: italic;">
+                                    ... 22 more rows ...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="mobile-warning">
+                <strong>🚨 MOBILE CRITICAL ISSUE:</strong>
+                <br>9 columns on mobile = horizontal scroll required. Text becomes tiny (8-9px effective size). Action buttons only 9px font - too small for touch targets.
+                <br><br>
+                <strong>Recommendation:</strong> Card view on mobile instead of table.
+            </div>
+        </div>
+        
+        <div class="analysis-side">
+            <div class="info-grid">
+                <div class="info-block">
+                    <h3>✓ Strengths</h3>
+                    <ul class="checkmarks">
+                        <li><strong>Comprehensive</strong> - Every listing across all channels in one unified view</li>
+                        <li><strong>Powerful filters</strong> - 4 dimensions (Channel, Side, Location, Sort) for precise drill-down</li>
+                        <li><strong>Landed price column</strong> - Shows all-in costs for true apples-to-apples comparison</li>
+                        <li><strong>Last Seen timestamp</strong> - Data freshness indicator builds trust</li>
+                        <li><strong>Direct CTAs</strong> - "Buy from" / "Sell to" buttons per row enable instant action</li>
+                        <li><strong>Visual consistency</strong> - Channel colors match Price Comparison section</li>
+                        <li><strong>Terminal aesthetic</strong> - Monospace prices, stripe pattern, uppercase labels</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>⚠ Issues & Concerns</h3>
+                    <ul class="warnings">
+                        <li><strong>CRITICAL: Mobile nightmare</strong> - 9 columns require horizontal scroll, unreadable on mobile</li>
+                        <li><strong>Overwhelming on first view</strong> - 25+ rows × 9 columns = massive cognitive load</li>
+                        <li><strong>Filter placement eats space</strong> - 4 filter controls add 60-80px vertical space before content</li>
+                        <li><strong>Redundancy</strong> - Best 3-5 prices already shown in Price Comparison Card above</li>
+                        <li><strong>Action buttons too small</strong> - 9px font, easy to miss on mobile (44px touch target minimum)</li>
+                        <li><strong>No pagination</strong> - If 50+ listings, table becomes unwieldy; no "Load More"</li>
+                        <li><strong>"Source" column vague</strong> - "Seller 5" doesn't indicate trustworthiness or reputation</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>→ Recommendations</h3>
+                    <ul class="suggestions">
+                        <li><span class="priority-badge critical">Critical</span> <strong>Mobile: Card view</strong> - Stack as cards (like Price Comparison) on mobile</li>
+                        <li><span class="priority-badge critical">Critical</span> Default to CLOSED - Too detailed for initial view; expand on demand</li>
+                        <li><span class="priority-badge critical">Critical</span> Add pagination: Show top 10-20, "Load More" button</li>
+                        <li><span class="priority-badge critical">Critical</span> Enlarge action buttons: 12px font minimum, 44×44px touch targets</li>
+                        <li><span class="priority-badge high">High</span> Smart defaults: Pre-filter to "Buy" side only (most common use case)</li>
+                        <li><span class="priority-badge high">High</span> Add "Best Deal" stars: ⭐ icon on top 1-3 listings</li>
+                        <li><span class="priority-badge medium">Medium</span> Collapse filters: "Filters (4)" button; expand drawer on click</li>
+                        <li><span class="priority-badge medium">Medium</span> Improve "Source": Rename to "Seller/Platform", add trust badges</li>
+                    </ul>
+                </div>
+
+                <div class="recommendations">
+                    <h4>📱 Mobile Card View Design</h4>
+                    <ul>
+                        <li>Card header: [Channel badge] [Side badge] [Price (large)]</li>
+                        <li>Card body: Source • Location • Qty: X • Updated Xh ago</li>
+                        <li>Card footer: [Full-width CTA button - 44px height]</li>
+                        <li>Sort dropdown above cards: "Best Price" | "Nearest" | "Newest"</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 6: ARBITRAGE -->
+<div id="arbitrage" class="section-breakdown">
+    <div class="section-breakdown-header">
+        <div class="section-breakdown-title">6. Arbitrage Opportunities</div>
+        <div class="section-breakdown-rating good">Rating: 7/10 <span style="background: #7c3aed; padding: 4px 8px; margin-left: 10px; font-size: 11px;">ADVANCED</span></div>
+    </div>
+    <div class="section-breakdown-body">
+        <div class="visual-side">
+            <div class="section-title-bar">Arbitrage Opportunities</div>
+            <div class="mockup-preview">
+                <div style="padding: 12px; background: #f9f9f9; border-bottom: 1px solid #ddd; display: flex; gap: 15px; align-items: center; font-size: 11px;">
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        <span style="font-weight: 700; text-transform: uppercase;">Min ROI:</span>
+                        <input type="number" value="3.0" style="width: 50px; padding: 4px; border: 1px solid #999; font-family: 'Courier New', monospace; font-weight: 700;">
+                        <span>%</span>
+                    </div>
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        <span style="font-weight: 700; text-transform: uppercase;">Min Profit:</span>
+                        <input type="number" value="0" style="width: 60px; padding: 4px; border: 1px solid #999; font-family: 'Courier New', monospace; font-weight: 700;">
+                        <span>₹</span>
+                    </div>
+                    <div style="margin-left: auto; color: #666;">3 opportunities</div>
+                </div>
+                <div class="table-demo">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>BUY CHANNEL</th>
+                                <th>BUY PRICE</th>
+                                <th>SELL CHANNEL</th>
+                                <th>SELL NET</th>
+                                <th>PROFIT ₹</th>
+                                <th>ROI %</th>
+                                <th>LIQUIDITY</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: #f0fdf4;">
+                                <td>
+                                    <span class="badge-demo whatsapp">WhatsApp</span><br>
+                                    <span style="font-size: 9px; color: #666;">Seller #5</span>
+                                </td>
+                                <td style="font-weight: 700; font-family: 'Courier New', monospace;">₹12,500</td>
+                                <td>
+                                    <span class="badge-demo marketplace">Marketplace</span><br>
+                                    <span style="font-size: 9px; color: #666;">Platform</span>
+                                </td>
+                                <td style="font-weight: 700; font-family: 'Courier New', monospace;">₹14,200</td>
+                                <td style="font-weight: 700; color: #16a34a; font-family: 'Courier New', monospace;">₹1,700</td>
+                                <td style="font-weight: 700; font-family: 'Courier New', monospace;">13.6%</td>
+                                <td style="font-size: 10px;">
+                                    Buy: 2<br>Sell: 5
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #999; padding: 15px; font-style: italic;">
+                                    ... 2 more opportunities ...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="annotation">
+                <strong>Unique Value:</strong> No other platform shows arbitrage this clearly. Strong differentiator for investment-minded users.
+            </div>
+            <div class="annotation negative">
+                <strong>Complexity Hidden:</strong> Shows ₹1,700 profit but doesn't mention execution risk, timing, fees, authentication challenges
+            </div>
+        </div>
+        
+        <div class="analysis-side">
+            <div class="info-grid">
+                <div class="info-block">
+                    <h3>✓ Strengths</h3>
+                    <ul class="checkmarks">
+                        <li><strong>Unique value prop</strong> - Competitive advantage; no other platform does this</li>
+                        <li><strong>Trader-friendly</strong> - Appeals to power users treating sneakers as investments</li>
+                        <li><strong>Adjustable thresholds</strong> - Users set personal ROI/profit minimums</li>
+                        <li><strong>Liquidity column</strong> - Shows buy/sell depth to assess execution feasibility</li>
+                        <li><strong>Clear metrics</strong> - Both absolute (₹) and relative (%) profit shown</li>
+                        <li><strong>Info tooltip</strong> - Explains arbitrage concept for novices</li>
+                        <li><strong>Visual hierarchy</strong> - High ROI opportunities highlighted with green background</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>⚠ Issues & Concerns</h3>
+                    <ul class="warnings">
+                        <li><strong>Niche audience</strong> - Most users want to buy OR sell, not arbitrage</li>
+                        <li><strong>Execution complexity hidden</strong> - Implies easy profit but doesn't mention capital, timing, risk</li>
+                        <li><strong>Default filters too loose</strong> - 3% ROI shows dozens of marginal opportunities</li>
+                        <li><strong>Mobile table issues</strong> - 7 columns challenging on mobile (same issue as Listings)</li>
+                        <li><strong>No "Execute" workflow</strong> - Shows opportunity but no guidance on how to actually do it</li>
+                        <li><strong>Liquidity unclear</strong> - "Buy: 2, Sell: 5" - is that enough? No guidance on minimums</li>
+                        <li><strong>Fees unaccounted</strong> - Profit calculation may not include platform fees, shipping costs</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>→ Recommendations</h3>
+                    <ul class="suggestions">
+                        <li><span class="priority-badge critical">Critical</span> <strong>Default to CLOSED</strong> - Advanced feature; don't distract casual users</li>
+                        <li><span class="priority-badge critical">Critical</span> Add execution workflow: "Execute Arb" button → step-by-step modal guide</li>
+                        <li><span class="priority-badge high">High</span> Raise default ROI to 5%: Filter out noise, show compelling opportunities only</li>
+                        <li><span class="priority-badge high">High</span> Add risk disclaimer tooltip: "Arbitrage requires capital, timing, carries risk"</li>
+                        <li><span class="priority-badge medium">Medium</span> Mobile: Card view showing Buy → Sell → Profit flow vertically</li>
+                        <li><span class="priority-badge medium">Medium</span> Add "Difficulty" indicator: Easy/Medium/Hard based on liquidity + channel complexity</li>
+                        <li><span class="priority-badge medium">Medium</span> Calculate actual fees: Show net profit after all costs (shipping, platform fees, etc.)</li>
+                        <li><span class="priority-badge low">Low</span> Alert system: "Notify me when ROI > 10%" for automated monitoring</li>
+                    </ul>
+                </div>
+
+                <div class="recommendations">
+                    <h4>🎯 Execution Workflow Design</h4>
+                    <ul>
+                        <li><strong>Step 1:</strong> "Buy from WhatsApp (₹12,500)" - Direct link to seller contact</li>
+                        <li><strong>Step 2:</strong> "Wait for delivery (2-3 days)" - Progress tracker</li>
+                        <li><strong>Step 3:</strong> "List on Marketplace (₹14,200)" - Pre-filled form</li>
+                        <li><strong>Step 4:</strong> "Realize profit (est. ₹1,700)" - Net calculator after fees</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 7: MARKET SUMMARY -->
+<div id="market-summary" class="section-breakdown">
+    <div class="section-breakdown-header">
+        <div class="section-breakdown-title">7. Market Comparison Summary</div>
+        <div class="section-breakdown-rating poor">Rating: 5/10 <span style="background: #dc2626; padding: 4px 8px; margin-left: 10px; font-size: 11px;">REDUNDANT</span></div>
+    </div>
+    <div class="section-breakdown-body full-width">
+        <div class="visual-side">
+            <div class="section-title-bar">Market Comparison Summary (Defaults to Closed)</div>
+            
+            <div class="annotation negative">
+                <strong>🚨 MAJOR REDUNDANCY:</strong> This section duplicates data from:
+                <br>• Price Comparison Card (channel prices)
+                <br>• Arbitrage Opportunities (best arb)
+                <br>• Hero Section (best price)
+                <br><br>
+                <strong>Recommendation: REMOVE or merge with Arbitrage section</strong>
+            </div>
+            
+            <div class="mockup-preview" style="margin-top: 15px;">
+                <div style="padding: 20px; background: white;">
+                    <div style="border-left: 4px solid #16a34a; background: #f0fdf4; padding: 15px; margin-bottom: 15px;">
+                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #16a34a; margin-bottom: 10px;">
+                            BEST ARBITRAGE OPPORTUNITY
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 13px;">
+                                <strong>Buy:</strong> WhatsApp ₹12,500 → <strong>Sell:</strong> Marketplace ₹14,200
+                            </div>
+                            <div style="font-size: 20px; font-weight: 700; color: #16a34a; font-family: 'Courier New', monospace;">
+                                ₹1,700 (13.6%)
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="border: 1px solid #ddd;">
+                        <div style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ddd; font-weight: 700; font-size: 11px; text-transform: uppercase;">
+                            Channel Comparison
+                        </div>
+                        <table style="width: 100%; font-size: 12px;">
+                            <thead style="background: #f9f9f9; border-bottom: 1px solid #ddd;">
+                                <tr>
+                                    <th style="text-align: left; padding: 8px; font-size: 10px; text-transform: uppercase;">Channel</th>
+                                    <th style="text-align: right; padding: 8px; font-size: 10px; text-transform: uppercase;">Best Price</th>
+                                    <th style="text-align: right; padding: 8px; font-size: 10px; text-transform: uppercase;">Avg Price</th>
+                                    <th style="text-align: right; padding: 8px; font-size: 10px; text-transform: uppercase;">Listings</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 8px;"><div style="display: flex; align-items: center; gap: 6px;"><div style="width: 6px; height: 6px; background: #16a34a;"></div> WhatsApp</div></td>
+                                    <td style="padding: 8px; text-align: right; font-weight: 700; color: #16a34a; font-family: 'Courier New', monospace;">₹12,500</td>
+                                    <td style="padding: 8px; text-align: right; font-family: 'Courier New', monospace;">₹12,800</td>
+                                    <td style="padding: 8px; text-align: right;">12</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 8px;"><div style="display: flex; align-items: center; gap: 6px;"><div style="width: 6px; height: 6px; background: #2563eb;"></div> Marketplace</div></td>
+                                    <td style="padding: 8px; text-align: right; font-weight: 700; color: #2563eb; font-family: 'Courier New', monospace;">₹13,200</td>
+                                    <td style="padding: 8px; text-align: right; font-family: 'Courier New', monospace;">₹13,600</td>
+                                    <td style="padding: 8px; text-align: right;">5</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px;"><div style="display: flex; align-items: center; gap: 6px;"><div style="width: 6px; height: 6px; background: #7c3aed;"></div> International</div></td>
+                                    <td style="padding: 8px; text-align: right; font-weight: 700; color: #7c3aed; font-family: 'Courier New', monospace;">₹14,800</td>
+                                    <td style="padding: 8px; text-align: right; font-family: 'Courier New', monospace;">₹15,200</td>
+                                    <td style="padding: 8px; text-align: right;">8</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 20px; background: #fef2f2; border: 2px solid #dc2626;">
+                <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 10px; color: #dc2626;">❌ WHY THIS SECTION FAILS</h4>
+                <ul style="font-size: 12px; line-height: 1.8; color: #333;">
+                    <li><strong>Best Price:</strong> Already in hero (₹12,500)</li>
+                    <li><strong>Channel prices:</strong> Already in Price Comparison Card (₹12,500 / ₹13,200 / ₹14,800)</li>
+                    <li><strong>Best Arbitrage:</strong> Already in Arbitrage Opportunities section above</li>
+                    <li><strong>Avg Price utility:</strong> Most users care about BEST price, not average</li>
+                    <li><strong>Defaults closed:</strong> If valuable, why closed by default?</li>
+                </ul>
+                <div style="margin-top: 15px; padding: 12px; background: white; border-left: 4px solid #dc2626; font-size: 12px;">
+                    <strong>Decision:</strong> This is the MOST redundant section. <strong>Strong recommendation to REMOVE entirely</strong> or merge key insights into Arbitrage section.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 8: PERFORMANCE METRICS -->
+<div id="performance" class="section-breakdown">
+    <div class="section-breakdown-header">
+        <div class="section-breakdown-title">8. Performance Metrics</div>
+        <div class="section-breakdown-rating fair">Rating: 6.5/10 <span style="background: #7c3aed; padding: 4px 8px; margin-left: 10px; font-size: 11px;">ADVANCED</span></div>
+    </div>
+    <div class="section-breakdown-body">
+        <div class="visual-side">
+            <div class="section-title-bar">Performance Metrics (Defaults to Closed)</div>
+            <div class="mockup-preview">
+                <div style="padding: 20px; background: white;">
+                    <div class="metrics-demo">
+                        <div class="metric-card">
+                            <div class="metric-card-label">30d Change</div>
+                            <div class="metric-card-value positive">+8%</div>
+                            <div class="metric-card-context">↑ 0.5% from yesterday</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-label">90d Change</div>
+                            <div class="metric-card-value positive">+12%</div>
+                            <div class="metric-card-context">↑ 4% from 30d</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-label">Volatility</div>
+                            <div class="metric-card-value">Medium</div>
+                            <div class="metric-card-context">±8% price swings</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; color: #666;">
+                            Secondary Metrics
+                        </div>
+                        <div class="metrics-demo">
+                            <div class="metric-card">
+                                <div class="metric-card-label">Price Range</div>
+                                <div class="metric-card-value" style="font-size: 20px;">₹2,300</div>
+                                <div class="metric-card-context">18% spread • Wide market</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-card-label">Market Efficiency</div>
+                                <div class="metric-card-value positive" style="font-size: 20px;">5.2%</div>
+                                <div class="metric-card-context">Highly efficient pricing</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-card-label">Price Stability</div>
+                                <div class="metric-card-value" style="font-size: 20px; color: #f59e0b;">Moderate</div>
+                                <div class="metric-card-context">Some volatility present</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="annotation">
+                <strong>Currently:</strong> Shows "Medium" volatility without explaining what that means (±10%? ±20%?)
+            </div>
+            
+            <div class="annotation negative">
+                <strong>Redundancy:</strong> 30d change already shown in hero Quick Decision Card
+            </div>
+        </div>
+        
+        <div class="analysis-side">
+            <div class="info-grid">
+                <div class="info-block">
+                    <h3>✓ Strengths</h3>
+                    <ul class="checkmarks">
+                        <li><strong>Analytical depth</strong> - Appeals to investment-minded users</li>
+                        <li><strong>Grid layout</strong> - Matches hero Quick Decision Card visual style</li>
+                        <li><strong>Color coding</strong> - Green/red for positive/negative enables instant parsing</li>
+                        <li><strong>Secondary metrics valuable</strong> - Market efficiency % and price stability unique insights</li>
+                        <li><strong>Closed by default</strong> - Doesn't overwhelm casual users</li>
+                        <li><strong>Context provided</strong> - "Highly efficient pricing" clarifies 5% metric</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>⚠ Issues & Concerns</h3>
+                    <ul class="warnings">
+                        <li><strong>30d change redundant</strong> - Already in hero; show only 90d/180d/1yr here</li>
+                        <li><strong>Volatility vague</strong> - "Medium" doesn't explain actual price swing range</li>
+                        <li><strong>Market Efficiency confusing</strong> - "5% efficiency" - lower better or higher better?</li>
+                        <li><strong>Price Range lacks context</strong> - ₹2,300 spread - is that good or bad for this category?</li>
+                        <li><strong>Calculations opaque</strong> - Users don't know how metrics computed</li>
+                        <li><strong>No benchmarks</strong> - Hard to judge without category comparisons</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>→ Recommendations</h3>
+                    <ul class="suggestions">
+                        <li><span class="priority-badge critical">Critical</span> Add context to ALL metrics: "Good/Medium/Bad" indicator per metric</li>
+                        <li><span class="priority-badge critical">Critical</span> Simplify volatility: "Moderate price swings (±12%)" instead of just "Medium"</li>
+                        <li><span class="priority-badge high">High</span> Explain Market Efficiency: Add subtitle "Lower = more price agreement across channels"</li>
+                        <li><span class="priority-badge high">High</span> Remove redundant 30d: Show only 90d/180d/1yr if different from hero</li>
+                        <li><span class="priority-badge medium">Medium</span> Add benchmark comparisons: "This asset: 5% | Category avg: 8%"</li>
+                        <li><span class="priority-badge medium">Medium</span> Visual indicators: Replace text with meters/gauges for volatility and stability</li>
+                        <li><span class="priority-badge low">Low</span> Historical metrics: Chart showing how volatility changed over time</li>
+                        <li><span class="priority-badge low">Low</span> Correlation data: "Moves with Nike Dunk High (0.8 correlation)"</li>
+                    </ul>
+                </div>
+
+                <div class="recommendations">
+                    <h4>🎨 Enhanced Metric Card Design</h4>
+                    <ul>
+                        <li><strong>Top:</strong> Metric label + (?) tooltip</li>
+                        <li><strong>Middle:</strong> Large value + visual indicator (🟢/🟡/🔴)</li>
+                        <li><strong>Bottom:</strong> Context: "Good for category" or "Below average"</li>
+                        <li><strong>Compare button:</strong> "vs Category Avg" to show benchmark</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 9: MARKET INSIGHT -->
+<div id="insight" class="section-breakdown">
+    <div class="section-breakdown-header">
+        <div class="section-breakdown-title">9. Market Insight</div>
+        <div class="section-breakdown-rating excellent">Rating: 8/10</div>
+    </div>
+    <div class="section-breakdown-body">
+        <div class="visual-side">
+            <div class="section-title-bar">Market Insight</div>
+            <div class="mockup-preview">
+                <div class="insight-card-demo">
+                    <div class="insight-header">
+                        <div class="insight-recommendation">BUY</div>
+                        <div class="insight-confidence">85% confidence</div>
+                    </div>
+                    <div class="insight-text">
+                        Prices have increased 8% in the last 30 days with high liquidity. Current price is below retail and trending upward. Strong buy signal based on demand indicators and limited supply.
+                    </div>
+                    <button class="insight-cta">Shop Now →</button>
+                </div>
+            </div>
+            
+            <div class="annotation positive">
+                <strong>High Value:</strong> Takes complex data and gives simple, actionable recommendation. Users love this.
+            </div>
+            <div class="annotation">
+                <strong>Trust Building Needed:</strong> Should show track record: "Our insights are 78% accurate (based on 120 predictions)"
+            </div>
+        </div>
+        
+        <div class="analysis-side">
+            <div class="info-grid">
+                <div class="info-block">
+                    <h3>✓ Strengths</h3>
+                    <ul class="checkmarks">
+                        <li><strong>Clear recommendation</strong> - Distills complexity into BUY/SELL/HOLD action</li>
+                        <li><strong>Confidence % shown</strong> - Transparency: users know how certain AI is</li>
+                        <li><strong>Reasoning provided</strong> - Not black box; explains "why"</li>
+                        <li><strong>Visual prominence</strong> - Large colored border (green/red) + bold text unmissable</li>
+                        <li><strong>Open by default</strong> - High-value content surfaced automatically</li>
+                        <li><strong>Size-specific</strong> - Recommendation tied to selected size (9.5 in this case)</li>
+                        <li><strong>Expected movement</strong> - Forward-looking: "may rise 5-10%"</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>⚠ Issues & Concerns</h3>
+                    <ul class="warnings">
+                        <li><strong>Trust building needed</strong> - Users may not trust AI without historical track record</li>
+                        <li><strong>Basis unclear</strong> - What data drives this? (30d trend? Arbitrage? Supply?)</li>
+                        <li><strong>No CTA link</strong> - Says "BUY" but doesn't link to Buy modal/listings</li>
+                        <li><strong>Expected movement vague</strong> - "+5-10%" over what timeframe? 30 days? 90 days?</li>
+                        <li><strong>Size-specific warning missing</strong> - If for size 9.5, does it apply to size 10?</li>
+                        <li><strong>No alternative scenarios</strong> - What if price drops? When to reconsider?</li>
+                    </ul>
+                </div>
+                
+                <div class="info-block">
+                    <h3>→ Recommendations</h3>
+                    <ul class="suggestions">
+                        <li><span class="priority-badge critical">Critical</span> Add CTA button: If "BUY", show "Shop Now →" linking to hero Buy modal</li>
+                        <li><span class="priority-badge critical">Critical</span> Show track record: "Our insights are 78% accurate (120 predictions tracked)"</li>
+                        <li><span class="priority-badge high">High</span> Clarify timeframe: "Expected: +5-10% over next 30 days"</li>
+                        <li><span class="priority-badge high">High</span> Add "Why?" explainer: Expandable "Based on: 30d trend (+8%), low supply (12 listings), seasonal demand"</li>
+                        <li><span class="priority-badge medium">Medium</span> Confidence gauge: Visual meter (thermometer style) instead of just %</li>
+                        <li><span class="priority-badge medium">Medium</span> Alternative scenarios: "If price drops below ₹11,500, consider waiting"</li>
+                        <li><span class="priority-badge low">Low</span> Community sentiment: "85% of users watching this asset (↑ from last week)"</li>
+                        <li><span class="priority-badge low">Low</span> Analyst notes: Optional human commentary overlay</li>
+                    </ul>
+                </div>
+
+                <div class="recommendations">
+                    <h4>💡 Enhanced Layout Idea</h4>
+                    <ul>
+                        <li><strong>Top:</strong> BUY (85% confident) | [Shop Now →] button</li>
+                        <li><strong>Middle:</strong> Reasoning paragraph (current)</li>
+                        <li><strong>Bottom:</strong> Expandable "Show calculation basis" → bullet points of factors</li>
+                        <li><strong>Footer:</strong> "Track record: 78% accurate over 120 predictions"</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentView = 'desktop';
+
+function setView(view) {
+    currentView = view;
+    
+    // Update button states
+    document.querySelectorAll('.controls .btn').forEach(btn => {
+        if (btn.textContent.toLowerCase() === view) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Update mockup classes
+    const heroPreview = document.getElementById('hero-preview');
+    if (heroPreview) {
+        if (view === 'mobile') {
+            heroPreview.classList.add('mobile');
+        } else {
+            heroPreview.classList.remove('mobile');
+        }
+    }
+    
+    // You could add more view-specific updates here
+}
+
+function scrollToSection(sectionId) {
+    if (sectionId) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+}
+</script>
+
+</body>
+</html>
+

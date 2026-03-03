@@ -1,7 +1,77 @@
 /**
  * Enhanced analytics tracking for MVP validation
  * Tracks user interactions, sessions, and engagement metrics
+ * 
+ * Performance optimizations:
+ * - Batched writes to localStorage (debounced)
+ * - Efficient data structures
+ * - Reduced synchronous operations
  */
+
+// Batch queue for events
+let eventQueue: any[] = [];
+let userUpdateQueue: any = null;
+let sessionUpdateQueue: any = null;
+let flushTimeout: ReturnType<typeof setTimeout> | null = null;
+
+const FLUSH_DELAY = 2000; // 2 seconds debounce for batched writes
+const MAX_QUEUE_SIZE = 50; // Force flush when queue reaches this size
+
+// Flush queued writes to localStorage
+const flushWrites = () => {
+  if (flushTimeout) {
+    clearTimeout(flushTimeout);
+    flushTimeout = null;
+  }
+
+  try {
+    // Batch event writes
+    if (eventQueue.length > 0) {
+      const existingEvents = JSON.parse(localStorage.getItem("analytics_events") || "[]");
+      const combined = [...existingEvents, ...eventQueue].slice(-2000);
+      localStorage.setItem("analytics_events", JSON.stringify(combined));
+      eventQueue = [];
+    }
+
+    // Update user data if queued
+    if (userUpdateQueue) {
+      const users = JSON.parse(localStorage.getItem("analytics_users") || "[]");
+      const userIndex = users.findIndex((u: any) => u.id === userUpdateQueue.id);
+      if (userIndex >= 0) {
+        users[userIndex] = { ...users[userIndex], ...userUpdateQueue };
+      }
+      localStorage.setItem("analytics_users", JSON.stringify(users));
+      userUpdateQueue = null;
+    }
+
+    // Update session data if queued
+    if (sessionUpdateQueue) {
+      const sessions = JSON.parse(localStorage.getItem("analytics_sessions") || "[]");
+      const sessionIndex = sessions.findIndex((s: any) => s.id === sessionUpdateQueue.id);
+      if (sessionIndex >= 0) {
+        sessions[sessionIndex] = { ...sessions[sessionIndex], ...sessionUpdateQueue };
+      }
+      localStorage.setItem("analytics_sessions", JSON.stringify(sessions));
+      sessionUpdateQueue = null;
+    }
+  } catch (e) {
+    // Silently fail
+  }
+};
+
+// Schedule a batched flush
+const scheduleFlush = () => {
+  // Force flush if queue is getting large
+  if (eventQueue.length >= MAX_QUEUE_SIZE) {
+    flushWrites();
+    return;
+  }
+
+  // Otherwise debounce
+  if (!flushTimeout) {
+    flushTimeout = setTimeout(flushWrites, FLUSH_DELAY);
+  }
+};
 
 // Generate or get unique user ID
 const getUserId = (): string => {
@@ -106,7 +176,8 @@ const trackSessionEnd = () => {
 if (typeof document !== "undefined") {
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
-      // Page hidden, track session end
+      // Page hidden, flush writes and track session end
+      flushWrites();
       trackSessionEnd();
     } else {
       // Page visible, start new session if needed
@@ -114,22 +185,29 @@ if (typeof document !== "undefined") {
     }
   });
 
-  // Track session end on page unload
+  // Track session end and flush on page unload
   window.addEventListener("beforeunload", () => {
+    flushWrites();
+    trackSessionEnd();
+  });
+  
+  // Also flush on pagehide for iOS Safari
+  window.addEventListener("pagehide", () => {
+    flushWrites();
     trackSessionEnd();
   });
 }
 
 export const analytics = {
   track: (eventName: string, properties?: Record<string, any>) => {
-    // Store in localStorage for now
+    // Store in localStorage using batched writes for performance
     // In production, could send to Google Analytics, Mixpanel, etc.
     try {
       const userId = getUserId();
       const sessionId = getSessionId();
       
-      const events = JSON.parse(localStorage.getItem("analytics_events") || "[]");
-      events.push({
+      // Queue event for batched write
+      eventQueue.push({
         event: eventName,
         properties,
         userId,
@@ -137,26 +215,22 @@ export const analytics = {
         timestamp: new Date().toISOString(),
         url: window.location.pathname,
       });
-      // Keep only last 2000 events
-      const trimmed = events.slice(-2000);
-      localStorage.setItem("analytics_events", JSON.stringify(trimmed));
 
-      // Update user event count
-      const users = JSON.parse(localStorage.getItem("analytics_users") || "[]");
-      const user = users.find((u: any) => u.id === userId);
-      if (user) {
-        user.totalEvents += 1;
-        user.lastSeen = new Date().toISOString();
-        localStorage.setItem("analytics_users", JSON.stringify(users));
-      }
+      // Queue user update
+      userUpdateQueue = {
+        id: userId,
+        totalEvents: (userUpdateQueue?.totalEvents || 0) + 1,
+        lastSeen: new Date().toISOString(),
+      };
 
-      // Update session event count
-      const sessions = JSON.parse(localStorage.getItem("analytics_sessions") || "[]");
-      const session = sessions.find((s: any) => s.id === sessionId);
-      if (session) {
-        session.events += 1;
-        localStorage.setItem("analytics_sessions", JSON.stringify(sessions));
-      }
+      // Queue session update
+      sessionUpdateQueue = {
+        id: sessionId,
+        events: (sessionUpdateQueue?.events || 0) + 1,
+      };
+
+      // Schedule batched flush
+      scheduleFlush();
     } catch (e) {
       // Silently fail
     }

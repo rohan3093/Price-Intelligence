@@ -21,7 +21,7 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
   const sortedSizes = sortSizesByValue(asset.sizes);
 
   return (
-    <div className="border border-brand-gray/20 rounded-none p-2.5 bg-brand-white">
+    <div className="w-full border border-brand-gray/20 rounded-none p-2.5 bg-brand-white">
       <p className="text-[10px] font-body font-normal text-brand-black mb-2 uppercase tracking-wide leading-tight">
         Select size
       </p>
@@ -33,10 +33,10 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
             <button
               key={sizeVariant.size}
               onClick={() => onSizeChange(sizeVariant.size)}
-              className={`px-2 py-1 rounded-none text-xs border transition leading-tight ${
+              className={`px-3 py-2 md:px-2 md:py-1 rounded-none text-xs border transition-all leading-tight min-h-[44px] md:min-h-0 active:scale-95 ${
                 isSelected
-                  ? "border-brand-black bg-brand-black text-brand-white"
-                  : "border-brand-gray/20 bg-brand-white text-brand-black hover:border-brand-black"
+                  ? "border-brand-black bg-brand-black text-brand-white shadow-sm"
+                  : "border-brand-gray/20 bg-brand-white text-brand-black hover:border-brand-black hover:shadow-sm"
               }`}
             >
               {sizeVariant.size}

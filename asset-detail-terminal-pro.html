@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asset Detail - Pro Trading Terminal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0A0E14;
+      --bg-panel: #151921;
+      --bg-hover: #1C2128;
+      --text-primary: #E6E8EB;
+      --text-secondary: #8B92A0;
+      --text-muted: #6B7280;
+      --border: #2D333B;
+      --accent-green: #00D97E;
+      --accent-red: #FF4757;
+      --accent-yellow: #FFB800;
+      --accent-blue: #1E90FF;
+      --accent-purple: #8B5CF6;
+    }
+
+    body.light-mode {
+      --bg-primary: #F8F9FA;
+      --bg-panel: #FFFFFF;
+      --bg-hover: #F1F3F5;
+      --text-primary: #0A0E14;
+      --text-secondary: #6B7280;
+      --text-muted: #9CA3AF;
+      --border: #E5E7EB;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
+    }
+
+    .terminal-container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .asset-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .asset-name {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .asset-sku {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .watchlist-btn {
+      padding: 6px 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .watchlist-btn:hover {
+      border-color: var(--accent-yellow);
+      color: var(--accent-yellow);
+    }
+
+    .watchlist-btn.active {
+      background: var(--accent-yellow);
+      border-color: var(--accent-yellow);
+      color: var(--bg-primary);
+    }
+
+    .theme-toggle {
+      padding: 6px 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-hover);
+    }
+
+    /* Ticker Bar */
+    .ticker-bar {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 20px;
+      display: flex;
+      gap: 30px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .ticker-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .ticker-label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .ticker-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* Main Grid - 4 columns now */
+    .grid-container {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 280px 1fr 280px 320px;
+      grid-template-rows: 300px 1fr;
+      gap: 1px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+    }
+
+    .panel-action {
+      font-size: 10px;
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .panel-action:hover {
+      color: var(--text-primary);
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+    }
+
+    .panel-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .panel-content::-webkit-scrollbar-track {
+      background: var(--bg-panel);
+    }
+
+    .panel-content::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .panel-content::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* Grid Positioning */
+    .price-panel {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .chart-panel {
+      grid-column: 2;
+      grid-row: 1 / 3;
+    }
+
+    .orderbook-panel {
+      grid-column: 3;
+      grid-row: 1;
+    }
+
+    .trade-panel {
+      grid-column: 4;
+      grid-row: 1 / 3;
+    }
+
+    .deals-panel {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .arb-panel {
+      grid-column: 3;
+      grid-row: 2;
+    }
+
+    /* Price Panel */
+    .big-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .price-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 20px;
+    }
+
+    .confidence-bar-container {
+      margin-bottom: 20px;
+    }
+
+    .confidence-bar {
+      height: 6px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      margin-bottom: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: var(--accent-green);
+      width: 87%;
+      transition: width 0.8s ease;
+    }
+
+    .confidence-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent-green);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .metric-box {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      padding: 8px;
+      transition: border-color 0.2s ease;
+    }
+
+    .metric-box:hover {
+      border-color: var(--text-primary);
+    }
+
+    .metric-label {
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .metric-change {
+      font-size: 9px;
+      font-weight: 600;
+    }
+
+    .metric-change.positive {
+      color: var(--accent-green);
+    }
+
+    .metric-change.negative {
+      color: var(--accent-red);
+    }
+
+    .ai-insight-compact {
+      background: rgba(0, 217, 126, 0.1);
+      border: 1px solid var(--accent-green);
+      padding: 10px;
+    }
+
+    .ai-recommendation {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .recommendation-badge {
+      padding: 3px 8px;
+      background: var(--accent-green);
+      color: var(--bg-primary);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .recommendation-conf {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--text-secondary);
+    }
+
+    .ai-text {
+      font-size: 10px;
+      line-height: 1.6;
+      color: var(--text-primary);
+    }
+
+    /* Chart Panel */
+    .chart-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .chart-btn {
+      padding: 6px 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chart-btn:hover,
+    .chart-btn.active {
+      background: var(--text-primary);
+      color: var(--bg-primary);
+      border-color: var(--text-primary);
+    }
+
+    .chart-display {
+      height: 220px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-style: italic;
+      margin-bottom: 15px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-display::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 220"><path d="M 0 180 Q 75 150 150 160 T 300 140 T 450 170 T 600 150" stroke="%2300D97E" stroke-width="2" fill="none" opacity="0.7"/><path d="M 0 180 Q 75 150 150 160 T 300 140 T 450 170 T 600 150 L 600 220 L 0 220 Z" fill="%2300D97E" opacity="0.1"/></svg>');
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+
+    .insights-list {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      padding: 12px;
+    }
+
+    .insight-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 11px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .insight-row:last-child {
+      border-bottom: none;
+    }
+
+    .insight-label {
+      color: var(--text-secondary);
+    }
+
+    .insight-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Order Book Panel */
+    .orderbook-section {
+      margin-bottom: 15px;
+    }
+
+    .orderbook-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .order-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 4px 0;
+      position: relative;
+    }
+
+    .order-row::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      background: var(--accent-green);
+      opacity: 0.1;
+      z-index: 0;
+    }
+
+    .order-row.buy::before {
+      background: var(--accent-green);
+      width: var(--depth, 50%);
+    }
+
+    .order-row.sell::before {
+      background: var(--accent-red);
+      width: var(--depth, 50%);
+    }
+
+    .order-price {
+      position: relative;
+      z-index: 1;
+    }
+
+    .order-price.buy {
+      color: var(--accent-green);
+    }
+
+    .order-price.sell {
+      color: var(--accent-red);
+    }
+
+    .order-qty {
+      position: relative;
+      z-index: 1;
+      text-align: right;
+      color: var(--text-secondary);
+    }
+
+    .spread-indicator {
+      text-align: center;
+      padding: 8px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      margin: 10px 0;
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+
+    .spread-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--accent-yellow);
+    }
+
+    /* Trade Panel - NEW */
+    .trade-mode-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      margin-bottom: 15px;
+    }
+
+    .mode-btn {
+      padding: 10px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-btn:first-child {
+      border-right: none;
+    }
+
+    .mode-btn.active {
+      background: var(--accent-green);
+      color: var(--bg-primary);
+      border-color: var(--accent-green);
+    }
+
+    .mode-btn.active.sell-mode {
+      background: var(--accent-red);
+      border-color: var(--accent-red);
+    }
+
+    .trade-form {
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--text-primary);
+    }
+
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .price-suggestions {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .price-chip {
+      padding: 4px 8px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 9px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .price-chip:hover {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    .trade-summary {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      padding: 12px;
+      margin-bottom: 15px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 11px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+      padding-top: 12px;
+      margin-top: 6px;
+      border-top: 1px solid var(--border);
+    }
+
+    .summary-label {
+      color: var(--text-secondary);
+    }
+
+    .summary-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .summary-value.total {
+      font-size: 16px;
+      color: var(--accent-green);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 8px;
+    }
+
+    .btn:hover {
+      background: var(--text-primary);
+      color: var(--bg-primary);
+      border-color: var(--text-primary);
+    }
+
+    .btn-buy {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+      color: var(--bg-primary);
+      font-size: 13px;
+      padding: 15px;
+    }
+
+    .btn-buy:hover {
+      background: #00C06F;
+    }
+
+    .btn-sell {
+      background: var(--accent-red);
+      border-color: var(--accent-red);
+      color: var(--bg-primary);
+      font-size: 13px;
+      padding: 15px;
+    }
+
+    .btn-sell:hover {
+      background: #E63E4E;
+    }
+
+    .quick-connect {
+      background: rgba(30, 144, 255, 0.1);
+      border: 1px solid var(--accent-blue);
+      padding: 12px;
+      margin-top: 15px;
+    }
+
+    .quick-connect-title {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .connect-option {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .connect-option:hover {
+      border-color: var(--accent-blue);
+      transform: translateX(3px);
+    }
+
+    .connect-info {
+      font-size: 10px;
+    }
+
+    .connect-source {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .connect-price {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-secondary);
+    }
+
+    .connect-arrow {
+      color: var(--accent-blue);
+      font-size: 14px;
+    }
+
+    /* Deals Panel */
+    .deal-row {
+      padding: 10px;
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .deal-row:hover {
+      border-color: var(--text-primary);
+      background: var(--bg-hover);
+    }
+
+    .deal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .deal-rank {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    .deal-rank.best {
+      color: var(--accent-yellow);
+    }
+
+    .deal-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .deal-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+
+    .deal-source {
+      font-weight: 600;
+    }
+
+    .deal-meta {
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    /* Arbitrage Panel */
+    .arb-row {
+      background: rgba(255, 184, 0, 0.05);
+      border: 1px solid var(--accent-yellow);
+      padding: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .arb-row:hover {
+      background: rgba(255, 184, 0, 0.1);
+      transform: translateX(-3px);
+    }
+
+    .arb-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .arb-rank {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--accent-yellow);
+    }
+
+    .arb-profit {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent-green);
+    }
+
+    .arb-roi {
+      font-size: 9px;
+      color: var(--accent-green);
+      font-weight: 600;
+    }
+
+    .arb-flow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+    }
+
+    .arb-side {
+      flex: 1;
+    }
+
+    .arb-side-label {
+      color: var(--text-muted);
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .arb-side-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .arb-arrow {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1600px) {
+      .grid-container {
+        grid-template-columns: 260px 1fr 260px 300px;
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+
+      .panel {
+        grid-column: 1 !important;
+        grid-row: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal-container">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="asset-info">
+        <div>
+          <div class="asset-name">Nike Dunk Low Retro "Panda"</div>
+          <div class="asset-sku">US 10 • SKU: DD1391-100</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="watchlist-btn" onclick="toggleWatchlist(this)">
+          <span>⭐</span>
+          <span>Watchlist</span>
+        </button>
+        <button class="theme-toggle" onclick="toggleTheme()">Light Mode</button>
+      </div>
+    </div>
+
+    <!-- Ticker Bar -->
+    <div class="ticker-bar">
+      <div class="ticker-item">
+        <span class="ticker-label">24h Vol:</span>
+        <span class="ticker-value">₹2.4M</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-label">Listings:</span>
+        <span class="ticker-value">247</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-label">Avg Sale:</span>
+        <span class="ticker-value">4.2d</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-label">Spread:</span>
+        <span class="ticker-value">₹600</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-label">Bid:</span>
+        <span class="ticker-value" style="color: var(--accent-green);">₹18,200</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-label">Ask:</span>
+        <span class="ticker-value" style="color: var(--accent-red);">₹18,800</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-label">Watchers:</span>
+        <span class="ticker-value">89</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-label">Last Update:</span>
+        <span class="ticker-value">2m ago</span>
+      </div>
+    </div>
+
+    <!-- Main Grid - Now with 4 columns -->
+    <div class="grid-container">
+      <!-- Price Panel (Column 1) -->
+      <div class="panel price-panel">
+        <div class="panel-header">
+          <div class="panel-title">Market Price</div>
+        </div>
+        <div class="panel-content">
+          <div class="big-price">₹18,500</div>
+          <div class="price-label">Current Market Price</div>
+
+          <div class="confidence-bar-container">
+            <div class="confidence-bar">
+              <div class="confidence-fill"></div>
+            </div>
+            <div class="confidence-text">87% CONF • 247 listings</div>
+          </div>
+
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="metric-label">vs Retail</div>
+              <div class="metric-value">₹21,995</div>
+              <div class="metric-change negative">-16%</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">30d Low</div>
+              <div class="metric-value">₹17,200</div>
+              <div class="metric-change positive">+7.6%</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">30d High</div>
+              <div class="metric-value">₹22,500</div>
+              <div class="metric-change negative">-17.8%</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">Volatility</div>
+              <div class="metric-value">±12%</div>
+              <div class="metric-change" style="color: var(--accent-yellow);">MOD</div>
+            </div>
+          </div>
+
+          <div class="ai-insight-compact">
+            <div class="ai-recommendation">
+              <div class="recommendation-badge">BUY</div>
+              <div class="recommendation-conf">87%</div>
+            </div>
+            <div class="ai-text">
+              16% below retail, 7.6% above lows. Bullish momentum. Recommend buy.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Panel (Column 2, full height) -->
+      <div class="panel chart-panel">
+        <div class="panel-header">
+          <div class="panel-title">Price History</div>
+          <div style="display: flex; gap: 8px;">
+            <button class="chart-btn">30d</button>
+            <button class="chart-btn active">90d</button>
+            <button class="chart-btn">1Y</button>
+            <button class="chart-btn">All</button>
+          </div>
+        </div>
+        <div class="panel-content">
+          <div class="chart-display">
+            [Interactive price chart]
+          </div>
+
+          <div class="insights-list">
+            <div class="insight-row">
+              <span class="insight-label">Current Price:</span>
+              <span class="insight-value">₹18,500</span>
+            </div>
+            <div class="insight-row">
+              <span class="insight-label">30d Change:</span>
+              <span class="insight-value" style="color: var(--accent-green);">+7.6%</span>
+            </div>
+            <div class="insight-row">
+              <span class="insight-label">90d Change:</span>
+              <span class="insight-value" style="color: var(--accent-red);">-12.3%</span>
+            </div>
+            <div class="insight-row">
+              <span class="insight-label">Volatility:</span>
+              <span class="insight-value">MODERATE</span>
+            </div>
+            <div class="insight-row">
+              <span class="insight-label">Trend:</span>
+              <span class="insight-value" style="color: var(--accent-green);">BULLISH ↗</span>
+            </div>
+          </div>
+
+          <button class="btn" style="margin-top: 15px;">📊 Advanced Analytics</button>
+        </div>
+      </div>
+
+      <!-- Order Book Panel (Column 3) -->
+      <div class="panel orderbook-panel">
+        <div class="panel-header">
+          <div class="panel-title">Order Book</div>
+        </div>
+        <div class="panel-content">
+          <div class="orderbook-section">
+            <div class="orderbook-header">
+              <span>SELLS</span>
+              <span>QTY</span>
+            </div>
+            <div class="order-row sell" style="--depth: 85%;">
+              <div class="order-price sell">₹19,500</div>
+              <div class="order-qty">12</div>
+            </div>
+            <div class="order-row sell" style="--depth: 70%;">
+              <div class="order-price sell">₹19,200</div>
+              <div class="order-qty">8</div>
+            </div>
+            <div class="order-row sell" style="--depth: 60%;">
+              <div class="order-price sell">₹19,000</div>
+              <div class="order-qty">5</div>
+            </div>
+            <div class="order-row sell" style="--depth: 45%;">
+              <div class="order-price sell">₹18,800</div>
+              <div class="order-qty">3</div>
+            </div>
+          </div>
+
+          <div class="spread-indicator">
+            SPREAD: <span class="spread-value">₹600</span>
+          </div>
+
+          <div class="orderbook-section">
+            <div class="orderbook-header">
+              <span>BUYS</span>
+              <span>QTY</span>
+            </div>
+            <div class="order-row buy" style="--depth: 90%;">
+              <div class="order-price buy">₹18,200</div>
+              <div class="order-qty">15</div>
+            </div>
+            <div class="order-row buy" style="--depth: 75%;">
+              <div class="order-price buy">₹18,000</div>
+              <div class="order-qty">10</div>
+            </div>
+            <div class="order-row buy" style="--depth: 65%;">
+              <div class="order-price buy">₹17,800</div>
+              <div class="order-qty">7</div>
+            </div>
+            <div class="order-row buy" style="--depth: 50%;">
+              <div class="order-price buy">₹17,500</div>
+              <div class="order-qty">6</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRADE PANEL (Column 4, full height) - NEW! -->
+      <div class="panel trade-panel">
+        <div class="panel-header">
+          <div class="panel-title">Trade / Connect</div>
+        </div>
+        <div class="panel-content">
+          <!-- Buy/Sell Toggle -->
+          <div class="trade-mode-toggle">
+            <button class="mode-btn active" onclick="setTradeMode(this, 'buy')">BUY</button>
+            <button class="mode-btn" onclick="setTradeMode(this, 'sell')">SELL</button>
+          </div>
+
+          <!-- Trade Form -->
+          <div class="trade-form">
+            <div class="form-group">
+              <label class="form-label">Target Price</label>
+              <input type="text" class="form-input" placeholder="₹18,500" value="₹18,500">
+              <div class="price-suggestions">
+                <div class="price-chip" onclick="setPrice(this, '17200')">Best: ₹17.2K</div>
+                <div class="price-chip" onclick="setPrice(this, '18500')">Market</div>
+                <div class="price-chip" onclick="setPrice(this, '18800')">Ask</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Quantity</label>
+              <input type="number" class="form-input" placeholder="1" value="1">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Channel Preference</label>
+              <select class="form-input">
+                <option>Any Channel</option>
+                <option>WhatsApp Only</option>
+                <option>Marketplace Only</option>
+                <option>International Only</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Trade Summary -->
+          <div class="trade-summary">
+            <div class="summary-row">
+              <span class="summary-label">Base Price:</span>
+              <span class="summary-value">₹18,500</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Platform Fee (~3%):</span>
+              <span class="summary-value">₹555</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Shipping (Est):</span>
+              <span class="summary-value">₹200</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Total Cost:</span>
+              <span class="summary-value total">₹19,255</span>
+            </div>
+          </div>
+
+          <!-- Primary Action -->
+          <button class="btn btn-buy" onclick="executeTrade()">
+            🚀 BUY NOW - ₹19,255
+          </button>
+
+          <button class="btn">
+            📋 Post Buy Request
+          </button>
+
+          <!-- Quick Connect Section -->
+          <div class="quick-connect">
+            <div class="quick-connect-title">Or Connect Directly</div>
+            
+            <div class="connect-option" onclick="connectSeller(1)">
+              <div class="connect-info">
+                <div class="connect-source">🏆 #1 WhatsApp</div>
+                <div class="connect-price">₹17,200 • 2 avail</div>
+              </div>
+              <div class="connect-arrow">→</div>
+            </div>
+
+            <div class="connect-option" onclick="connectSeller(2)">
+              <div class="connect-info">
+                <div class="connect-source">#2 Marketplace</div>
+                <div class="connect-price">₹17,500 • 1 avail</div>
+              </div>
+              <div class="connect-arrow">→</div>
+            </div>
+
+            <div class="connect-option" onclick="connectSeller(3)">
+              <div class="connect-info">
+                <div class="connect-source">#3 StockX</div>
+                <div class="connect-price">₹17,800 • In stock</div>
+              </div>
+              <div class="connect-arrow">→</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Best Deals Panel (Bottom Column 1) -->
+      <div class="panel deals-panel">
+        <div class="panel-header">
+          <div class="panel-title">Best Deals</div>
+          <a href="#" class="panel-action">All 247 →</a>
+        </div>
+        <div class="panel-content">
+          <div class="deal-row" onclick="fillPrice('17200')">
+            <div class="deal-header">
+              <div class="deal-rank best">🏆 #1</div>
+              <div class="deal-price">₹17,200</div>
+            </div>
+            <div class="deal-info">
+              <div class="deal-source">WhatsApp</div>
+              <div class="deal-meta">5m • 2 avail</div>
+            </div>
+          </div>
+
+          <div class="deal-row" onclick="fillPrice('17500')">
+            <div class="deal-header">
+              <div class="deal-rank">#2</div>
+              <div class="deal-price">₹17,500</div>
+            </div>
+            <div class="deal-info">
+              <div class="deal-source">Marketplace</div>
+              <div class="deal-meta">1h • 1 avail</div>
+            </div>
+          </div>
+
+          <div class="deal-row" onclick="fillPrice('17800')">
+            <div class="deal-header">
+              <div class="deal-rank">#3</div>
+              <div class="deal-price">₹17,800</div>
+            </div>
+            <div class="deal-info">
+              <div class="deal-source">International</div>
+              <div class="deal-meta">StockX</div>
+            </div>
+          </div>
+
+          <div class="deal-row" onclick="fillPrice('18000')">
+            <div class="deal-header">
+              <div class="deal-rank">#4</div>
+              <div class="deal-price">₹18,000</div>
+            </div>
+            <div class="deal-info">
+              <div class="deal-source">WhatsApp</div>
+              <div class="deal-meta">15m • 3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arbitrage Panel (Bottom Column 3) -->
+      <div class="panel arb-panel">
+        <div class="panel-header">
+          <div class="panel-title">Arbitrage</div>
+          <a href="#" class="panel-action">All 12 →</a>
+        </div>
+        <div class="panel-content">
+          <div class="arb-row">
+            <div class="arb-header">
+              <div class="arb-rank">🔥 #1</div>
+              <div>
+                <div class="arb-profit">₹3,200</div>
+                <div class="arb-roi">18.6%</div>
+              </div>
+            </div>
+            <div class="arb-flow">
+              <div class="arb-side">
+                <div class="arb-side-label">Buy</div>
+                <div class="arb-side-value" style="color: var(--accent-green);">₹17,200</div>
+                <div class="arb-side-label">WhatsApp</div>
+              </div>
+              <div class="arb-arrow">→</div>
+              <div class="arb-side">
+                <div class="arb-side-label">Sell</div>
+                <div class="arb-side-value" style="color: var(--accent-blue);">₹20,400</div>
+                <div class="arb-side-label">Market</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="arb-row">
+            <div class="arb-header">
+              <div class="arb-rank">⭐ #2</div>
+              <div>
+                <div class="arb-profit">₹2,800</div>
+                <div class="arb-roi">16.3%</div>
+              </div>
+            </div>
+            <div class="arb-flow">
+              <div class="arb-side">
+                <div class="arb-side-label">Buy</div>
+                <div class="arb-side-value" style="color: var(--accent-green);">₹17,500</div>
+                <div class="arb-side-label">Market</div>
+              </div>
+              <div class="arb-arrow">→</div>
+              <div class="arb-side">
+                <div class="arb-side-label">Sell</div>
+                <div class="arb-side-value" style="color: var(--accent-blue);">₹20,300</div>
+                <div class="arb-side-label">WhatsApp</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="arb-row">
+            <div class="arb-header">
+              <div class="arb-rank">#3</div>
+              <div>
+                <div class="arb-profit">₹2,400</div>
+                <div class="arb-roi">14.1%</div>
+              </div>
+            </div>
+            <div class="arb-flow">
+              <div class="arb-side">
+                <div class="arb-side-label">Buy</div>
+                <div class="arb-side-value" style="color: var(--accent-green);">₹17,800</div>
+                <div class="arb-side-label">Intl</div>
+              </div>
+              <div class="arb-arrow">→</div>
+              <div class="arb-side">
+                <div class="arb-side-label">Sell</div>
+                <div class="arb-side-value" style="color: var(--accent-blue);">₹20,200</div>
+                <div class="arb-side-label">Market</div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn" style="background: var(--accent-yellow); border-color: var(--accent-yellow); color: var(--bg-primary);">
+            ⚡ Execute Top Arb
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('light-mode');
+      const btn = document.querySelector('.theme-toggle');
+      btn.textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
+      localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    }
+
+    function toggleWatchlist(btn) {
+      btn.classList.toggle('active');
+      const icon = btn.querySelector('span:first-child');
+      icon.textContent = btn.classList.contains('active') ? '⭐' : '☆';
+    }
+
+    function setTradeMode(btn, mode) {
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.classList.remove('active');
+        if (mode === 'sell') {
+          b.classList.remove('sell-mode');
+        }
+      });
+      btn.classList.add('active');
+      
+      const buyBtn = document.querySelector('.btn-buy');
+      if (mode === 'sell') {
+        btn.classList.add('sell-mode');
+        buyBtn.className = 'btn btn-sell';
+        buyBtn.textContent = '💸 SELL NOW - ₹20,400';
+      } else {
+        buyBtn.className = 'btn btn-buy';
+        buyBtn.textContent = '🚀 BUY NOW - ₹19,255';
+      }
+    }
+
+    function setPrice(chip, price) {
+      const input = document.querySelector('.form-input');
+      input.value = `₹${parseInt(price).toLocaleString('en-IN')}`;
+      
+      // Highlight chip
+      document.querySelectorAll('.price-chip').forEach(c => c.style.borderColor = 'var(--border)');
+      chip.style.borderColor = 'var(--accent-green)';
+      chip.style.color = 'var(--accent-green)';
+    }
+
+    function fillPrice(price) {
+      const input = document.querySelector('.form-input');
+      input.value = `₹${parseInt(price).toLocaleString('en-IN')}`;
+    }
+
+    function executeTrade() {
+      alert('🚀 Trade execution would happen here!\n\nIn production:\n• Verify user authentication\n• Confirm trade details\n• Connect to seller/marketplace\n• Process payment\n• Track order');
+    }
+
+    function connectSeller(rank) {
+      alert(`💬 Connecting to seller #${rank}...\n\nIn production:\n• Open WhatsApp chat\n• Send pre-filled message\n• Track conversation\n• Record interest`);
+    }
+
+    // Load saved theme
+    if (localStorage.getItem('theme') === 'light') {
+      document.body.classList.add('light-mode');
+      document.querySelector('.theme-toggle').textContent = 'Dark Mode';
+    }
+
+    // Animate confidence bar on load
+    window.addEventListener('load', () => {
+      const bar = document.querySelector('.confidence-fill');
+      bar.style.width = '0%';
+      setTimeout(() => {
+        bar.style.width = '87%';
+      }, 100);
+    });
+  </script>
+</body>
+</html>
+

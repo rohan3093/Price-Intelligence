@@ -8,6 +8,7 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore, collection, CollectionReference } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
+import { getMessaging, Messaging } from 'firebase/messaging';
 import { Asset, Drop } from '../types';
 import { B2BListing } from '../components/B2BListings';
 
@@ -34,19 +35,29 @@ export const isFirebaseConfigured = (): boolean => {
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 let auth: Auth | null = null;
+let messaging: Messaging | null = null;
 
 if (isFirebaseConfigured()) {
   try {
     app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     auth = getAuth(app);
+    
+    // Initialize FCM (only in browser, not in Node.js)
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      try {
+        messaging = getMessaging(app);
+      } catch (error) {
+        console.warn('FCM initialization failed (may need VAPID key):', error);
+      }
+    }
   } catch (error) {
     console.error('Failed to initialize Firebase:', error);
   }
 }
 
-// Export Firestore instance and Auth
-export { db, auth };
+// Export Firestore instance, Auth, and Messaging
+export { db, auth, messaging };
 
 // Export collections
 export const assetsCollection = db 

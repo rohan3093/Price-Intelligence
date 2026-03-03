@@ -16,12 +16,12 @@ export const GettingStartedView: React.FC<GettingStartedViewProps> = ({ assets =
   };
 
   return (
-    <main className="flex-1 bg-brand-white px-4 py-4 md:px-6 md:py-6 pb-20 md:pb-6 max-w-7xl mx-auto">
+    <main className="flex-1 bg-brand-white px-2 py-2 md:px-3 md:py-3 pb-20 md:pb-4 w-full max-w-8xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl md:text-4xl font-heading font-normal text-brand-black mb-2">
+        <h1 className="text-2xl md:text-3xl font-heading font-normal text-brand-black mb-2">
           Start Your Sneaker Investing Journey
         </h1>
-        <p className="text-xs font-body text-brand-black">
+        <p className="text-sm text-brand-black/60">
           We'll help you understand the market, assess your goals, and find the right opportunities
         </p>
       </div>

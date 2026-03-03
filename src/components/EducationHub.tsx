@@ -937,14 +937,15 @@ export const EducationHub: React.FC = () => {
 
   if (selectedGuide) {
     return (
-      <main className="flex-1 bg-brand-white px-3 py-3 md:px-4 md:py-4 pb-20 md:pb-4 max-w-7xl mx-auto">
+      <main className="flex-1 bg-brand-background px-2 py-2 md:px-3 md:py-3 pb-20 md:pb-4 w-full max-w-8xl mx-auto">
         <button
           onClick={() => setSelectedGuide(null)}
-          className="mb-3 text-xs font-medium text-brand-black/70 hover:text-brand-black flex items-center gap-1.5 transition leading-tight"
+          className="mb-3 px-3 py-2 text-xs font-medium text-brand-black border border-brand-gray/30 bg-white hover:border-brand-black flex items-center gap-1.5 transition leading-tight"
+          style={{ borderRadius: '6px' }}
         >
           ← Back to Guides
         </button>
-        <article className="border border-brand-gray/30 p-4 bg-brand-white" style={{ borderRadius: '0px' }}>
+        <article className="border border-brand-gray/20 p-4 md:p-6 bg-white shadow-sm" style={{ borderRadius: '12px' }}>
           <div className="flex items-center gap-2 mb-3 pb-3 border-b border-brand-gray/20">
             <span
               className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wide leading-tight ${
@@ -954,7 +955,7 @@ export const EducationHub: React.FC = () => {
                   ? 'bg-yellow-500/10 text-yellow-700 border border-yellow-500/30'
                   : 'bg-brand-gray/10 text-brand-black border border-brand-gray/30'
               }`}
-              style={{ borderRadius: '0px' }}
+              style={{ borderRadius: '4px' }}
             >
               {selectedGuide.difficulty}
             </span>
@@ -1028,21 +1029,21 @@ export const EducationHub: React.FC = () => {
   }
 
   return (
-    <main className="flex-1 bg-brand-white px-3 py-3 md:px-4 md:py-4 pb-20 md:pb-4 max-w-7xl mx-auto">
-      {/* Header - more compact */}
-      <div className="mb-3 pb-3 border-b border-brand-gray/30">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg md:text-xl font-heading font-normal text-brand-black mb-1 leading-tight">
-          Education Hub
-        </h1>
-            <p className="text-xs text-brand-black/70 leading-tight">
-          Learn everything you need to know about sneaker investing in India
-        </p>
+    <main className="flex-1 bg-brand-background px-2 py-2 md:px-3 md:py-3 pb-20 md:pb-4 w-full max-w-8xl mx-auto">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-heading font-normal text-brand-black mb-2">
+              Education Hub
+            </h1>
+            <p className="text-sm text-brand-black/60">
+              Learn everything you need to know about sneaker investing in India
+            </p>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-0.5 leading-tight">Total Guides</p>
-            <p className="text-lg font-mono-numeric font-semibold text-brand-black leading-tight">
+          <div className="text-right flex-shrink-0">
+            <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">Total Guides</p>
+            <p className="text-2xl font-mono-numeric font-bold text-brand-black">
               {guides.length}
             </p>
           </div>
@@ -1050,21 +1051,21 @@ export const EducationHub: React.FC = () => {
       </div>
 
       {/* Category Filter - more compact */}
-      <div className="mb-3">
-        <label className="block text-[10px] text-brand-black/60 uppercase tracking-wide mb-1.5 leading-tight">
+      <div className="mb-4">
+        <label className="block text-xs text-brand-black/60 uppercase tracking-wide mb-2 font-semibold leading-tight">
           Categories
         </label>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-              className={`px-2.5 py-1 border text-[10px] font-semibold uppercase tracking-wide transition-all leading-tight ${
+              className={`px-4 py-2 text-xs font-medium transition-all ${
               selectedCategory === cat
-                  ? "border-brand-black bg-brand-black text-brand-white hover:bg-brand-black/90"
-                  : "border-brand-gray/30 bg-brand-white text-brand-black hover:border-brand-black hover:bg-brand-black hover:text-brand-white"
+                  ? "bg-brand-black text-white"
+                  : "border border-brand-gray/30 bg-white text-brand-black hover:border-brand-black"
             }`}
-              style={{ borderRadius: '0px' }}
+              style={{ borderRadius: '20px' }}
           >
             {cat.charAt(0).toUpperCase() + cat.slice(1)}
           </button>
@@ -1073,13 +1074,13 @@ export const EducationHub: React.FC = () => {
       </div>
 
       {/* Guides Grid - more compact */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {filteredGuides.map((guide) => (
           <button
             key={guide.id}
             onClick={() => setSelectedGuide(guide)}
-            className="border border-brand-gray/30 p-3 bg-brand-white hover:border-brand-black hover:bg-brand-gray/5 text-left transition-all"
-            style={{ borderRadius: '0px' }}
+            className="border border-brand-gray/20 p-4 bg-white hover:border-brand-black hover:shadow-md shadow-sm text-left transition-all"
+            style={{ borderRadius: '8px' }}
           >
             <div className="flex items-start justify-between mb-2">
               <span
@@ -1090,7 +1091,7 @@ export const EducationHub: React.FC = () => {
                     ? 'bg-yellow-500/10 text-yellow-700 border border-yellow-500/30'
                     : 'bg-brand-gray/10 text-brand-black border border-brand-gray/30'
                 }`}
-                style={{ borderRadius: '0px' }}
+                style={{ borderRadius: '4px' }}
               >
                 {guide.difficulty}
               </span>

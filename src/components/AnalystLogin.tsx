@@ -61,10 +61,10 @@ export const AnalystLogin: React.FC<AnalystLoginProps> = ({ onLogin, onClose }) 
               ✕
             </button>
           )}
-          <h2 className="text-2xl font-heading font-normal text-brand-black mb-2 uppercase">
+          <h2 className="text-2xl md:text-3xl font-heading font-normal text-brand-black mb-2 uppercase">
             Analyst Login
           </h2>
-          <p className="text-xs text-brand-black mb-6">
+          <p className="text-sm text-brand-black/60 mb-6">
             Enter your credentials to access the analyst dashboard
           </p>
 

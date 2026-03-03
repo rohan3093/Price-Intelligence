@@ -2,6 +2,10 @@
 
 This document outlines the centralized styling system for the Intelligence Exchange app.
 
+> **📘 For comprehensive UI patterns, component structures, and layout guidelines, see [UI_GUIDE.md](./UI_GUIDE.md)**
+
+This guide focuses on the technical styling system (CSS, Tailwind config, design tokens).
+
 ## Design System
 
 ### Colors

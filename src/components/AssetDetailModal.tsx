@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
-import { Asset } from "../types";
+import { Asset, PortfolioPosition } from "../types";
 import { AssetDetailPanel } from "./AssetDetailPanel";
+import { User } from "firebase/auth";
 
 interface AssetDetailModalProps {
   open: boolean;
@@ -8,6 +9,8 @@ interface AssetDetailModalProps {
   onClose: () => void;
   watchlisted?: boolean;
   onToggleWatchlist?: () => void;
+  currentUser?: User | null;
+  portfolioPositions?: PortfolioPosition[];
 }
 
 export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
@@ -16,6 +19,8 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
   onClose,
   watchlisted = false,
   onToggleWatchlist,
+  currentUser = null,
+  portfolioPositions = [],
 }) => {
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -33,44 +38,43 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm flex items-end md:items-center justify-center"
+      className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm flex items-end md:items-center justify-center animate-fade-in"
       onClick={onClose}
     >
       {/* Bottom Sheet for Mobile, Centered Modal for Desktop */}
       <div 
-        className="relative w-full md:max-w-5xl md:max-h-[90vh] bg-brand-white border-t md:border border-brand-gray/20 rounded-t-lg md:rounded-none shadow-2xl md:m-8 overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh]"
+        className="relative w-full md:max-w-5xl md:max-h-[90vh] bg-brand-white border-t-2 md:border-2 border-brand-black shadow-modal md:m-8 overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
-        style={{ 
-          borderRadius: '0px',
-          borderTopLeftRadius: '12px',
-          borderTopRightRadius: '12px',
-        }}
+        style={{ borderRadius: '0px' }}
       >
         {/* Mobile: Drag Handle */}
-        <div className="md:hidden flex flex-col items-center pt-2 pb-1">
-          <div className="w-12 h-1 bg-brand-gray/40 rounded-full mb-2"></div>
+        <div className="md:hidden flex flex-col items-center pt-3 pb-2">
+          <div className="w-12 h-1 bg-brand-gray"></div>
         </div>
 
         {/* Header */}
-        <div className="sticky top-0 z-10 flex justify-between items-center px-4 py-3 bg-brand-white border-b border-brand-gray/20">
-          <div className="text-xs text-brand-black font-medium">
+        <div className="sticky top-0 z-10 flex justify-between items-center px-4 md:px-6 py-4 bg-brand-white border-b border-brand-gray shadow-soft">
+          <div className="text-sm text-brand-black font-semibold">
             {asset.brand} · {asset.sku}
           </div>
           <button
             onClick={onClose}
-            className="text-brand-black hover:text-brand-black text-lg px-2 py-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="text-brand-black hover:text-brand-white hover:bg-brand-black border-2 border-brand-gray text-xl px-3 py-2 min-w-[44px] min-h-[44px] flex items-center justify-center transition-all duration-200 active:scale-95"
             aria-label="Close"
+            style={{ borderRadius: '0px' }}
           >
             ✕
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-brand-background">
           <AssetDetailPanel
             asset={asset}
             watchlisted={watchlisted}
             onToggleWatchlist={onToggleWatchlist}
+            currentUser={currentUser}
+            portfolioPositions={portfolioPositions}
           />
         </div>
       </div>

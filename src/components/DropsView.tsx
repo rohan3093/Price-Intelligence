@@ -1,6 +1,65 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Drop } from "../types";
 import { fetchUpcomingDrops } from "../utils/dropsApi";
+import {
+  loadUserDropReminders,
+  addDropReminder,
+  removeDropReminder,
+  hasDropReminder,
+  DropReminder,
+} from "../utils/dropRemindersApi";
+import {
+  registerFCMToken,
+  isFCMSupported,
+  onForegroundMessage,
+} from "../utils/fcmService";
+import { User } from "firebase/auth";
+
+// Error State Component with Retry
+interface ErrorStateProps {
+  message: string;
+  onRetry: () => void;
+  isRetrying?: boolean;
+}
+
+const ErrorState: React.FC<ErrorStateProps> = ({ message, onRetry, isRetrying = false }) => (
+  <div className="border border-red-200 bg-red-50 p-6 text-center" style={{ borderRadius: '12px' }}>
+    <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 mb-3" style={{ borderRadius: '50%' }}>
+      <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    </div>
+    <p className="text-sm font-medium text-red-800 mb-1.5 leading-tight">
+      Failed to load data
+    </p>
+    <p className="text-xs text-red-600 mb-4 leading-tight">
+      {message}
+    </p>
+    <button
+      onClick={onRetry}
+      disabled={isRetrying}
+      className={`px-4 py-2 text-xs font-medium border transition-colors ${
+        isRetrying 
+          ? "border-red-200 bg-red-100 text-red-400 cursor-not-allowed"
+          : "border-red-600 bg-red-600 text-white hover:bg-red-700 active:scale-95"
+      }`}
+      style={{ borderRadius: '8px' }}
+      aria-label={isRetrying ? "Retrying..." : "Retry loading data"}
+    >
+      {isRetrying ? (
+        <span className="flex items-center gap-2">
+          <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Retrying...
+        </span>
+      ) : (
+        "Try Again"
+      )}
+    </button>
+  </div>
+);
 
 // Countdown Timer Component
 interface CountdownTimerProps {
@@ -144,25 +203,100 @@ const HypeIndicator: React.FC<HypeIndicatorProps> = ({ hypeLevel }) => {
   );
 };
 
-export const DropsView: React.FC = () => {
+interface DropsViewProps {
+  currentUser?: User | null;
+}
+
+export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
   const [drops, setDrops] = useState<Drop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+  const [reminders, setReminders] = useState<DropReminder[]>([]);
+  const [fcmTokenRegistered, setFcmTokenRegistered] = useState(false);
 
-  useEffect(() => {
-    const loadDrops = async () => {
+  const loadDrops = useCallback(async (isRetry = false) => {
+    if (isRetry) {
+      setIsRetrying(true);
+    } else {
       setLoading(true);
+    }
+    setError(null);
+    
+    try {
+      const upcomingDrops = await fetchUpcomingDrops();
+      setDrops(upcomingDrops);
+    } catch (err) {
+      console.error("Failed to load drops:", err);
+      setError(err instanceof Error ? err.message : "Unable to connect. Please check your internet connection.");
+    } finally {
+      setLoading(false);
+      setIsRetrying(false);
+    }
+  }, []);
+
+  // Register FCM token when user signs in
+  useEffect(() => {
+    const registerToken = async () => {
+      if (!currentUser || !isFCMSupported()) {
+        return;
+      }
+
       try {
-        const upcomingDrops = await fetchUpcomingDrops();
-        setDrops(upcomingDrops);
+        const token = await registerFCMToken(currentUser.uid);
+        if (token) {
+          setFcmTokenRegistered(true);
+          console.log('FCM token registered successfully');
+        }
       } catch (error) {
-        console.error("Failed to load drops:", error);
-      } finally {
-        setLoading(false);
+        console.error('Error registering FCM token:', error);
       }
     };
-    loadDrops();
+
+    registerToken();
+  }, [currentUser]);
+
+  // Listen for foreground FCM messages
+  useEffect(() => {
+    if (!isFCMSupported()) {
+      return;
+    }
+
+    const unsubscribe = onForegroundMessage((payload) => {
+      // Show notification when app is in foreground
+      if (payload.notification) {
+        new Notification(payload.notification.title || 'Drop Reminder', {
+          body: payload.notification.body,
+          icon: '/favicon.ico',
+        });
+      }
+    });
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
+
+  // Load reminders on mount
+  useEffect(() => {
+    const loadReminders = async () => {
+      const userId = currentUser?.uid || null;
+      const userReminders = await loadUserDropReminders(userId);
+      setReminders(userReminders);
+    };
+    loadReminders();
+  }, [currentUser]);
+
+  useEffect(() => {
+    loadDrops();
+  }, [loadDrops]);
+  
+  const handleRetry = useCallback(() => {
+    loadDrops(true);
+  }, [loadDrops]);
 
   // Get unique brands for filter
   const brands = Array.from(new Set(drops.map((d) => d.brand))).sort();
@@ -174,6 +308,57 @@ export const DropsView: React.FC = () => {
     }
     return true;
   });
+
+  // Handle reminder toggle
+  const handleToggleReminder = async (dropId: number) => {
+    // Check if user is signed in
+    if (!currentUser) {
+      alert('Please sign in to set drop reminders');
+      return;
+    }
+
+    // Check if FCM is supported
+    if (!isFCMSupported()) {
+      alert('Push notifications are not supported in this browser');
+      return;
+    }
+
+    // Register FCM token if not already registered
+    if (!fcmTokenRegistered) {
+      try {
+        const token = await registerFCMToken(currentUser.uid);
+        if (!token) {
+          alert('Failed to register for notifications. Please allow notifications when prompted.');
+          return;
+        }
+        setFcmTokenRegistered(true);
+      } catch (error) {
+        console.error('Error registering FCM token:', error);
+        alert('Failed to set up notifications. Please try again.');
+        return;
+      }
+    }
+
+    const userId = currentUser.uid;
+    const hasReminder = await hasDropReminder(userId, dropId);
+
+    if (hasReminder) {
+      // Remove reminder
+      await removeDropReminder(userId, dropId);
+    } else {
+      // Add reminder (default: 1 hour before)
+      await addDropReminder(userId, dropId, 60);
+    }
+
+    // Reload reminders
+    const updatedReminders = await loadUserDropReminders(userId);
+    setReminders(updatedReminders);
+  };
+
+  // Check if a drop has a reminder
+  const checkHasReminder = (dropId: number): boolean => {
+    return reminders.some((r) => r.dropId === dropId);
+  };
 
   // Format release date and time prominently
   const formatReleaseDateTime = (dateStr: string, time?: string): { date: string; time: string } => {
@@ -191,23 +376,23 @@ export const DropsView: React.FC = () => {
   };
 
   return (
-    <main className="flex-1 flex flex-col bg-brand-white px-3 py-3 md:px-4 md:py-4 pb-20 md:pb-4 w-full max-w-7xl mx-auto">
+    <main className="flex-1 flex flex-col bg-brand-background px-2 py-2 md:px-3 md:py-3 pb-20 md:pb-4 w-full max-w-8xl mx-auto">
       {/* Header */}
-      <div className="mb-3 pb-3 border-b border-brand-gray/30">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg md:text-xl font-heading font-normal text-brand-black mb-1 leading-tight">
+      <div className="mb-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-heading font-normal text-brand-black mb-2">
               Upcoming Drops
             </h1>
-            <p className="text-xs text-brand-black/70 leading-tight">
+            <p className="text-sm text-brand-black/60">
               India-specific sneaker release calendar
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-0.5 leading-tight">
+          <div className="text-right flex-shrink-0">
+            <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">
               Upcoming
             </p>
-            <p className="text-lg font-mono-numeric font-semibold text-brand-black leading-tight">
+            <p className="text-2xl font-mono-numeric font-bold text-brand-black">
               {filteredDrops.length}
             </p>
           </div>
@@ -221,10 +406,10 @@ export const DropsView: React.FC = () => {
             onClick={() => setSelectedBrand(null)}
             className={`px-3 py-1 text-xs font-medium border transition leading-tight ${
               selectedBrand === null
-                ? "border-brand-black bg-brand-black text-brand-white"
-                : "border-brand-gray/30 bg-brand-white text-brand-black/70 hover:border-brand-gray/50"
+                ? "bg-brand-black text-white"
+                : "border-brand-gray/30 bg-white text-brand-black/70 hover:border-brand-black"
             }`}
-            style={{ borderRadius: '0px' }}
+            style={{ borderRadius: '20px' }}
           >
             All Brands
           </button>
@@ -234,10 +419,10 @@ export const DropsView: React.FC = () => {
               onClick={() => setSelectedBrand(brand)}
               className={`px-3 py-1 text-xs font-medium border transition leading-tight ${
                 selectedBrand === brand
-                  ? "border-brand-black bg-brand-black text-brand-white"
-                  : "border-brand-gray/30 bg-brand-white text-brand-black/70 hover:border-brand-gray/50"
+                  ? "bg-brand-black text-white"
+                  : "border-brand-gray/30 bg-white text-brand-black/70 hover:border-brand-black"
               }`}
-              style={{ borderRadius: '0px' }}
+              style={{ borderRadius: '20px' }}
             >
               {brand}
             </button>
@@ -247,11 +432,23 @@ export const DropsView: React.FC = () => {
 
       {/* Drops List */}
       {loading ? (
-        <div className="border border-brand-gray/30 p-8 text-center bg-brand-white">
-          <p className="text-sm text-brand-black/70">Loading drops...</p>
+        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm" style={{ borderRadius: '12px' }}>
+          <div className="flex items-center justify-center gap-2">
+            <svg className="w-4 h-4 animate-spin text-brand-black/60" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p className="text-sm text-brand-black/70">Loading drops...</p>
+          </div>
         </div>
+      ) : error ? (
+        <ErrorState 
+          message={error} 
+          onRetry={handleRetry} 
+          isRetrying={isRetrying}
+        />
       ) : filteredDrops.length === 0 ? (
-        <div className="border border-brand-gray/30 p-8 text-center bg-brand-white">
+        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm" style={{ borderRadius: '12px' }}>
           <p className="text-sm font-medium text-brand-black mb-1.5 leading-tight">
             No upcoming drops
           </p>
@@ -267,8 +464,8 @@ export const DropsView: React.FC = () => {
             return (
               <div
                 key={drop.id}
-                className="border border-brand-gray/30 p-4 bg-brand-white hover:border-brand-gray/50 transition"
-                style={{ borderRadius: '0px' }}
+                className="border border-brand-gray/20 p-4 bg-white hover:shadow-md shadow-sm transition"
+                style={{ borderRadius: '8px' }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
                   {/* Drop Image & Info */}
@@ -322,7 +519,7 @@ export const DropsView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Countdown Timer */}
+                  {/* Countdown Timer & Reminder */}
                   <div className="md:col-span-3">
                     <p className="text-[10px] text-brand-black/60 uppercase tracking-wide mb-2 leading-tight">
                       Time Remaining
@@ -331,6 +528,45 @@ export const DropsView: React.FC = () => {
                       releaseDate={drop.releaseDate}
                       releaseTime={drop.releaseTime}
                     />
+                    {/* Reminder Toggle Button */}
+                    <button
+                      onClick={() => handleToggleReminder(drop.id)}
+                      className={`mt-3 flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-medium border transition leading-tight ${
+                        checkHasReminder(drop.id)
+                          ? "bg-brand-black text-white"
+                          : "border-brand-gray/30 bg-white text-brand-black/70 hover:border-brand-black"
+                      }`}
+                      style={{ borderRadius: '6px' }}
+                      title={
+                        checkHasReminder(drop.id)
+                          ? "Remove reminder"
+                          : "Set reminder (1 hour before drop)"
+                      }
+                    >
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        {checkHasReminder(drop.id) ? (
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                          />
+                        ) : (
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                          />
+                        )}
+                      </svg>
+                      {checkHasReminder(drop.id) ? "Reminder Set" : "Set Reminder"}
+                    </button>
                   </div>
                 </div>
 
@@ -347,8 +583,8 @@ export const DropsView: React.FC = () => {
                           href={retailer.url || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-block px-2.5 py-1 border border-brand-gray/30 bg-brand-white text-[10px] font-medium text-brand-black/70 hover:border-brand-black hover:text-brand-black transition leading-tight"
-                          style={{ borderRadius: '0px' }}
+                          className="inline-block px-2.5 py-1 border border-brand-gray/30 bg-white text-[10px] font-medium text-brand-black/70 hover:border-brand-black hover:text-brand-black transition leading-tight"
+                          style={{ borderRadius: '6px' }}
                         >
                           {retailer.displayName}
                         </a>

@@ -4,11 +4,14 @@ import { DailyPriceUpdates } from "./DailyPriceUpdates";
 import { DesignSettings } from "./DesignSettings";
 import { AnalyticsView } from "./AnalyticsView";
 import { DropsManagement } from "./DropsManagement";
+import { ScrapedPricesReview } from "./ScrapedPricesReview";
+import { WhatsAppImport } from "./WhatsAppImport";
 import { createAsset, updateAsset, deleteAsset, batchCreateAssets } from "../utils/assetsApi";
 import { convertUSDToINR, getUSDToINRRate } from "../utils/exchangeRate";
 import { sortSizesByValue } from "../utils/sizeSort";
+import { enrichAssetWithMetrics, backfillAllAssetMetrics } from "../utils/priceMetrics";
 
-type DashboardTab = "assets" | "market-data" | "drops" | "analytics" | "settings";
+type DashboardTab = "assets" | "market-data" | "whatsapp-import" | "scraped-prices" | "drops" | "analytics" | "settings";
 
 interface AnalystDashboardProps {
   assets: Asset[];
@@ -19,7 +22,6 @@ interface AnalystDashboardProps {
 export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
   assets,
   onAssetsChange,
-  onLogout,
 }) => {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -31,9 +33,19 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
   const handleSaveAsset = async (asset: Asset) => {
     try {
       console.log("handleSaveAsset called with asset:", asset.id, "sizes:", asset.sizes?.length);
+      
+      // Enrich asset with calculated metrics before saving
+      const enrichedAsset = enrichAssetWithMetrics(asset);
+      console.log("Asset enriched with metrics:", {
+        id: enrichedAsset.id,
+        change30d: enrichedAsset.change30d,
+        change90d: enrichedAsset.change90d,
+        bestAvailablePrice: enrichedAsset.bestAvailablePrice,
+      });
+      
       if (isEditing && selectedAsset) {
         // Update existing asset via API
-        const updatedAsset = await updateAsset(asset);
+        const updatedAsset = await updateAsset(enrichedAsset);
         console.log("Asset updated, reloading from Firebase...");
         // Reload all assets to ensure we have the latest from Firebase
         const { fetchAllAssets } = await import("../utils/assetsApi");
@@ -45,7 +57,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
         setSelectedAsset(refreshedAsset);
       } else {
         // Create new asset via API
-        const { id, ...assetWithoutId } = asset;
+        const { id, ...assetWithoutId } = enrichedAsset;
         const newAsset = await createAsset(assetWithoutId);
         // Reload all assets to ensure we have the latest from Firebase
         const { fetchAllAssets } = await import("../utils/assetsApi");
@@ -88,86 +100,45 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
   };
 
   return (
-    <main className="flex-1 bg-brand-white px-3 py-3 md:px-4 md:py-4 pb-20 md:pb-4 max-w-7xl mx-auto">
-      {/* Header - more compact */}
-      <div className="mb-3 pb-3 border-b border-brand-gray/30">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-lg md:text-xl font-heading font-normal text-brand-black mb-1 leading-tight uppercase tracking-wide">
-              Sentria
-            </h1>
-            <p className="text-xs text-brand-black/60 leading-tight">
-              Portfolio management • Market data capture • Price intelligence
-            </p>
-          </div>
-          {onLogout && (
-            <button
-              onClick={onLogout}
-              className="px-2.5 py-1 border border-brand-gray/30 bg-brand-white text-xs font-medium text-brand-black hover:border-brand-black hover:bg-brand-black hover:text-brand-white transition-all leading-tight"
-              style={{ borderRadius: '0px' }}
-            >
-              Logout
-            </button>
-          )}
-        </div>
+    <main className="flex-1 bg-brand-background px-2 py-2 md:px-4 md:py-4 pb-20 md:pb-4 w-full max-w-8xl mx-auto min-h-screen overflow-y-auto">
+      {/* Page Header */}
+      <div className="mb-5">
+        <h1 className="text-2xl md:text-3xl font-heading font-normal text-brand-black mb-1">
+          Admin Dashboard
+        </h1>
+        <p className="text-sm text-brand-black/60">
+          Portfolio management • Market data capture • Price intelligence
+        </p>
       </div>
 
-      {/* Tabs - more compact */}
-      <div className="flex gap-1 mb-3 border-b border-brand-gray/30">
-        <button
-          onClick={() => setActiveTab("assets")}
-          className={`px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide border-b-2 transition-all leading-tight ${
-            activeTab === "assets"
-              ? "border-brand-black text-brand-black"
-              : "border-transparent text-brand-black/50 hover:text-brand-black/80"
-          }`}
-        >
-          Portfolio
-        </button>
-        <button
-          onClick={() => setActiveTab("market-data")}
-          className={`px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide border-b-2 transition-all leading-tight ${
-            activeTab === "market-data"
-              ? "border-brand-black text-brand-black"
-              : "border-transparent text-brand-black/50 hover:text-brand-black/80"
-          }`}
-        >
-          Market Data
-        </button>
-        <button
-          onClick={() => setActiveTab("drops")}
-          className={`px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide border-b-2 transition-all leading-tight ${
-            activeTab === "drops"
-              ? "border-brand-black text-brand-black"
-              : "border-transparent text-brand-black/50 hover:text-brand-black/80"
-          }`}
-        >
-          Drops
-        </button>
-        <button
-          onClick={() => setActiveTab("analytics")}
-          className={`px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide border-b-2 transition-all leading-tight ${
-            activeTab === "analytics"
-              ? "border-brand-black text-brand-black"
-              : "border-transparent text-brand-black/50 hover:text-brand-black/80"
-          }`}
-        >
-          Analytics
-        </button>
-        <button
-          onClick={() => setActiveTab("settings")}
-          className={`px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide border-b-2 transition-all ml-auto leading-tight ${
-            activeTab === "settings"
-              ? "border-brand-black text-brand-black"
-              : "border-transparent text-brand-black/40 hover:text-brand-black/60"
-          }`}
-        >
-          Settings
-        </button>
+      {/* Tab Navigation — pill-style matching the main app */}
+      <div className="flex flex-wrap gap-2 mb-5">
+        {([
+          { key: "assets", label: "Assets" },
+          { key: "market-data", label: "Market Data" },
+          { key: "whatsapp-import", label: "WhatsApp Import" },
+          { key: "scraped-prices", label: "Scraped Prices" },
+          { key: "drops", label: "Drops" },
+          { key: "analytics", label: "Analytics" },
+          { key: "settings", label: "Settings" },
+        ] as { key: DashboardTab; label: string }[]).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-4 py-2 text-xs font-semibold transition-all ${
+              activeTab === tab.key
+                ? "bg-brand-black text-white"
+                : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+            }`}
+            style={{ borderRadius: '8px' }}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Locked content container so all tabs share the same visual width - more compact */}
-      <div className="border border-brand-gray/30 bg-brand-white p-3 md:p-4" style={{ borderRadius: '0px' }}>
+      {/* Content area */}
+      <div className="bg-white border border-brand-gray/20 shadow-sm p-4 md:p-5" style={{ borderRadius: '12px' }}>
         {activeTab === "market-data" ? (
           <DailyPriceUpdates
             assets={assets}
@@ -176,8 +147,17 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                 console.log("onUpdateAsset called with:", updatedAsset.id, updatedAsset.name);
                 console.log("Updated sizes:", updatedAsset.sizes);
                 
+                // Enrich asset with calculated metrics (change30d, change90d, bestAvailablePrice, etc.)
+                const enrichedAsset = enrichAssetWithMetrics(updatedAsset);
+                console.log("Asset enriched with metrics:", {
+                  id: enrichedAsset.id,
+                  change30d: enrichedAsset.change30d,
+                  change90d: enrichedAsset.change90d,
+                  bestAvailablePrice: enrichedAsset.bestAvailablePrice,
+                });
+                
                 // Save to Firebase
-                const savedAsset = await updateAsset(updatedAsset);
+                const savedAsset = await updateAsset(enrichedAsset);
                 console.log("Asset saved to Firebase:", savedAsset.id);
                 console.log("Saved sizes:", savedAsset.sizes);
                 
@@ -193,28 +173,47 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
               }
             }}
           />
+        ) : activeTab === "whatsapp-import" ? (
+          <WhatsAppImport
+            assets={assets}
+            onUpdateAsset={async (updatedAsset) => {
+              try {
+                const enrichedAsset = enrichAssetWithMetrics(updatedAsset);
+                const savedAsset = await updateAsset(enrichedAsset);
+                const updatedAssets = assets.map((a) =>
+                  a.id === savedAsset.id ? savedAsset : a
+                );
+                onAssetsChange(updatedAssets);
+              } catch (error) {
+                console.error("Failed to update asset from WhatsApp import:", error);
+                alert(`Failed to save: ${error instanceof Error ? error.message : String(error)}`);
+              }
+            }}
+          />
+        ) : activeTab === "scraped-prices" ? (
+          <ScrapedPricesReview />
         ) : activeTab === "assets" ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-            {/* Asset List - more compact */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Asset List */}
             <div className="lg:col-span-1">
-              <div className="border border-brand-gray/30 p-3 bg-brand-white" style={{ borderRadius: '0px' }}>
-              <div className="mb-3 pb-3 border-b border-brand-gray/20">
-                <div className="flex items-start justify-between mb-2">
+              <div className="border border-brand-gray/20 bg-white shadow-sm p-4" style={{ borderRadius: '12px' }}>
+              <div className="mb-4 pb-3 border-b border-brand-gray/20">
+                <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h2 className="text-xs font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
+                    <h2 className="text-sm font-semibold text-brand-black mb-1">
                       Instrument Universe
                     </h2>
-                    <p className="text-[10px] text-brand-black/60 font-mono-numeric leading-tight">
+                    <p className="text-xs text-brand-black/50 font-mono-numeric">
                       {assets.length} {assets.length === 1 ? 'instrument' : 'instruments'} tracked
                     </p>
                   </div>
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-2">
                     <button
                       onClick={() => {
                         setShowBulkAddForm(true);
                       }}
-                      className="px-2 py-1 border border-brand-black bg-brand-white text-brand-black text-[10px] font-semibold uppercase tracking-wide hover:bg-brand-black hover:text-brand-white transition-all flex-shrink-0 leading-tight"
-                      style={{ borderRadius: '0px' }}
+                      className="px-3 py-1.5 border border-brand-gray/30 bg-white text-brand-black text-xs font-semibold hover:border-brand-black transition-all flex-shrink-0"
+                      style={{ borderRadius: '8px' }}
                     >
                       Bulk
                     </button>
@@ -224,28 +223,25 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                         setIsEditing(false);
                         setSelectedAsset(null);
                       }}
-                      className="px-2 py-1 border border-brand-black bg-brand-black text-brand-white text-[10px] font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-all flex-shrink-0 leading-tight"
-                      style={{ borderRadius: '0px' }}
+                      className="px-3 py-1.5 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition-all flex-shrink-0"
+                      style={{ borderRadius: '8px' }}
                     >
                       + Add
                     </button>
                   </div>
                 </div>
-                {/* Search Bar - more compact */}
-                <div className="mt-2">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by name, SKU, or brand..."
-                    className="w-full border border-brand-gray/30 px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
-                    style={{ borderRadius: '0px' }}
-                  />
-                </div>
+                {/* Search Bar */}
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by name, SKU, or brand..."
+                  className="w-full border border-brand-gray/20 px-3 py-2 text-sm text-brand-black focus:outline-none focus:border-brand-black bg-brand-background"
+                  style={{ borderRadius: '8px' }}
+                />
               </div>
-              <div className="space-y-1 max-h-[600px] overflow-y-auto">
+              <div className="space-y-1.5 max-h-[600px] overflow-y-auto custom-scrollbar">
                 {(() => {
-                  // Filter assets based on search query
                   const filteredAssets = searchQuery.trim()
                     ? assets.filter(asset => {
                         const query = searchQuery.toLowerCase();
@@ -260,7 +256,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
 
                   if (filteredAssets.length === 0) {
                     return (
-                      <div className="text-center py-6 text-xs text-brand-black/50 leading-tight">
+                      <div className="text-center py-8 text-sm text-brand-black/50">
                         {searchQuery.trim() ? 'No instruments found matching your search' : 'No instruments'}
                       </div>
                     );
@@ -269,12 +265,12 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                   return filteredAssets.map((asset) => (
                   <div
                     key={asset.id}
-                    className={`border p-2 cursor-pointer transition-all ${
+                    className={`border p-3 cursor-pointer transition-all ${
                       selectedAsset?.id === asset.id
-                        ? "border-brand-black bg-brand-black text-brand-white"
-                        : "border-brand-gray/30 hover:border-brand-gray/50 hover:bg-brand-gray/5"
+                        ? "border-brand-black bg-brand-black text-white shadow-sm"
+                        : "border-brand-gray/20 hover:border-brand-gray/40 hover:shadow-soft bg-white"
                     }`}
-                    style={{ borderRadius: '0px' }}
+                    style={{ borderRadius: '8px' }}
                     onClick={() => {
                       setSelectedAsset(asset);
                       setIsEditing(false);
@@ -282,19 +278,19 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                     }}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className={`text-xs font-semibold mb-0.5 leading-tight ${
-                          selectedAsset?.id === asset.id ? "text-brand-white" : "text-brand-black"
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold mb-0.5 truncate ${
+                          selectedAsset?.id === asset.id ? "text-white" : "text-brand-black"
                         }`}>
                           {asset.name}
                         </p>
-                        <p className={`text-[10px] leading-tight ${
-                          selectedAsset?.id === asset.id ? "text-brand-white/70" : "text-brand-black/60"
+                        <p className={`text-xs ${
+                          selectedAsset?.id === asset.id ? "text-white/70" : "text-brand-black/50"
                         }`}>
                           {asset.sku}
                         </p>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1.5 ml-2 flex-shrink-0">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -302,12 +298,12 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                             setIsEditing(true);
                             setShowNewAssetForm(true);
                           }}
-                          className={`text-[10px] px-1.5 py-0.5 border transition-all leading-tight ${
+                          className={`text-xs px-2 py-1 border transition-all ${
                             selectedAsset?.id === asset.id
-                              ? "border-brand-white/30 text-brand-white hover:bg-brand-white/10"
-                              : "border-brand-gray/30 text-brand-black hover:border-brand-black hover:bg-brand-black hover:text-brand-white"
+                              ? "border-white/30 text-white hover:bg-white/10"
+                              : "border-brand-gray/30 text-brand-black hover:border-brand-black"
                           }`}
-                          style={{ borderRadius: '0px' }}
+                          style={{ borderRadius: '6px' }}
                         >
                           Edit
                         </button>
@@ -316,8 +312,8 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                             e.stopPropagation();
                             handleDeleteAsset(asset.id);
                           }}
-                          className="text-[10px] px-1.5 py-0.5 border border-red-500/30 text-red-600 hover:border-red-600 hover:bg-red-600 hover:text-brand-white transition-all leading-tight"
-                          style={{ borderRadius: '0px' }}
+                          className="text-xs px-2 py-1 border border-red-200 text-red-600 hover:border-red-500 hover:bg-red-50 transition-all"
+                          style={{ borderRadius: '6px' }}
                         >
                           Del
                         </button>
@@ -330,16 +326,16 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
               </div>
             </div>
 
-            {/* Asset Details View - more compact */}
+            {/* Asset Details View */}
             <div className="lg:col-span-2">
               {selectedAsset ? (
                 <AssetDetailsView asset={selectedAsset} />
               ) : (
-                <div className="border border-brand-gray/30 p-8 bg-brand-white text-center" style={{ borderRadius: '0px' }}>
-                  <p className="text-xs font-medium text-brand-black/60 mb-1 leading-tight">
+                <div className="border border-brand-gray/20 p-8 bg-white text-center shadow-sm" style={{ borderRadius: '12px' }}>
+                  <p className="text-sm font-medium text-brand-black/60 mb-1">
                     No Instrument Selected
                   </p>
-                  <p className="text-[10px] text-brand-black/50 leading-tight">
+                  <p className="text-xs text-brand-black/40">
                     Select an instrument from the list or create a new one
                   </p>
                 </div>
@@ -351,7 +347,22 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
         ) : activeTab === "analytics" ? (
           <AnalyticsView />
         ) : (
-          <DesignSettings />
+          <div className="space-y-6">
+            {/* Data Maintenance Section */}
+            <div className="border border-brand-gray/20 bg-white shadow-sm p-5" style={{ borderRadius: '12px' }}>
+              <h3 className="text-sm font-semibold text-brand-black mb-3">
+                Data Maintenance
+              </h3>
+              <p className="text-sm text-brand-black/60 mb-4">
+                Calculate and populate market metrics (price changes, best available prices) for all assets.
+                This is useful after bulk updates or when onboarding historical data.
+              </p>
+              <BackfillMetricsButton assets={assets} onAssetsChange={onAssetsChange} />
+            </div>
+
+            {/* Design Settings */}
+            <DesignSettings />
+          </div>
         )}
       </div>
 
@@ -409,20 +420,21 @@ interface AssetFormModalProps {
 
 const AssetFormModal: React.FC<AssetFormModalProps> = ({ asset, assets, onSave, onClose }) => {
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-3">
-      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-brand-white border border-brand-gray/30 shadow-2xl" style={{ borderRadius: '0px' }}>
-        <div className="sticky top-0 z-10 flex justify-between items-center px-3 py-2 bg-brand-white border-b border-brand-gray/30">
-          <h2 className="text-base font-heading font-normal text-brand-black uppercase tracking-wide leading-tight">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-4">
+      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-brand-gray/20 shadow-modal" style={{ borderRadius: '16px' }}>
+        <div className="sticky top-0 z-10 flex justify-between items-center px-5 py-3.5 bg-white border-b border-brand-gray/20" style={{ borderRadius: '16px 16px 0 0' }}>
+          <h2 className="text-lg font-heading font-normal text-brand-black">
             {asset ? "Edit Instrument" : "New Instrument"}
           </h2>
           <button
             onClick={onClose}
-            className="text-brand-black hover:text-brand-black text-base px-2 py-1 leading-tight"
+            className="w-8 h-8 flex items-center justify-center text-brand-black/60 hover:text-brand-black hover:bg-brand-gray/10 transition-colors"
+            style={{ borderRadius: '8px' }}
           >
             ✕
           </button>
         </div>
-        <div className="p-3 md:p-4">
+        <div className="p-5 md:p-6">
           <AssetForm
             asset={asset}
             assets={assets}
@@ -529,80 +541,84 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Basic Information - more compact */}
-        <div className="space-y-3">
+    <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Basic Information */}
+        <div className="space-y-4">
           <div className="border-b border-brand-gray/20 pb-2">
-            <h3 className="text-xs font-semibold text-brand-black uppercase tracking-wide mb-0.5 leading-tight">
+            <h3 className="text-sm font-semibold text-brand-black mb-1">
               Basic Information
             </h3>
-            <p className="text-[10px] text-brand-black/60 leading-tight">
+            <p className="text-xs text-brand-black/50">
               Core asset details and metadata
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                Name <span className="text-red-600 font-normal">*</span>
+              <label className="block text-xs font-medium text-brand-black mb-1.5">
+                Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.name || ""}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className={`w-full border rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none leading-tight ${
+                className={`w-full border px-3 py-2.5 text-sm text-brand-black focus:outline-none ${
                   duplicateAssets && duplicateAssets.some(d => d.name.toLowerCase() === formData.name?.toLowerCase())
-                    ? "border-red-500 focus:border-red-600"
+                    ? "border-red-400 focus:border-red-500"
                     : "border-brand-gray/30 focus:border-brand-black"
                 }`}
+                style={{ borderRadius: '8px' }}
                 required
               />
               {duplicateAssets && duplicateAssets.some(d => d.name.toLowerCase() === formData.name?.toLowerCase()) && (
-                <p className="text-[10px] text-red-600 mt-0.5 flex items-center gap-1 leading-tight">
+                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
                   <span>⚠</span> Duplicate name found
                 </p>
               )}
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                SKU <span className="text-red-600 font-normal">*</span>
+              <label className="block text-xs font-medium text-brand-black mb-1.5">
+                SKU <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.sku || ""}
                 onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                className={`w-full border rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none leading-tight ${
+                className={`w-full border px-3 py-2.5 text-sm text-brand-black focus:outline-none ${
                   duplicateAssets && duplicateAssets.some(d => d.sku.toLowerCase() === formData.sku?.toLowerCase())
-                    ? "border-red-500 focus:border-red-600"
+                    ? "border-red-400 focus:border-red-500"
                     : "border-brand-gray/30 focus:border-brand-black"
                 }`}
+                style={{ borderRadius: '8px' }}
                 required
               />
               {duplicateAssets && duplicateAssets.some(d => d.sku.toLowerCase() === formData.sku?.toLowerCase()) && (
-                <p className="text-[10px] text-red-600 mt-0.5 flex items-center gap-1 leading-tight">
+                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
                   <span>⚠</span> Duplicate SKU found
                 </p>
               )}
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                Brand <span className="text-red-600 font-normal">*</span>
+              <label className="block text-xs font-medium text-brand-black mb-1.5">
+                Brand <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.brand || ""}
                 onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black"
+                style={{ borderRadius: '8px' }}
                 required
               />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
+              <label className="block text-xs font-medium text-brand-black mb-1.5">
                 Category
               </label>
               <select
                 value={formData.category || "Sneakers"}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black"
+                style={{ borderRadius: '8px' }}
               >
                 <option value="Sneakers">Sneakers</option>
                 <option value="Watches">Watches</option>
@@ -610,31 +626,32 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
                 <option value="Collectibles">Collectibles</option>
               </select>
             </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-brand-black mb-1.5">
                 Image URL
               </label>
               <input
                 type="url"
                 value={formData.image || ""}
                 onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black"
+                style={{ borderRadius: '8px' }}
                 placeholder="https://..."
               />
             </div>
           </div>
           
-          {/* Duplicate Warning Banner - more compact */}
+          {/* Duplicate Warning Banner */}
           {duplicateAssets && duplicateAssets.length > 0 && (
-            <div className="border border-yellow-500/50 bg-yellow-500/10 p-2" style={{ borderRadius: '0px' }}>
-              <div className="flex items-start gap-1.5">
-                <span className="text-yellow-600 text-xs">⚠</span>
+            <div className="border border-yellow-300 bg-yellow-50 p-3" style={{ borderRadius: '8px' }}>
+              <div className="flex items-start gap-2">
+                <span className="text-yellow-600 text-sm mt-0.5">⚠</span>
                 <div className="flex-1">
-                  <p className="text-[10px] font-semibold text-yellow-700 mb-0.5 leading-tight">Potential Duplicate Detected</p>
-                  <p className="text-[10px] text-yellow-600 leading-tight">
+                  <p className="text-xs font-semibold text-yellow-800 mb-0.5">Potential Duplicate Detected</p>
+                  <p className="text-xs text-yellow-700">
                     Found {duplicateAssets.length} existing instrument{duplicateAssets.length !== 1 ? 's' : ''} with matching name or SKU:
                   </p>
-                  <ul className="text-[10px] text-yellow-600 mt-0.5 list-disc list-inside leading-tight">
+                  <ul className="text-xs text-yellow-700 mt-1 list-disc list-inside">
                     {duplicateAssets.map(dup => (
                       <li key={dup.id}>{dup.name} (SKU: {dup.sku})</li>
                     ))}
@@ -666,18 +683,20 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
           }}
         />
 
-        {/* Actions - more compact */}
-        <div className="flex gap-2 pt-3 border-t border-brand-gray/20">
+        {/* Actions */}
+        <div className="flex gap-3 pt-4 border-t border-brand-gray/20">
           <button
             type="submit"
-            className="px-3 py-1.5 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition leading-tight"
+            className="px-5 py-2.5 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition"
+            style={{ borderRadius: '8px' }}
           >
             {asset ? "Update" : "Create"}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="px-3 py-1.5 rounded-none border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition leading-tight"
+            className="px-5 py-2.5 border border-brand-gray/30 text-brand-black text-sm font-semibold hover:bg-brand-gray/10 transition"
+            style={{ borderRadius: '8px' }}
           >
             Cancel
           </button>
@@ -763,33 +782,34 @@ const PriceAnchorsForm: React.FC<PriceAnchorsFormProps> = ({ priceAnchors, onCha
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="border-b border-brand-gray/20 pb-2">
-        <h3 className="text-xs font-semibold text-brand-black uppercase tracking-wide mb-0.5 leading-tight">
+        <h3 className="text-sm font-semibold text-brand-black mb-1">
           Retail Prices
         </h3>
-        <p className="text-[10px] text-brand-black/60 leading-tight">
+        <p className="text-xs text-brand-black/50">
           Original launch prices. Used to calculate spread percentage (current price vs retail).
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
+          <label className="block text-xs font-medium text-brand-black mb-1.5">
             Retail (India) ₹
           </label>
           <input
             type="number"
             value={anchors.retailIndia || ""}
             onChange={(e) => updateRetailIndia(parseFloat(e.target.value) || 0)}
-            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-mono-numeric font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+            className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-brand-black focus:outline-none focus:border-brand-black"
+            style={{ borderRadius: '8px' }}
             placeholder="e.g., 12,999"
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
+          <label className="block text-xs font-medium text-brand-black mb-1.5">
             Retail (Global) $
             {exchangeRate && (
-              <span className="text-[9px] text-brand-black/50 font-normal ml-1">
+              <span className="text-xs text-brand-black/40 font-normal ml-1">
                 (≈₹{exchangeRate.toFixed(2)}/USD)
               </span>
             )}
@@ -798,12 +818,13 @@ const PriceAnchorsForm: React.FC<PriceAnchorsFormProps> = ({ priceAnchors, onCha
             type="number"
             value={retailGlobalUSD}
             onChange={(e) => updateRetailGlobal(e.target.value)}
-            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-mono-numeric font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+            className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-brand-black focus:outline-none focus:border-brand-black"
+            style={{ borderRadius: '8px' }}
             placeholder="e.g., 150"
             disabled={isLoadingRate}
           />
           {retailGlobalUSD && !isNaN(parseFloat(retailGlobalUSD)) && exchangeRate && (
-            <p className="text-[9px] text-brand-black/50 mt-0.5 leading-tight">
+            <p className="text-xs text-brand-black/40 mt-1">
               ≈ ₹{(parseFloat(retailGlobalUSD) * exchangeRate).toLocaleString('en-IN', { maximumFractionDigits: 0 })} INR
             </p>
           )}
@@ -883,25 +904,23 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between border-b border-brand-gray/20 pb-2">
-        <div className="flex-1">
-          <h3 className="text-xs font-semibold text-brand-black uppercase tracking-wide mb-0.5 leading-tight">
-            Size Variants <span className="font-mono-numeric">({sizes.length})</span> <span className="text-red-600 font-normal">*</span>
-          </h3>
-          <p className="text-[10px] text-brand-black/60 leading-tight">
-            Define size-specific pricing ranges for each market channel. At least one size is required since market data is size-dependent.
-          </p>
-        </div>
+    <div className="space-y-4">
+      <div className="border-b border-brand-gray/20 pb-2">
+        <h3 className="text-sm font-semibold text-brand-black mb-1">
+          Size Variants <span className="font-mono-numeric text-brand-black/50">({sizes.length})</span> <span className="text-red-500 font-normal">*</span>
+        </h3>
+        <p className="text-xs text-brand-black/50">
+          Define size-specific pricing ranges for each market channel. At least one size is required.
+        </p>
       </div>
 
-      <div className="border border-brand-gray/30 rounded-none p-3 bg-brand-white">
-        <div className="mb-2">
-          <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-            Add Sizes <span className="text-red-600 font-normal">*</span>
+      <div className="border border-brand-gray/20 p-4 bg-brand-background" style={{ borderRadius: '8px' }}>
+        <div className="mb-3">
+          <label className="block text-xs font-medium text-brand-black mb-1.5">
+            Add Sizes <span className="text-red-500">*</span>
           </label>
-          <p className="text-[10px] text-brand-black/60 mb-1.5 leading-tight">
-            Enter sizes separated by commas or new lines (e.g., "UK 7, UK 8, UK 9" or one per line). You can edit individual sizes later. At least one size is required.
+          <p className="text-xs text-brand-black/50 mb-2">
+            Enter sizes separated by commas or new lines. You can edit individual sizes later.
           </p>
           <textarea
             value={quickAddInput}
@@ -912,23 +931,26 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
                 handleQuickAddSubmit();
               }
             }}
-            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black resize-none leading-tight"
+            className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black resize-none bg-white"
+            style={{ borderRadius: '8px' }}
             placeholder="UK 7, UK 8, UK 9, UK 10"
             rows={2}
           />
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={handleQuickAddSubmit}
-            className="px-2.5 py-1 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 leading-tight"
+            className="px-4 py-2 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition"
+            style={{ borderRadius: '8px' }}
           >
             Add Sizes
           </button>
           <button
             type="button"
             onClick={() => setQuickAddInput("")}
-            className="px-2.5 py-1 rounded-none border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 leading-tight"
+            className="px-4 py-2 border border-brand-gray/30 text-brand-black text-sm font-semibold hover:bg-brand-gray/10 transition"
+            style={{ borderRadius: '8px' }}
           >
             Clear
           </button>
@@ -946,65 +968,67 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
         />
       )}
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         {sortSizesByValue(sizes).map((size) => {
-          // Find the original index for editing/deleting
           const originalIndex = sizes.findIndex(s => s.size === size.size);
           return (
           <div
             key={size.size}
-            className="border border-brand-gray/30 rounded-none p-2.5 bg-brand-white"
+            className="border border-brand-gray/20 p-3 bg-white shadow-soft"
+            style={{ borderRadius: '8px' }}
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <span className="text-xs font-medium text-brand-black leading-tight">{size.size}</span>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-semibold text-brand-black">{size.size}</span>
                   {size.size === defaultSize && (
-                    <span className="text-[10px] px-1.5 py-0.5 bg-brand-gray/20 text-brand-black leading-tight">Default</span>
+                    <span className="text-xs px-2 py-0.5 bg-brand-gray/15 text-brand-black/70" style={{ borderRadius: '4px' }}>Default</span>
                   )}
                 </div>
-        <div className="grid grid-cols-3 gap-2 text-[10px] text-brand-black leading-tight">
+                <div className="grid grid-cols-3 gap-3 text-xs text-brand-black">
                   <div>
-                    <span className="text-brand-black/60">WhatsApp/Reseller:</span> {size.b2bMarketPrice || "—"}
+                    <span className="text-brand-black/50">WhatsApp:</span> {size.b2bMarketPrice || "—"}
                     {(() => {
                       const pricePoints = size.pricePoints || size.legacyPricePoints;
                       const count = pricePoints ? ('whatsapp' in pricePoints ? pricePoints.whatsapp?.length : pricePoints.b2b?.length) || 0 : 0;
-                      return count > 0 ? <span className="text-brand-black/50 ml-1 font-mono-numeric">({count})</span> : null;
+                      return count > 0 ? <span className="text-brand-black/40 ml-1 font-mono-numeric">({count})</span> : null;
                     })()}
                   </div>
                   <div>
-                    <span className="text-brand-black/60">Indian Marketplaces:</span> {size.endCustomerMarketPrice || "—"}
+                    <span className="text-brand-black/50">Marketplace:</span> {size.endCustomerMarketPrice || "—"}
                     {(() => {
                       const pricePoints = size.pricePoints || size.legacyPricePoints;
                       const count = pricePoints ? ('marketplace' in pricePoints ? pricePoints.marketplace?.length : pricePoints.endCustomer?.length) || 0 : 0;
-                      return count > 0 ? <span className="text-brand-black/50 ml-1 font-mono-numeric">({count})</span> : null;
+                      return count > 0 ? <span className="text-brand-black/40 ml-1 font-mono-numeric">({count})</span> : null;
                     })()}
                   </div>
                   <div>
-                    <span className="text-brand-black/60">International:</span> {size.stockxGoatPrice || "—"}
+                    <span className="text-brand-black/50">International:</span> {size.stockxGoatPrice || "—"}
                     {(() => {
                       const pricePoints = size.pricePoints || size.legacyPricePoints;
                       const count = pricePoints ? ('international' in pricePoints ? pricePoints.international?.length : pricePoints.stockxGoat?.length) || 0 : 0;
-                      return count > 0 ? <span className="text-brand-black/50 ml-1 font-mono-numeric">({count})</span> : null;
+                      return count > 0 ? <span className="text-brand-black/40 ml-1 font-mono-numeric">({count})</span> : null;
                     })()}
                   </div>
                 </div>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1.5 ml-2 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => {
                     setEditingIndex(originalIndex);
                     setShowForm(true);
                   }}
-                  className="text-[10px] px-2 py-1 border border-brand-gray/30 hover:border-brand-black text-brand-black font-medium uppercase tracking-wide transition leading-tight"
+                  className="text-xs px-2.5 py-1 border border-brand-gray/30 hover:border-brand-black text-brand-black transition"
+                  style={{ borderRadius: '6px' }}
                 >
                   Edit
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDeleteSize(originalIndex)}
-                  className="text-[10px] px-2 py-1 border border-red-500/30 hover:border-red-600 hover:bg-red-600 hover:text-white text-red-600 font-medium uppercase tracking-wide transition leading-tight"
+                  className="text-xs px-2.5 py-1 border border-red-200 hover:border-red-500 hover:bg-red-50 text-red-600 transition"
+                  style={{ borderRadius: '6px' }}
                 >
                   Del
                 </button>
@@ -1069,52 +1093,48 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
   };
 
   return (
-    <div className="border border-brand-gray/30 rounded-none p-3 bg-brand-white size-variant-form-container" style={{ borderRadius: '0px' }} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-      <div className="mb-3 pb-2 border-b border-brand-gray/20">
-        <h4 className="text-xs font-semibold text-brand-black uppercase tracking-wide mb-0.5 leading-tight">
+    <div className="border border-brand-gray/20 p-4 bg-white shadow-sm size-variant-form-container" style={{ borderRadius: '12px' }} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+      <div className="mb-4 pb-2 border-b border-brand-gray/20">
+        <h4 className="text-sm font-semibold text-brand-black mb-1">
           {sizeVariant ? "Edit Size Variant" : "New Size Variant"}
         </h4>
-        <p className="text-[10px] text-brand-black/60 leading-tight">
-          Define size structure and liquidity. All pricing data and metrics are calculated dynamically from market data.
+        <p className="text-xs text-brand-black/50">
+          Define size structure and liquidity. Pricing data and metrics are calculated dynamically.
         </p>
       </div>
       
-      <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
-        {/* Basic Info - more compact */}
-        <div className="border-b border-brand-gray/20 pb-2" style={{ borderRadius: '0px' }}>
-          <h5 className="text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-2 leading-tight">Basic Information</h5>
-          <div>
-            <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-              Size <span className="text-red-600 font-normal">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.size || ""}
-              onChange={(e) => {
-                e.stopPropagation();
-                setFormData({ ...formData, size: e.target.value });
-              }}
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => {
-                e.stopPropagation();
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleSubmit();
-                }
-              }}
-              className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
-              placeholder="e.g., UK 9"
-              required
-              autoFocus
-            />
-            <p className="text-[10px] text-brand-black/50 mt-1 leading-tight">
-              Liquidity and other metrics will be calculated automatically from market data.
-            </p>
-          </div>
+      <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
+        <div>
+          <label className="block text-xs font-medium text-brand-black mb-1.5">
+            Size <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={formData.size || ""}
+            onChange={(e) => {
+              e.stopPropagation();
+              setFormData({ ...formData, size: e.target.value });
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
+            className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black"
+            style={{ borderRadius: '8px' }}
+            placeholder="e.g., UK 9"
+            required
+            autoFocus
+          />
+          <p className="text-xs text-brand-black/40 mt-1.5">
+            Liquidity and other metrics will be calculated automatically from market data.
+          </p>
         </div>
 
-        {/* Actions - more compact */}
-        <div className="flex gap-2 pt-2 border-t border-brand-gray/20">
+        <div className="flex gap-3 pt-3 border-t border-brand-gray/20">
           <button
             type="button"
             onClick={(e) => {
@@ -1122,14 +1142,16 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
               e.stopPropagation();
               handleSubmit();
             }}
-            className="px-3 py-1.5 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition leading-tight"
+            className="px-4 py-2 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition"
+            style={{ borderRadius: '8px' }}
           >
             Save Size
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="px-3 py-1.5 rounded-none border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition leading-tight"
+            className="px-4 py-2 border border-brand-gray/30 text-brand-black text-sm font-semibold hover:bg-brand-gray/10 transition"
+            style={{ borderRadius: '8px' }}
           >
             Cancel
           </button>
@@ -1150,39 +1172,39 @@ const AssetDetailsView: React.FC<AssetDetailsViewProps> = ({ asset }) => {
     : 'Never';
 
   return (
-    <div className="border border-brand-gray/30 rounded-none p-3 bg-brand-white">
-      <div className="mb-3 pb-3 border-b border-brand-gray/20">
-        <h2 className="text-sm font-semibold text-brand-black mb-1 leading-tight uppercase tracking-wide">
+    <div className="border border-brand-gray/20 bg-white shadow-sm p-5" style={{ borderRadius: '12px' }}>
+      <div className="mb-4 pb-3 border-b border-brand-gray/20">
+        <h2 className="text-base font-semibold text-brand-black mb-1">
           {asset.name}
         </h2>
-        <div className="flex items-center gap-2 text-[10px] text-brand-black/60 leading-tight">
+        <div className="flex items-center gap-2 text-xs text-brand-black/50">
           <span className="font-medium">{asset.sku}</span>
           <span>•</span>
           <span>{asset.brand}</span>
           <span>•</span>
-          <span className="uppercase">{asset.category}</span>
+          <span>{asset.category}</span>
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <p className="text-[10px] font-semibold text-brand-black/60 uppercase tracking-wide mb-1 leading-tight">Size Variants</p>
-          <p className="text-sm font-mono-numeric font-semibold text-brand-black leading-tight">{asset.sizes?.length || 0}</p>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-brand-background p-3" style={{ borderRadius: '8px' }}>
+          <p className="text-xs text-brand-black/50 mb-1">Size Variants</p>
+          <p className="text-lg font-mono-numeric font-semibold text-brand-black">{asset.sizes?.length || 0}</p>
         </div>
-        <div>
-          <p className="text-[10px] font-semibold text-brand-black/60 uppercase tracking-wide mb-1 leading-tight">Last Updated</p>
-          <p className="text-xs font-mono-numeric font-medium text-brand-black leading-tight">{lastUpdated}</p>
+        <div className="bg-brand-background p-3" style={{ borderRadius: '8px' }}>
+          <p className="text-xs text-brand-black/50 mb-1">Last Updated</p>
+          <p className="text-sm font-mono-numeric font-medium text-brand-black">{lastUpdated}</p>
         </div>
         {asset.volatility && (
-          <div>
-            <p className="text-[10px] font-semibold text-brand-black/60 uppercase tracking-wide mb-1 leading-tight">Volatility</p>
-            <p className="text-xs font-medium text-brand-black capitalize leading-tight">{asset.volatility}</p>
+          <div className="bg-brand-background p-3" style={{ borderRadius: '8px' }}>
+            <p className="text-xs text-brand-black/50 mb-1">Volatility</p>
+            <p className="text-sm font-medium text-brand-black capitalize">{asset.volatility}</p>
           </div>
         )}
         {asset.priceAnchors?.retailIndia && (
-          <div>
-            <p className="text-[10px] font-semibold text-brand-black/60 uppercase tracking-wide mb-1 leading-tight">Retail (IN)</p>
-            <p className="text-xs font-mono-numeric font-medium text-brand-black leading-tight">₹{asset.priceAnchors.retailIndia.toLocaleString('en-IN')}</p>
+          <div className="bg-brand-background p-3" style={{ borderRadius: '8px' }}>
+            <p className="text-xs text-brand-black/50 mb-1">Retail (IN)</p>
+            <p className="text-sm font-mono-numeric font-semibold text-brand-black">₹{asset.priceAnchors.retailIndia.toLocaleString('en-IN')}</p>
           </div>
         )}
       </div>
@@ -1510,44 +1532,39 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-3">
-      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-brand-white border border-brand-gray/30 shadow-2xl" style={{ borderRadius: '0px' }}>
-        <div className="sticky top-0 z-10 flex justify-between items-center px-3 py-2 bg-brand-white border-b border-brand-gray/30">
-          <h2 className="text-base font-heading font-normal text-brand-black uppercase tracking-wide leading-tight">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-4">
+      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-brand-gray/20 shadow-modal" style={{ borderRadius: '16px' }}>
+        <div className="sticky top-0 z-10 flex justify-between items-center px-5 py-3.5 bg-white border-b border-brand-gray/20" style={{ borderRadius: '16px 16px 0 0' }}>
+          <h2 className="text-lg font-heading font-normal text-brand-black">
             Bulk Add Instruments
           </h2>
           <button
             onClick={onClose}
-            className="text-brand-black hover:text-brand-black text-base px-2 py-1 leading-tight"
+            className="w-8 h-8 flex items-center justify-center text-brand-black/60 hover:text-brand-black hover:bg-brand-gray/10 transition-colors"
+            style={{ borderRadius: '8px' }}
           >
             ✕
           </button>
         </div>
-        <div className="p-3 md:p-4">
-          <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="p-5 md:p-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
+              <label className="block text-xs font-medium text-brand-black mb-1.5">
                 Upload CSV or Enter Data
               </label>
-              <p className="text-[10px] text-brand-black/60 mb-2 leading-tight">
+              <p className="text-xs text-brand-black/50 mb-3 leading-relaxed">
                 Upload a CSV file or paste data. Format: <strong>Name, SKU, Brand, Category, Image URL, [Retail India ₹], [Retail Global $], Sizes</strong>
                 <br />
-                <strong>With all fields:</strong> <code className="bg-brand-gray/10 px-1">Nike Dunk Low Panda, DN1234, Nike, Sneakers, https://..., 12999, 150, UK 7, UK 8, UK 9</code>
-                <br />
-                <strong>Without image URL:</strong> <code className="bg-brand-gray/10 px-1">Nike Dunk Low Panda, DN1234, Nike, Sneakers, , 12999, 150, UK 7, UK 8, UK 9</code>
-                <br />
-                <strong>Without retail prices:</strong> <code className="bg-brand-gray/10 px-1">Nike Dunk Low Panda, DN1234, Nike, Sneakers, https://..., UK 7, UK 8, UK 9</code>
-                <br />
-                Category and Image URL are optional. Retail India is in ₹ (INR). Retail Global is in $ (USD) and will be automatically converted to INR using today's exchange rate. Sizes should be comma or semicolon separated.
+                Category and Image URL are optional. Retail India is in ₹ (INR). Retail Global is in $ (USD) — auto-converted to INR.
               </p>
               
-              {/* File Upload - more compact */}
-              <div className="mb-3">
-                <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
+              {/* File Upload */}
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-brand-black mb-1.5">
                   Upload CSV File
                 </label>
-                <div className="flex items-center gap-2">
-                  <label className="px-2.5 py-1 border border-brand-black bg-brand-white text-brand-black text-[10px] font-semibold uppercase tracking-wide hover:bg-brand-black hover:text-brand-white transition cursor-pointer leading-tight" style={{ borderRadius: '0px' }}>
+                <div className="flex items-center gap-3">
+                  <label className="px-4 py-2 border border-brand-gray/30 bg-white text-brand-black text-xs font-semibold hover:border-brand-black transition cursor-pointer" style={{ borderRadius: '8px' }}>
                     Choose File
                     <input
                       type="file"
@@ -1557,31 +1574,31 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
                     />
                   </label>
                   {fileName && (
-                    <span className="text-[10px] text-brand-black/60 leading-tight">
+                    <span className="text-xs text-brand-black/50">
                       {fileName}
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* Text Input - more compact */}
+              {/* Text Input */}
               <div>
-                <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
+                <label className="block text-xs font-medium text-brand-black mb-1.5">
                   Or Paste Data
                 </label>
                 <textarea
                   value={bulkInput}
                   onChange={(e) => setBulkInput(e.target.value)}
-                  className="w-full border border-brand-gray/30 px-2 py-1.5 text-xs font-mono font-medium text-brand-black focus:outline-none focus:border-brand-black resize-none leading-tight"
-                  placeholder="Name, SKU, Brand, Category, Image URL, Retail India (₹), Retail Global ($), Sizes&#10;Nike Dunk Low Panda, DN1234, Nike, Sneakers, https://example.com/image.jpg, 12999, 150, UK 7, UK 8, UK 9&#10;Jordan 1 High OG, J1-5678, Jordan, Sneakers, https://example.com/jordan.jpg, 14999, 180, UK 8, UK 9, UK 10"
-                  rows={10}
-                  style={{ borderRadius: '0px' }}
+                  className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono text-brand-black focus:outline-none focus:border-brand-black resize-none"
+                  placeholder="Name, SKU, Brand, Category, Image URL, Retail India (₹), Retail Global ($), Sizes&#10;Nike Dunk Low Panda, DN1234, Nike, Sneakers, https://example.com/image.jpg, 12999, 150, UK 7, UK 8, UK 9"
+                  rows={8}
+                  style={{ borderRadius: '8px' }}
                 />
                 <button
                   type="button"
                   onClick={() => parseBulkInput()}
-                  className="mt-1.5 px-2.5 py-1 border border-brand-gray/30 bg-brand-white text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition leading-tight"
-                  style={{ borderRadius: '0px' }}
+                  className="mt-3 px-4 py-2 border border-brand-gray/30 bg-white text-brand-black text-sm font-semibold hover:border-brand-black transition"
+                  style={{ borderRadius: '8px' }}
                 >
                   Parse & Validate
                 </button>
@@ -1589,48 +1606,48 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
             </div>
 
             {errors.length > 0 && (
-              <div className="border border-red-500/30 bg-red-500/5 p-2.5" style={{ borderRadius: '0px' }}>
-                <h3 className="text-[10px] font-semibold text-red-700 mb-1.5 uppercase leading-tight">Errors <span className="font-mono-numeric">({errors.length})</span></h3>
-                <ul className="space-y-0.5">
+              <div className="border border-red-200 bg-red-50 p-4" style={{ borderRadius: '8px' }}>
+                <h3 className="text-xs font-semibold text-red-800 mb-2">Errors <span className="font-mono-numeric">({errors.length})</span></h3>
+                <ul className="space-y-1">
                   {errors.map((error, index) => (
-                    <li key={index} className="text-[10px] text-red-600 leading-tight">{error}</li>
+                    <li key={index} className="text-xs text-red-600">{error}</li>
                   ))}
                 </ul>
               </div>
             )}
 
             {parsedAssets.length > 0 && (
-              <div className="border border-brand-gray/30 p-2.5" style={{ borderRadius: '0px' }}>
-                <h3 className="text-xs font-semibold text-brand-black mb-2 uppercase tracking-wide leading-tight">
-                  Preview <span className="font-mono-numeric">({parsedAssets.length})</span> asset{parsedAssets.length !== 1 ? 's' : ''} ready
+              <div className="border border-brand-gray/20 p-4" style={{ borderRadius: '8px' }}>
+                <h3 className="text-sm font-semibold text-brand-black mb-3">
+                  Preview — <span className="font-mono-numeric">{parsedAssets.length}</span> asset{parsedAssets.length !== 1 ? 's' : ''} ready
                   {duplicateWarnings.size > 0 && (
-                    <span className="ml-1.5 text-yellow-600 font-mono-numeric">
-                      • {duplicateWarnings.size} duplicate{duplicateWarnings.size !== 1 ? 's' : ''}
+                    <span className="ml-2 text-yellow-600 font-mono-numeric text-xs">
+                      ({duplicateWarnings.size} duplicate{duplicateWarnings.size !== 1 ? 's' : ''})
                     </span>
                   )}
                 </h3>
-                <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
                   {parsedAssets.map((asset, index) => {
                     const duplicates = duplicateWarnings.get(index);
                     return (
                       <div 
                         key={index} 
-                        className={`border p-2 ${
-                          duplicates ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-brand-gray/20 bg-brand-gray/5'
+                        className={`border p-3 ${
+                          duplicates ? 'border-yellow-300 bg-yellow-50' : 'border-brand-gray/20 bg-brand-background'
                         }`}
-                        style={{ borderRadius: '0px' }}
+                        style={{ borderRadius: '8px' }}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <div className="flex items-center gap-1.5">
-                              <p className="text-xs font-semibold text-brand-black leading-tight">{asset.name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-semibold text-brand-black">{asset.name}</p>
                               {duplicates && (
-                                <span className="text-[10px] text-yellow-600">⚠</span>
+                                <span className="text-xs text-yellow-600">⚠</span>
                               )}
                             </div>
-                            <p className="text-[10px] text-brand-black/60 leading-tight">{asset.sku} • {asset.brand} • {asset.category}</p>
+                            <p className="text-xs text-brand-black/50 mt-0.5">{asset.sku} • {asset.brand} • {asset.category}</p>
                             {(asset.priceAnchors?.retailIndia || (asset.priceAnchors as any)?._retailGlobalUSD || asset.priceAnchors?.retailGlobal) && (
-                              <p className="text-[10px] text-brand-black/50 mt-0.5 leading-tight">
+                              <p className="text-xs text-brand-black/40 mt-1">
                                 Retail: {asset.priceAnchors?.retailIndia ? `₹${asset.priceAnchors.retailIndia.toLocaleString('en-IN')} (IN)` : ''}
                                 {asset.priceAnchors?.retailIndia && ((asset.priceAnchors as any)?._retailGlobalUSD || asset.priceAnchors?.retailGlobal) ? ' • ' : ''}
                                 {(asset.priceAnchors as any)?._retailGlobalUSD 
@@ -1640,11 +1657,11 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
                                     : ''}
                               </p>
                             )}
-                            <p className="text-[10px] text-brand-black/50 mt-0.5 leading-tight">
+                            <p className="text-xs text-brand-black/40 mt-0.5">
                               Sizes: {asset.sizes?.map(s => s.size).join(', ') || 'None'}
                             </p>
                             {duplicates && duplicates.length > 0 && (
-                              <p className="text-[10px] text-yellow-600 mt-0.5 leading-tight">
+                              <p className="text-xs text-yellow-600 mt-1">
                                 Duplicate: matches {duplicates.map(d => `"${d.name}"`).join(', ')}
                               </p>
                             )}
@@ -1658,38 +1675,38 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
             )}
 
             {isCreating && (
-              <div className="border border-brand-gray/30 bg-brand-gray/5 p-2.5" style={{ borderRadius: '0px' }}>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <div className="animate-spin rounded-full h-3 w-3 border-2 border-brand-black border-t-transparent"></div>
-                  <span className="text-xs font-semibold text-brand-black uppercase tracking-wide leading-tight">
+              <div className="border border-brand-gray/20 bg-brand-background p-4" style={{ borderRadius: '8px' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-brand-black border-t-transparent"></div>
+                  <span className="text-sm font-semibold text-brand-black">
                     Creating Assets...
                   </span>
                 </div>
-                <div className="w-full bg-brand-gray/20 h-1.5 mb-1.5" style={{ borderRadius: '0px' }}>
+                <div className="w-full bg-brand-gray/20 h-2 mb-2" style={{ borderRadius: '4px' }}>
                   <div 
-                    className="bg-brand-black h-1.5 transition-all duration-300"
+                    className="bg-brand-black h-2 transition-all duration-300"
                     style={{ 
                       width: `${creationProgress.total > 0 ? (creationProgress.created / creationProgress.total) * 100 : 0}%`,
-                      borderRadius: '0px'
+                      borderRadius: '4px'
                     }}
                   ></div>
                 </div>
-                <p className="text-[10px] text-brand-black/60 font-mono-numeric leading-tight">
+                <p className="text-xs text-brand-black/50 font-mono-numeric">
                   {creationProgress.created} of {creationProgress.total} assets created
                 </p>
               </div>
             )}
 
-            <div className="flex gap-2 pt-3 border-t border-brand-gray/20">
+            <div className="flex gap-3 pt-4 border-t border-brand-gray/20">
               <button
                 type="submit"
                 disabled={parsedAssets.length === 0 || isCreating}
-                className="px-3 py-1.5 border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 leading-tight"
-                style={{ borderRadius: '0px' }}
+                className="px-5 py-2.5 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                style={{ borderRadius: '8px' }}
               >
                 {isCreating ? (
                   <>
-                    <div className="animate-spin rounded-full h-2.5 w-2.5 border-2 border-white border-t-transparent"></div>
+                    <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
                     <span>Creating...</span>
                   </>
                 ) : (
@@ -1702,8 +1719,8 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
                 type="button"
                 onClick={onClose}
                 disabled={isCreating}
-                className="px-3 py-1.5 border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition disabled:opacity-50 disabled:cursor-not-allowed leading-tight"
-                style={{ borderRadius: '0px' }}
+                className="px-5 py-2.5 border border-brand-gray/30 text-brand-black text-sm font-semibold hover:bg-brand-gray/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ borderRadius: '8px' }}
               >
                 Cancel
               </button>
@@ -1711,6 +1728,151 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
           </form>
         </div>
       </div>
+    </div>
+  );
+};
+
+/**
+ * Backfill Metrics Button Component
+ * Allows analysts to calculate and populate metrics for all assets
+ */
+interface BackfillMetricsButtonProps {
+  assets: Asset[];
+  onAssetsChange: (assets: Asset[]) => void;
+}
+
+const BackfillMetricsButton: React.FC<BackfillMetricsButtonProps> = ({
+  assets,
+  onAssetsChange,
+}) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const handleBackfill = async () => {
+    if (!confirm(
+      `This will calculate and update metrics for all ${assets.length} assets. This includes:\n\n` +
+      `• Price changes (30d, 90d)\n` +
+      `• Best available prices\n` +
+      `• Confidence scores\n` +
+      `• Liquidity levels\n\n` +
+      `Continue?`
+    )) {
+      return;
+    }
+
+    setIsProcessing(true);
+    setResult(null);
+    setProgress({ current: 0, total: assets.length });
+
+    try {
+      console.log(`Starting backfill for ${assets.length} assets...`);
+      
+      // Enrich all assets with calculated metrics
+      const enrichedAssets = backfillAllAssetMetrics(assets);
+      
+      // Update assets one by one (with progress tracking)
+      const updatedAssets: Asset[] = [];
+      for (let i = 0; i < enrichedAssets.length; i++) {
+        const asset = enrichedAssets[i];
+        setProgress({ current: i + 1, total: enrichedAssets.length });
+        
+        try {
+          const savedAsset = await updateAsset(asset);
+          updatedAssets.push(savedAsset);
+          console.log(`Backfilled asset ${i + 1}/${enrichedAssets.length}: ${asset.name}`);
+        } catch (error) {
+          console.error(`Failed to backfill asset ${asset.name}:`, error);
+          // Continue with other assets even if one fails
+          updatedAssets.push(asset);
+        }
+      }
+      
+      // Update local state
+      onAssetsChange(updatedAssets);
+      
+      setResult({
+        success: true,
+        message: `Successfully updated ${updatedAssets.length} assets with calculated metrics.`,
+      });
+      
+      console.log(`Backfill complete! Updated ${updatedAssets.length} assets.`);
+    } catch (error) {
+      console.error("Backfill failed:", error);
+      setResult({
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to backfill metrics",
+      });
+    } finally {
+      setIsProcessing(false);
+      setProgress({ current: 0, total: 0 });
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <button
+        type="button"
+        onClick={handleBackfill}
+        disabled={isProcessing || assets.length === 0}
+        className="px-5 py-2.5 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        style={{ borderRadius: '8px' }}
+      >
+        {isProcessing ? (
+          <>
+            <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></div>
+            <span>Calculating Metrics...</span>
+          </>
+        ) : (
+          <>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Calculate Metrics for All Assets</span>
+          </>
+        )}
+      </button>
+
+      {/* Progress Bar */}
+      {isProcessing && progress.total > 0 && (
+        <div className="border border-brand-gray/20 bg-white shadow-sm p-4" style={{ borderRadius: '8px' }}>
+          <div className="mb-2">
+            <div className="w-full bg-brand-gray/20 h-2" style={{ borderRadius: '4px' }}>
+              <div
+                className="bg-brand-black h-2 transition-all duration-300"
+                style={{
+                  width: `${(progress.current / progress.total) * 100}%`,
+                  borderRadius: '4px',
+                }}
+              ></div>
+            </div>
+          </div>
+          <p className="text-xs text-brand-black/50 font-mono-numeric">
+            Processing {progress.current} of {progress.total} assets...
+          </p>
+        </div>
+      )}
+
+      {/* Result Message */}
+      {result && (
+        <div
+          className={`border p-4 ${
+            result.success
+              ? "border-green-200 bg-green-50"
+              : "border-red-200 bg-red-50"
+          }`}
+          style={{ borderRadius: '8px' }}
+        >
+          <p
+            className={`text-xs font-medium ${
+              result.success ? "text-green-700" : "text-red-700"
+            }`}
+          >
+            {result.success ? "✓ " : "✗ "}
+            {result.message}
+          </p>
+        </div>
+      )}
     </div>
   );
 };

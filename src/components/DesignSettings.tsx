@@ -68,28 +68,30 @@ export const DesignSettings: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="border border-brand-gray/20 rounded-none p-4 bg-brand-white">
-        <div className="flex items-center justify-between mb-4">
+      <div>
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-lg font-body font-normal text-brand-black mb-1">
+            <h2 className="text-base font-semibold text-brand-black mb-1">
               Design System Settings
             </h2>
-            <p className="text-xs text-brand-black">
+            <p className="text-sm text-brand-black/60">
               Customize the visual appearance of the app. Changes apply immediately.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             {hasChanges && (
               <button
                 onClick={handleSave}
-                className="px-4 py-2 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-body hover:bg-brand-black/90"
+                className="px-4 py-2 bg-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90 transition-all"
+                style={{ borderRadius: '8px' }}
               >
                 Save Changes
               </button>
             )}
             <button
               onClick={handleReset}
-              className="px-4 py-2 rounded-none border border-brand-gray/20 bg-brand-white text-brand-black text-xs font-body hover:border-brand-black hover:bg-brand-gray/10"
+              className="px-4 py-2 border border-brand-gray/20 bg-brand-white text-brand-black text-sm font-medium hover:border-brand-black/40 transition-all"
+              style={{ borderRadius: '8px' }}
             >
               Reset to Default
             </button>
@@ -97,15 +99,15 @@ export const DesignSettings: React.FC = () => {
         </div>
 
         {/* Color Tokens */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-body font-normal text-brand-black border-b border-brand-gray/20 pb-2">
+        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <h3 className="text-sm font-semibold text-brand-black mb-4">
             Brand Colors
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Brand Black */}
             <div>
-              <label className="block text-xs font-body text-brand-black mb-2">
+              <label className="block text-sm font-medium text-brand-black mb-2">
                 Brand Black
               </label>
               <div className="flex gap-2">
@@ -113,25 +115,27 @@ export const DesignSettings: React.FC = () => {
                   type="color"
                   value={tokens.brandBlack}
                   onChange={(e) => handleChange("brandBlack", e.target.value)}
-                  className="h-10 w-20 border border-brand-gray/20 rounded-none cursor-pointer"
+                  className="h-10 w-20 border border-brand-gray/20 cursor-pointer"
+                  style={{ borderRadius: '8px' }}
                 />
                 <input
                   type="text"
                   value={tokens.brandBlack}
                   onChange={(e) => handleChange("brandBlack", e.target.value)}
-                  className="flex-1 border border-brand-gray/20 rounded-none px-3 py-2 text-xs font-body text-brand-black focus:outline-none focus:border-brand-black"
+                  className="flex-1 border border-brand-gray/20 px-3 py-2 text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
+                  style={{ borderRadius: '8px' }}
                   placeholder="#0c0c0c"
                 />
               </div>
               <div
-                className="mt-2 h-8 border border-brand-gray/20 rounded-none"
-                style={{ backgroundColor: tokens.brandBlack }}
+                className="mt-2 h-8 border border-brand-gray/15"
+                style={{ backgroundColor: tokens.brandBlack, borderRadius: '8px' }}
               />
             </div>
 
             {/* Brand Gray */}
             <div>
-              <label className="block text-xs font-body text-brand-black mb-2">
+              <label className="block text-sm font-medium text-brand-black mb-2">
                 Brand Gray
               </label>
               <div className="flex gap-2">
@@ -139,25 +143,27 @@ export const DesignSettings: React.FC = () => {
                   type="color"
                   value={tokens.brandGray}
                   onChange={(e) => handleChange("brandGray", e.target.value)}
-                  className="h-10 w-20 border border-brand-gray/20 rounded-none cursor-pointer"
+                  className="h-10 w-20 border border-brand-gray/20 cursor-pointer"
+                  style={{ borderRadius: '8px' }}
                 />
                 <input
                   type="text"
                   value={tokens.brandGray}
                   onChange={(e) => handleChange("brandGray", e.target.value)}
-                  className="flex-1 border border-brand-gray/20 rounded-none px-3 py-2 text-xs font-body text-brand-black focus:outline-none focus:border-brand-black"
+                  className="flex-1 border border-brand-gray/20 px-3 py-2 text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
+                  style={{ borderRadius: '8px' }}
                   placeholder="#bec2c6"
                 />
               </div>
               <div
-                className="mt-2 h-8 border border-brand-gray/20 rounded-none"
-                style={{ backgroundColor: tokens.brandGray }}
+                className="mt-2 h-8 border border-brand-gray/15"
+                style={{ backgroundColor: tokens.brandGray, borderRadius: '8px' }}
               />
             </div>
 
             {/* Brand White */}
             <div>
-              <label className="block text-xs font-body text-brand-black mb-2">
+              <label className="block text-sm font-medium text-brand-black mb-2">
                 Brand White
               </label>
               <div className="flex gap-2">
@@ -165,25 +171,27 @@ export const DesignSettings: React.FC = () => {
                   type="color"
                   value={tokens.brandWhite}
                   onChange={(e) => handleChange("brandWhite", e.target.value)}
-                  className="h-10 w-20 border border-brand-gray/20 rounded-none cursor-pointer"
+                  className="h-10 w-20 border border-brand-gray/20 cursor-pointer"
+                  style={{ borderRadius: '8px' }}
                 />
                 <input
                   type="text"
                   value={tokens.brandWhite}
                   onChange={(e) => handleChange("brandWhite", e.target.value)}
-                  className="flex-1 border border-brand-gray/20 rounded-none px-3 py-2 text-xs font-body text-brand-black focus:outline-none focus:border-brand-black"
+                  className="flex-1 border border-brand-gray/20 px-3 py-2 text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
+                  style={{ borderRadius: '8px' }}
                   placeholder="#ffffff"
                 />
               </div>
               <div
-                className="mt-2 h-8 border border-brand-gray/20 rounded-none"
-                style={{ backgroundColor: tokens.brandWhite }}
+                className="mt-2 h-8 border border-brand-gray/15"
+                style={{ backgroundColor: tokens.brandWhite, borderRadius: '8px' }}
               />
             </div>
 
             {/* Brand Yellow */}
             <div>
-              <label className="block text-xs font-body text-brand-black mb-2">
+              <label className="block text-sm font-medium text-brand-black mb-2">
                 Brand Yellow
               </label>
               <div className="flex gap-2">
@@ -191,32 +199,34 @@ export const DesignSettings: React.FC = () => {
                   type="color"
                   value={tokens.brandYellow}
                   onChange={(e) => handleChange("brandYellow", e.target.value)}
-                  className="h-10 w-20 border border-brand-gray/20 rounded-none cursor-pointer"
+                  className="h-10 w-20 border border-brand-gray/20 cursor-pointer"
+                  style={{ borderRadius: '8px' }}
                 />
                 <input
                   type="text"
                   value={tokens.brandYellow}
                   onChange={(e) => handleChange("brandYellow", e.target.value)}
-                  className="flex-1 border border-brand-gray/20 rounded-none px-3 py-2 text-xs font-body text-brand-black focus:outline-none focus:border-brand-black"
+                  className="flex-1 border border-brand-gray/20 px-3 py-2 text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
+                  style={{ borderRadius: '8px' }}
                   placeholder="#f7f126"
                 />
               </div>
               <div
-                className="mt-2 h-8 border border-brand-gray/20 rounded-none"
-                style={{ backgroundColor: tokens.brandYellow }}
+                className="mt-2 h-8 border border-brand-gray/15"
+                style={{ backgroundColor: tokens.brandYellow, borderRadius: '8px' }}
               />
             </div>
           </div>
         </div>
 
         {/* Typography */}
-        <div className="space-y-4 mt-6">
-          <h3 className="text-sm font-body font-normal text-brand-black border-b border-brand-gray/20 pb-2">
+        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <h3 className="text-sm font-semibold text-brand-black mb-4">
             Typography
           </h3>
 
           <div>
-            <label className="block text-xs font-body text-brand-black mb-2">
+            <label className="block text-sm font-medium text-brand-black mb-2">
               Base Font Size: {tokens.baseFontSize}px
             </label>
             <input
@@ -227,7 +237,7 @@ export const DesignSettings: React.FC = () => {
               onChange={(e) => handleChange("baseFontSize", parseInt(e.target.value))}
               className="w-full"
             />
-            <div className="flex justify-between text-[10px] text-brand-black/60 mt-1">
+            <div className="flex justify-between text-xs text-brand-black/50 mt-1">
               <span>12px</span>
               <span>16px (default)</span>
               <span>20px</span>
@@ -236,37 +246,38 @@ export const DesignSettings: React.FC = () => {
         </div>
 
         {/* Preview */}
-        <div className="space-y-4 mt-6">
-          <h3 className="text-sm font-body font-normal text-brand-black border-b border-brand-gray/20 pb-2">
+        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <h3 className="text-sm font-semibold text-brand-black mb-4">
             Preview
           </h3>
 
-          <div className="border border-brand-gray/20 rounded-none p-4 bg-brand-white space-y-3">
+          <div className="border border-brand-gray/15 p-5 bg-brand-white space-y-4" style={{ borderRadius: '12px' }}>
             <div className="flex items-center gap-3">
               <div
-                className="h-12 w-12 rounded-lg bg-brand-gray/10"
-                style={{ backgroundColor: `${tokens.brandGray}20` }}
+                className="h-12 w-12 bg-brand-gray/10"
+                style={{ backgroundColor: `${tokens.brandGray}20`, borderRadius: '8px' }}
               />
               <div>
-                <h4 className="text-base font-heading font-normal text-brand-black">
+                <h4 className="text-base font-semibold text-brand-black">
                   Sample Asset Name
                 </h4>
-                <p className="text-xs text-brand-black">Brand · SKU</p>
+                <p className="text-sm text-brand-black/60">Brand · SKU</p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button
-                className="px-3 py-1.5 rounded-none border border-brand-black bg-brand-black text-brand-white text-xs font-body"
+                className="px-4 py-2 text-brand-white text-sm font-medium"
                 style={{
-                  borderColor: tokens.brandBlack,
+                  borderRadius: '8px',
                   backgroundColor: tokens.brandBlack,
                 }}
               >
                 Primary Button
               </button>
               <button
-                className="px-3 py-1.5 rounded-none border border-brand-gray/20 bg-brand-white text-brand-black text-xs font-body"
+                className="px-4 py-2 border text-sm font-medium"
                 style={{
+                  borderRadius: '8px',
                   borderColor: `${tokens.brandGray}33`,
                   backgroundColor: tokens.brandWhite,
                   color: tokens.brandBlack,
@@ -275,7 +286,7 @@ export const DesignSettings: React.FC = () => {
                 Secondary Button
               </button>
             </div>
-            <div className="text-xs text-brand-black">
+            <div className="text-sm text-brand-black">
               <p>Buy (B2B): ₹24,500</p>
               <p>Sell (B2C): ₹27,000 – ₹29,500</p>
             </div>
@@ -283,11 +294,11 @@ export const DesignSettings: React.FC = () => {
         </div>
 
         {/* Current Values Display */}
-        <div className="mt-6 p-4 bg-brand-gray/5 border border-brand-gray/20 rounded-none">
-          <h3 className="text-xs font-body font-medium text-brand-black mb-2">
+        <div className="p-5 bg-brand-gray/5 border border-brand-gray/15" style={{ borderRadius: '12px' }}>
+          <h3 className="text-sm font-medium text-brand-black mb-3">
             Current Design Tokens
           </h3>
-          <pre className="text-[10px] font-mono text-brand-black overflow-x-auto">
+          <pre className="text-xs font-mono text-brand-black/70 overflow-x-auto">
             {JSON.stringify(tokens, null, 2)}
           </pre>
         </div>

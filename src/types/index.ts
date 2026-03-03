@@ -86,6 +86,7 @@ export type IndianMarketplace =
   | 'hypefly'
   | 'dawntown'
   | '10hillsstudio'
+  | 'hustleculture'
   | 'findyourkicks'
   | 'instagram'
   | 'facebook'
@@ -174,7 +175,23 @@ export interface MarketInsight {
   expectedMovement?: string; // "Likely to increase 5-8% in next 2 weeks"
 }
 
-export type View = "home" | "watchlist" | "getting-started" | "education" | "portfolio" | "analyst" | "drops";
+export type View = "home" | "watchlist" | "getting-started" | "education" | "portfolio" | "analyst" | "drops" | "connections";
+
+// User portfolio position (simple inventory model)
+export interface PortfolioPosition {
+  assetId: number;
+  // Optional for future size-level tracking; currently asset-level
+  size?: string;
+  quantity: number;
+  acquisitionPrice?: number; // Cost basis per unit in INR
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Sold status and realized P&L
+  sold?: boolean;
+  soldPrice?: number; // Selling price per unit in INR
+  soldDate?: string;
+}
 
 // User profile for investment tracking
 export interface UserProfile {
@@ -278,5 +295,117 @@ export interface Drop {
   createdAt: string;
   updatedAt: string;
   createdBy?: string; // Analyst who added/verified
+}
+
+// Trade Coordination Types (Pre-Exchange Phase)
+
+export type ConnectionStatus = 'pending' | 'accepted' | 'declined' | 'completed' | 'cancelled';
+export type ConnectionType = 'buy' | 'sell';
+
+// Connection request when a user wants to trade
+export interface ConnectionRequest {
+  id: string;
+  
+  // Who and what
+  requesterId: string; // User who wants to trade
+  requesterEmail: string;
+  requesterName?: string;
+  
+  targetId: string; // User being requested (seller/buyer)
+  targetEmail: string;
+  targetName?: string;
+  
+  // Asset details
+  assetId: number;
+  assetName: string;
+  assetSku: string;
+  assetImage: string;
+  size?: string;
+  
+  // Trade details
+  connectionType: ConnectionType; // 'buy' or 'sell'
+  proposedPrice?: number; // Optional: price buyer is willing to pay
+  quantity: number; // How many units
+  message?: string; // Optional message to seller
+  
+  // Status tracking
+  status: ConnectionStatus;
+  
+  // Transaction outcome (for data collection)
+  actualPrice?: number; // What they actually traded at
+  completedAt?: string;
+  feedback?: string;
+  rating?: number; // 1-5 stars
+  
+  // Metadata
+  createdAt: string;
+  updatedAt: string;
+  expiresAt?: string; // Optional: auto-expire old requests
+}
+
+// Trade listing - when someone actively wants to sell
+export interface TradeListing {
+  id: string;
+  
+  // Seller info
+  userId: string;
+  userEmail: string;
+  userName?: string;
+  
+  // Asset details
+  assetId: number;
+  assetName: string;
+  assetSku: string;
+  assetImage: string;
+  size: string; // Required for listings
+  
+  // Price and availability
+  askingPrice: number;
+  quantity: number; // How many units available
+  condition: 'new' | 'used';
+  
+  // Additional details
+  description?: string;
+  location?: string; // City for local pickup
+  shippingAvailable?: boolean;
+  
+  // Status
+  active: boolean;
+  
+  // Portfolio link (if from portfolio)
+  portfolioPositionId?: string;
+  
+  // Metadata
+  createdAt: string;
+  updatedAt: string;
+  expiresAt?: string; // Auto-delist after X days
+}
+
+// User profile for trading (reputation system)
+export interface TradingProfile {
+  userId: string;
+  email: string;
+  displayName?: string;
+  
+  // Verification
+  verified: boolean;
+  phoneVerified: boolean;
+  emailVerified: boolean;
+  kycCompleted: boolean;
+  
+  // Reputation
+  totalTrades: number;
+  completedTrades: number;
+  cancelledTrades: number;
+  averageRating: number; // 0-5
+  
+  // Activity
+  activeListings: number;
+  joinedAt: string;
+  lastActiveAt: string;
+  
+  // Preferences
+  preferredLocations?: string[];
+  bio?: string;
 }
 

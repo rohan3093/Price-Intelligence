@@ -1,11 +1,45 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { Asset } from "../types";
+
+// Search history storage key
+const SEARCH_HISTORY_KEY = "intelligence_exchange_search_history";
+const MAX_HISTORY_ITEMS = 10;
+
+// Helper to get/set search history
+const getSearchHistory = (): string[] => {
+  try {
+    const history = localStorage.getItem(SEARCH_HISTORY_KEY);
+    return history ? JSON.parse(history) : [];
+  } catch {
+    return [];
+  }
+};
+
+const addToSearchHistory = (query: string): void => {
+  try {
+    const history = getSearchHistory();
+    // Remove if already exists (to move to front)
+    const filtered = history.filter(h => h.toLowerCase() !== query.toLowerCase());
+    // Add to front
+    const updated = [query, ...filtered].slice(0, MAX_HISTORY_ITEMS);
+    localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updated));
+  } catch {
+    // Silently fail
+  }
+};
+
+const clearSearchHistory = (): void => {
+  try {
+    localStorage.removeItem(SEARCH_HISTORY_KEY);
+  } catch {
+    // Silently fail
+  }
+};
 
 interface SearchPanelProps {
   query: string;
   setQuery: (v: string) => void;
   totalAssets: number;
-  trending: string[];
   assets?: Asset[];
   selectedBrand?: string | null;
   onBrandChange?: (brand: string | null) => void;
@@ -17,7 +51,6 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
   query,
   setQuery,
   totalAssets,
-  trending,
   assets = [],
   selectedBrand = null,
   onBrandChange,
@@ -25,9 +58,13 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
   onPriceRangeChange,
 }) => {
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const [searchHistory, setSearchHistory] = useState<string[]>(() => getSearchHistory());
+  const [showHistory, setShowHistory] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Expose ref to parent for keyboard shortcuts
   useEffect(() => {
@@ -35,6 +72,20 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
     if (searchInputRef.current) {
       (window as any).__searchInputRef = searchInputRef;
     }
+  }, []);
+
+  // Save search to history when user selects a suggestion or presses enter
+  const saveToHistory = useCallback((searchTerm: string) => {
+    if (searchTerm.trim().length >= 2) {
+      addToSearchHistory(searchTerm.trim());
+      setSearchHistory(getSearchHistory());
+    }
+  }, []);
+
+  // Clear history handler
+  const handleClearHistory = useCallback(() => {
+    clearSearchHistory();
+    setSearchHistory([]);
   }, []);
 
   // Generate autocomplete suggestions
@@ -68,29 +119,52 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
     }
   }, [query, assets]);
 
-  const handleSuggestionClick = (suggestion: string) => {
+  const handleSuggestionClick = useCallback((suggestion: string) => {
     const cleanSuggestion = suggestion.replace(/^SKU: /, '');
     setQuery(cleanSuggestion);
+    saveToHistory(cleanSuggestion);
     setShowSuggestions(false);
+    setShowHistory(false);
     searchInputRef.current?.focus();
-  };
+  }, [setQuery, saveToHistory]);
+
+  const handleHistoryClick = useCallback((historyItem: string) => {
+    setQuery(historyItem);
+    setShowSuggestions(false);
+    setShowHistory(false);
+    searchInputRef.current?.focus();
+  }, [setQuery]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showSuggestions || suggestions.length === 0) return;
+    const totalItems = showHistory && !query.trim() ? searchHistory.length : suggestions.length;
+    
+    if (totalItems === 0 && e.key !== 'Enter') return;
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setSelectedSuggestionIndex(prev => 
-        prev < suggestions.length - 1 ? prev + 1 : prev
+        prev < totalItems - 1 ? prev + 1 : prev
       );
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
-    } else if (e.key === 'Enter' && selectedSuggestionIndex >= 0) {
-      e.preventDefault();
-      handleSuggestionClick(suggestions[selectedSuggestionIndex]);
+    } else if (e.key === 'Enter') {
+      if (selectedSuggestionIndex >= 0) {
+        e.preventDefault();
+        if (showHistory && !query.trim()) {
+          handleHistoryClick(searchHistory[selectedSuggestionIndex]);
+        } else if (suggestions.length > 0) {
+          handleSuggestionClick(suggestions[selectedSuggestionIndex]);
+        }
+      } else if (query.trim()) {
+        // Save current query to history on Enter
+        saveToHistory(query);
+        setShowSuggestions(false);
+        setShowHistory(false);
+      }
     } else if (e.key === 'Escape') {
       setShowSuggestions(false);
+      setShowHistory(false);
     }
   };
   const categories = [
@@ -111,27 +185,30 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
     { label: "₹50k+", min: 50000, max: null },
   ];
 
+  // Count active filters
+  const activeFilterCount = (selectedBrand ? 1 : 0) + (priceRange.min !== null || priceRange.max !== null ? 1 : 0);
+
   return (
-    <section className="border border-brand-gray/30 p-3 space-y-3 bg-brand-white" style={{ borderRadius: '0px' }}>
+    <section className="border border-brand-gray/20 p-4 space-y-4 bg-white shadow-sm" style={{ borderRadius: '12px' }}>
       {/* Market Stats - more compact */}
-      <div className="pb-2 border-b border-brand-gray/20">
+      <div className="pb-3 border-b border-brand-gray/20">
         <div className="flex items-baseline gap-2">
-          <span className="text-[10px] text-brand-black/60 uppercase tracking-wide">Total Assets</span>
-          <span className="text-lg font-mono-numeric font-semibold text-brand-black">
+          <span className="text-xs text-brand-black/60 uppercase tracking-wider font-semibold">Total Assets</span>
+          <span className="text-2xl font-mono-numeric font-bold text-brand-black">
             {totalAssets.toLocaleString("en-IN")}
           </span>
         </div>
       </div>
 
-      {/* Search input - more compact */}
+      {/* Search input */}
       <div>
-        <label className="block text-[10px] text-brand-black/60 uppercase tracking-wide mb-1.5">
+        <label className="block text-xs text-brand-black/60 uppercase tracking-wider mb-2 font-semibold">
           Search
         </label>
         <div className="relative">
           {/* Search icon */}
-          <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-            <svg className="w-3.5 h-3.5 text-brand-black/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <svg className="w-4 h-4 text-brand-black/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -141,42 +218,110 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
             onChange={(e) => {
               setQuery(e.target.value);
               setSelectedSuggestionIndex(-1);
+              setShowHistory(false);
             }}
-            onFocus={() => query.trim().length >= 2 && suggestions.length > 0 && setShowSuggestions(true)}
+            onFocus={() => {
+              if (query.trim().length >= 2 && suggestions.length > 0) {
+                setShowSuggestions(true);
+              } else if (!query.trim() && searchHistory.length > 0) {
+                setShowHistory(true);
+              }
+            }}
             onBlur={() => {
-              // Delay to allow click on suggestion
-              setTimeout(() => setShowSuggestions(false), 200);
+              // Delay to allow click on suggestion/history
+              setTimeout(() => {
+                setShowSuggestions(false);
+                setShowHistory(false);
+              }, 200);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Name or SKU..."
-            className="w-full bg-brand-white border border-brand-gray/30 py-2 pl-9 pr-9 text-xs font-body text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-brand-black leading-tight"
-            style={{ borderRadius: '0px' }}
+            placeholder="Name or SKU... (Press / to focus)"
+            aria-label="Search assets by name or SKU"
+            aria-describedby="search-hint"
+            aria-autocomplete="list"
+            aria-expanded={showSuggestions || showHistory}
+            className="w-full bg-white border border-brand-gray/30 py-3 pl-10 pr-10 text-sm font-body text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-brand-black transition-all"
+            style={{ borderRadius: '8px' }}
           />
+          <span id="search-hint" className="sr-only">
+            Type to search assets. Use arrow keys to navigate suggestions, Enter to select.
+          </span>
           {/* Autocomplete Suggestions */}
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute z-50 w-full mt-1 bg-brand-white border border-brand-gray/30 shadow-lg max-h-60 overflow-y-auto" style={{ borderRadius: '0px' }}>
-              {suggestions.map((suggestion, index) => (
+            <div 
+              ref={suggestionsRef}
+              className="absolute z-50 w-full mt-2 bg-white border border-brand-gray/20 shadow-lg max-h-60 overflow-hidden" 
+              style={{ borderRadius: '8px' }}
+              role="listbox"
+              aria-label="Search suggestions"
+            >
+              <div className="overflow-y-auto custom-scrollbar max-h-60">
+                {suggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    role="option"
+                    aria-selected={index === selectedSuggestionIndex}
+                    className={`w-full text-left px-4 py-3 text-sm text-brand-black hover:bg-brand-background/50 transition-all focus:outline-none ${
+                      index === selectedSuggestionIndex ? 'bg-brand-background/50' : ''
+                    } ${index > 0 ? 'border-t border-brand-gray/10' : ''}`}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Search History Dropdown */}
+          {showHistory && !query.trim() && searchHistory.length > 0 && (
+            <div 
+              className="absolute z-50 w-full mt-2 bg-white border border-brand-gray/20 shadow-lg max-h-60 overflow-hidden" 
+              style={{ borderRadius: '8px' }}
+              role="listbox"
+              aria-label="Recent searches"
+            >
+              <div className="flex items-center justify-between px-4 py-2 border-b border-brand-gray/20 bg-brand-background/30">
+                <span className="text-xs text-brand-black/60 uppercase tracking-wider font-semibold">Recent</span>
                 <button
-                  key={index}
-                  onClick={() => handleSuggestionClick(suggestion)}
-                  className={`w-full text-left px-4 py-2.5 text-sm text-brand-black hover:bg-brand-gray/10 transition-colors ${
-                    index === selectedSuggestionIndex ? 'bg-brand-gray/10' : ''
-                  }`}
-                  style={{ borderRadius: '0px' }}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={handleClearHistory}
+                  className="text-xs text-brand-black/60 hover:text-brand-black transition-colors font-medium"
                 >
-                  {suggestion}
+                  Clear
                 </button>
-              ))}
+              </div>
+              <div className="overflow-y-auto custom-scrollbar max-h-48">
+                {searchHistory.map((historyItem, index) => (
+                  <button
+                    key={index}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handleHistoryClick(historyItem)}
+                    role="option"
+                    aria-selected={index === selectedSuggestionIndex}
+                    className={`w-full text-left px-4 py-3 text-sm text-brand-black hover:bg-brand-background/50 transition-all focus:outline-none flex items-center gap-2 ${
+                      index === selectedSuggestionIndex ? 'bg-brand-background/50' : ''
+                    } ${index > 0 ? 'border-t border-brand-gray/10' : ''}`}
+                  >
+                    <svg className="w-4 h-4 text-brand-black/40 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="truncate">{historyItem}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           {/* Clear button */}
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-brand-gray/10 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-brand-gray/10 transition-colors flex items-center justify-center"
+              style={{ borderRadius: '6px' }}
               aria-label="Clear search"
             >
-              <svg className="w-4 h-4 text-brand-black/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-brand-black/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -184,24 +329,82 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
         </div>
       </div>
 
-      {/* Quick Filters - more compact */}
-      {(onBrandChange || onPriceRangeChange) && (
-        <div className="space-y-2.5">
+      {/* Active Filters & Filter Toggle */}
+      <div className="space-y-3">
+        {/* Active Filters Pills */}
+        {activeFilterCount > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            {selectedBrand && onBrandChange && (
+              <button
+                onClick={() => onBrandChange(null)}
+                className="px-3 py-1.5 bg-brand-black text-white text-xs font-medium hover:bg-brand-black/90 transition-all flex items-center gap-1.5"
+                style={{ borderRadius: '20px' }}
+              >
+                {selectedBrand}
+                <span className="text-sm">✕</span>
+              </button>
+            )}
+            {(priceRange.min !== null || priceRange.max !== null) && onPriceRangeChange && (
+              <button
+                onClick={() => onPriceRangeChange({ min: null, max: null })}
+                className="px-3 py-1.5 bg-brand-black text-white text-xs font-medium hover:bg-brand-black/90 transition-all flex items-center gap-1.5"
+                style={{ borderRadius: '20px' }}
+              >
+                ₹{priceRange.min?.toLocaleString("en-IN") || "0"} - ₹{priceRange.max?.toLocaleString("en-IN") || "∞"}
+                <span className="text-sm">✕</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Filters Toggle Button */}
+        {(onBrandChange || onPriceRangeChange) && (
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="w-full px-4 py-2.5 border border-brand-gray/30 bg-white hover:bg-brand-background/50 text-sm font-semibold text-brand-black transition-all flex items-center justify-between"
+            style={{ borderRadius: '8px' }}
+          >
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <span className="px-2 py-0.5 bg-brand-black text-white text-xs font-bold" style={{ borderRadius: '10px' }}>
+                  {activeFilterCount}
+                </span>
+              )}
+            </div>
+            <svg 
+              className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Collapsible Filters Section */}
+      {showFilters && (onBrandChange || onPriceRangeChange) && (
+        <div className="space-y-4 pt-2">
           {/* Brand Filter */}
           {onBrandChange && uniqueBrands.length > 0 && (
             <div>
-              <label className="block text-[10px] text-brand-black/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-xs text-brand-black/60 uppercase tracking-wider mb-2 font-semibold">
                 Brand
               </label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => onBrandChange(null)}
-                  className={`px-2 py-1 border text-[10px] font-medium transition-all leading-tight ${
+                  className={`px-4 py-2 text-xs font-medium transition-all ${
                     !selectedBrand
-                      ? "border-brand-black bg-brand-black text-brand-white"
-                      : "border-brand-gray/30 bg-brand-white text-brand-black hover:bg-brand-gray/10"
+                      ? "bg-brand-black text-white"
+                      : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
                   }`}
-                  style={{ borderRadius: '0px' }}
+                  style={{ borderRadius: '20px' }}
                 >
                   All
                 </button>
@@ -209,12 +412,12 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                   <button
                     key={brand}
                     onClick={() => onBrandChange(brand)}
-                    className={`px-2 py-1 border text-[10px] font-medium transition-all leading-tight ${
+                    className={`px-4 py-2 text-xs font-medium transition-all ${
                       selectedBrand === brand
-                        ? "border-brand-black bg-brand-black text-brand-white"
-                        : "border-brand-gray/30 bg-brand-white text-brand-black hover:bg-brand-gray/10"
+                        ? "bg-brand-black text-white"
+                        : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
                     }`}
-                    style={{ borderRadius: '0px' }}
+                    style={{ borderRadius: '20px' }}
                   >
                     {brand}
                   </button>
@@ -226,18 +429,18 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           {/* Price Range Filter */}
           {onPriceRangeChange && (
             <div>
-              <label className="block text-[10px] text-brand-black/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-xs text-brand-black/60 uppercase tracking-wider mb-2 font-semibold">
                 Price Range
               </label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => onPriceRangeChange({ min: null, max: null })}
-                  className={`px-2 py-1 border text-[10px] font-medium transition-all leading-tight ${
+                  className={`px-4 py-2 text-xs font-medium transition-all ${
                     !priceRange.min && !priceRange.max
-                      ? "border-brand-black bg-brand-black text-brand-white"
-                      : "border-brand-gray/30 bg-brand-white text-brand-black hover:bg-brand-gray/10"
+                      ? "bg-brand-black text-white"
+                      : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
                   }`}
-                  style={{ borderRadius: '0px' }}
+                  style={{ borderRadius: '20px' }}
                 >
                   All
                 </button>
@@ -247,12 +450,12 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                     <button
                       key={preset.label}
                       onClick={() => onPriceRangeChange({ min: preset.min, max: preset.max })}
-                      className={`px-2 py-1 border text-[10px] font-medium transition-all leading-tight ${
+                      className={`px-4 py-2 text-xs font-medium transition-all ${
                         isActive
-                          ? "border-brand-black bg-brand-black text-brand-white"
-                          : "border-brand-gray/30 bg-brand-white text-brand-black hover:bg-brand-gray/10"
+                          ? "bg-brand-black text-white"
+                          : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
                       }`}
-                      style={{ borderRadius: '0px' }}
+                      style={{ borderRadius: '20px' }}
                     >
                       {preset.label}
                     </button>
@@ -261,49 +464,29 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
               </div>
             </div>
           )}
-        </div>
-      )}
 
-      {/* Categories - more compact */}
-      <div>
-        <label className="block text-[10px] text-brand-black/60 uppercase tracking-wide mb-1.5">
-          Categories
-        </label>
-        <div className="flex flex-wrap gap-1.5">
-          {categories.map((cat) => (
-            <button
-              key={cat.name}
-              disabled={!cat.available}
-              className={`px-2.5 py-1.5 border text-[10px] font-semibold uppercase tracking-wide transition-all leading-tight ${
-                cat.available
-                  ? "border-brand-black bg-brand-black text-brand-white hover:bg-brand-black/90 active:bg-brand-black/80"
-                  : "border-brand-gray/30 bg-brand-white text-brand-black/40 cursor-not-allowed"
-              }`}
-              style={{ borderRadius: '0px' }}
-            >
-              {cat.name}
-              {!cat.available && <span className="ml-1 text-[9px]">🔒</span>}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Trending searches - more compact */}
-      {trending.length > 0 && (
-        <div className="flex items-center gap-1.5 pt-0.5">
-          <span className="text-[9px] text-brand-black/50 uppercase tracking-wide flex-shrink-0">
-            Trending:
-          </span>
-          <div className="flex flex-wrap gap-x-2 gap-y-0.5">
-            {trending.slice(0, 3).map((item) => (
-              <button
-                key={item}
-                onClick={() => setQuery(item)}
-                className="text-[9px] text-brand-black/70 hover:text-brand-black underline decoration-brand-black/30 hover:decoration-brand-black/60 transition-all py-0.5 px-1"
-              >
-                {item}
-              </button>
-            ))}
+          {/* Categories */}
+          <div>
+            <label className="block text-xs text-brand-black/60 uppercase tracking-wider mb-2 font-semibold">
+              Categories
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <button
+                  key={cat.name}
+                  disabled={!cat.available}
+                  className={`px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-all ${
+                    cat.available
+                      ? "bg-brand-black text-white hover:bg-brand-black/90"
+                      : "bg-white border border-brand-gray/30 text-brand-black/40 cursor-not-allowed"
+                  }`}
+                  style={{ borderRadius: '20px' }}
+                >
+                  {cat.name}
+                  {!cat.available && <span className="ml-1.5 text-[9px]">🔒</span>}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}

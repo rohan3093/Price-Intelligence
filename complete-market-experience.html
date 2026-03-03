@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Market Experience - Intelligence Exchange</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #F8F9FA;
+      color: #0A0E14;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* Market Overview */
+    .market-overview {
+      background: linear-gradient(to br, #FFFFFF, #F8F9FA);
+      border-bottom: 2px solid #E5E7EB;
+      padding: 20px;
+    }
+
+    .overview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .overview-title {
+      font-size: 18px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #0A0E14;
+    }
+
+    .live-badge {
+      padding: 4px 10px;
+      background: #0A0E14;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 10px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .stat-card {
+      background: #FFFFFF;
+      border: 2px solid #E5E7EB;
+      padding: 15px;
+      transition: border-color 0.2s ease;
+    }
+
+    .stat-card:hover {
+      border-color: #0A0E14;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6B7280;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stat-value.positive {
+      color: #00AA00;
+    }
+
+    .stat-value.negative {
+      color: #CC0000;
+    }
+
+    .stat-sublabel {
+      font-size: 12px;
+      color: #6B7280;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    /* Asset Table */
+    .asset-table-container {
+      background: #FFFFFF;
+      border: 1px solid #E5E7EB;
+    }
+
+    .table-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid #E5E7EB;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .table-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #0A0E14;
+    }
+
+    .table-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .control-btn {
+      padding: 6px 12px;
+      background: #F8F9FA;
+      border: 1px solid #E5E7EB;
+      color: #0A0E14;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .control-btn:hover {
+      background: #0A0E14;
+      color: #FFFFFF;
+      border-color: #0A0E14;
+    }
+
+    .search-input {
+      padding: 6px 12px;
+      border: 1px solid #E5E7EB;
+      font-size: 12px;
+      font-family: inherit;
+      width: 200px;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #0A0E14;
+    }
+
+    .asset-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .asset-table thead {
+      background: #F8F9FA;
+      border-bottom: 2px solid #E5E7EB;
+    }
+
+    .asset-table th {
+      padding: 12px 15px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6B7280;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .asset-table th:hover {
+      color: #0A0E14;
+    }
+
+    .asset-table tbody tr {
+      border-bottom: 1px solid #F3F4F6;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    .asset-table tbody tr:hover {
+      background: #F8F9FA;
+    }
+
+    .asset-table tbody tr.selected {
+      background: #E5E7EB;
+    }
+
+    .asset-table td {
+      padding: 12px 15px;
+      font-size: 13px;
+    }
+
+    .asset-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .asset-image {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border: 1px solid #E5E7EB;
+    }
+
+    .asset-name {
+      font-weight: 600;
+      color: #0A0E14;
+      margin-bottom: 2px;
+    }
+
+    .asset-size {
+      font-size: 11px;
+      color: #6B7280;
+    }
+
+    .price-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .change-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .change-cell.positive {
+      color: #00AA00;
+    }
+
+    .change-cell.negative {
+      color: #CC0000;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge.high-liquidity {
+      background: rgba(0, 170, 0, 0.1);
+      color: #00AA00;
+      border: 1px solid rgba(0, 170, 0, 0.3);
+    }
+
+    .badge.medium-liquidity {
+      background: rgba(255, 170, 0, 0.1);
+      color: #CC8800;
+      border: 1px solid rgba(255, 170, 0, 0.3);
+    }
+
+    .badge.low-liquidity {
+      background: rgba(204, 0, 0, 0.1);
+      color: #CC0000;
+      border: 1px solid rgba(204, 0, 0, 0.3);
+    }
+
+    /* Detail Panel */
+    .detail-panel-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .detail-panel-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .detail-panel {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 70%;
+      max-width: 1200px;
+      height: 100vh;
+      background: #FFFFFF;
+      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+      z-index: 1001;
+      transition: right 0.3s ease;
+      overflow-y: auto;
+    }
+
+    .detail-panel.active {
+      right: 0;
+    }
+
+    .detail-header {
+      background: #0A0E14;
+      color: #FFFFFF;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .detail-header-title {
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .detail-header-subtitle {
+      font-size: 12px;
+      color: #999999;
+      margin-top: 4px;
+    }
+
+    .close-btn {
+      padding: 8px 16px;
+      background: transparent;
+      border: 2px solid #FFFFFF;
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .close-btn:hover {
+      background: #FFFFFF;
+      color: #0A0E14;
+    }
+
+    .detail-body {
+      padding: 20px;
+    }
+
+    .detail-section {
+      margin-bottom: 20px;
+      padding: 20px;
+      border: 1px solid #E5E7EB;
+      background: #F8F9FA;
+    }
+
+    .detail-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6B7280;
+      margin-bottom: 15px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    .metric-item {
+      background: #FFFFFF;
+      border: 1px solid #E5E7EB;
+      padding: 12px;
+    }
+
+    .metric-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6B7280;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .metric-change {
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .chart-placeholder {
+      height: 200px;
+      background: #FFFFFF;
+      border: 1px solid #E5E7EB;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6B7280;
+      font-size: 13px;
+    }
+
+    .action-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .action-btn {
+      padding: 15px;
+      border: 2px solid #0A0E14;
+      background: #0A0E14;
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: #FFFFFF;
+      color: #0A0E14;
+    }
+
+    .action-btn.secondary {
+      background: transparent;
+      color: #0A0E14;
+    }
+
+    .action-btn.secondary:hover {
+      background: #0A0E14;
+      color: #FFFFFF;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .detail-panel {
+        width: 90%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .detail-panel {
+        width: 100%;
+      }
+
+      .asset-table {
+        font-size: 11px;
+      }
+
+      .asset-image {
+        width: 32px;
+        height: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Market Overview -->
+    <div class="market-overview">
+      <div class="overview-header">
+        <div>
+          <span class="overview-title">Market Overview</span>
+          <span class="live-badge">LIVE</span>
+        </div>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Market Health</div>
+          <div class="stat-value positive">78</div>
+          <div class="stat-sublabel">Healthy</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">30d Average</div>
+          <div class="stat-value positive">+8.3%</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Market Sentiment</div>
+          <div style="display: flex; gap: 8px; align-items: center; margin-top: 8px;">
+            <span class="stat-value positive" style="font-size: 20px;">142↑</span>
+            <span style="color: #6B7280;">/</span>
+            <span class="stat-value negative" style="font-size: 20px;">38↓</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Total Assets</div>
+          <div class="stat-value">247</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Asset Table -->
+    <div class="asset-table-container">
+      <div class="table-header">
+        <div class="table-title">All Assets (247)</div>
+        <div class="table-controls">
+          <input type="text" class="search-input" placeholder="Search assets...">
+          <button class="control-btn">Filter</button>
+          <button class="control-btn">Sort</button>
+        </div>
+      </div>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Asset</th>
+            <th>Price</th>
+            <th>30d Change</th>
+            <th>Liquidity</th>
+            <th>Signal</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr onclick="openDetail('Nike Dunk Low Panda', 'US 10')">
+            <td>
+              <div class="asset-info">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect fill='%23000' width='40' height='40'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-size='10'%3ENike%3C/text%3E%3C/svg%3E" class="asset-image" alt="Nike">
+                <div>
+                  <div class="asset-name">Nike Dunk Low "Panda"</div>
+                  <div class="asset-size">US 10 • DD1391-100</div>
+                </div>
+              </div>
+            </td>
+            <td class="price-cell">₹18,500</td>
+            <td class="change-cell positive">+7.6%</td>
+            <td><span class="badge high-liquidity">High</span></td>
+            <td><span class="badge high-liquidity">Buy</span></td>
+            <td>
+              <button class="control-btn" style="padding: 4px 10px; font-size: 10px;">View →</button>
+            </td>
+          </tr>
+
+          <tr onclick="openDetail('Jordan 1 High OG', 'US 9')">
+            <td>
+              <div class="asset-info">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect fill='%23CC0000' width='40' height='40'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-size='10'%3EJordan%3C/text%3E%3C/svg%3E" class="asset-image" alt="Jordan">
+                <div>
+                  <div class="asset-name">Jordan 1 High OG "Chicago"</div>
+                  <div class="asset-size">US 9 • 555088-101</div>
+                </div>
+              </div>
+            </td>
+            <td class="price-cell">₹42,000</td>
+            <td class="change-cell negative">-3.2%</td>
+            <td><span class="badge medium-liquidity">Medium</span></td>
+            <td><span class="badge medium-liquidity">Hold</span></td>
+            <td>
+              <button class="control-btn" style="padding: 4px 10px; font-size: 10px;">View →</button>
+            </td>
+          </tr>
+
+          <tr onclick="openDetail('Adidas Yeezy Boost', 'US 10.5')">
+            <td>
+              <div class="asset-info">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect fill='%23666' width='40' height='40'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-size='10'%3EYeezy%3C/text%3E%3C/svg%3E" class="asset-image" alt="Yeezy">
+                <div>
+                  <div class="asset-name">Adidas Yeezy Boost 350 V2</div>
+                  <div class="asset-size">US 10.5 • GY7657</div>
+                </div>
+              </div>
+            </td>
+            <td class="price-cell">₹28,900</td>
+            <td class="change-cell positive">+12.4%</td>
+            <td><span class="badge high-liquidity">High</span></td>
+            <td><span class="badge high-liquidity">Buy</span></td>
+            <td>
+              <button class="control-btn" style="padding: 4px 10px; font-size: 10px;">View →</button>
+            </td>
+          </tr>
+
+          <tr onclick="openDetail('New Balance 550', 'US 11')">
+            <td>
+              <div class="asset-info">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect fill='%23FFF' width='40' height='40'/%3E%3Crect fill='%23999' x='5' y='5' width='30' height='30'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-size='10'%3ENB%3C/text%3E%3C/svg%3E" class="asset-image" alt="NB">
+                <div>
+                  <div class="asset-name">New Balance 550 "White Green"</div>
+                  <div class="asset-size">US 11 • BB550WT1</div>
+                </div>
+              </div>
+            </td>
+            <td class="price-cell">₹15,200</td>
+            <td class="change-cell positive">+5.1%</td>
+            <td><span class="badge low-liquidity">Low</span></td>
+            <td><span class="badge high-liquidity">Buy</span></td>
+            <td>
+              <button class="control-btn" style="padding: 4px 10px; font-size: 10px;">View →</button>
+            </td>
+          </tr>
+
+          <tr onclick="openDetail('Travis Scott Fragment', 'US 10')">
+            <td>
+              <div class="asset-info">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect fill='%230088CC' width='40' height='40'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-size='10'%3ETravis%3C/text%3E%3C/svg%3E" class="asset-image" alt="Travis">
+                <div>
+                  <div class="asset-name">Jordan 1 Low Travis Scott Fragment</div>
+                  <div class="asset-size">US 10 • DM7866-140</div>
+                </div>
+              </div>
+            </td>
+            <td class="price-cell">₹125,000</td>
+            <td class="change-cell negative">-8.5%</td>
+            <td><span class="badge medium-liquidity">Medium</span></td>
+            <td><span class="badge low-liquidity">Sell</span></td>
+            <td>
+              <button class="control-btn" style="padding: 4px 10px; font-size: 10px;">View →</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Detail Panel Overlay -->
+  <div class="detail-panel-overlay" id="overlay" onclick="closeDetail()"></div>
+
+  <!-- Detail Panel -->
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-header">
+      <div>
+        <div class="detail-header-title" id="detailTitle">Nike Dunk Low "Panda"</div>
+        <div class="detail-header-subtitle" id="detailSubtitle">US 10 • DD1391-100</div>
+      </div>
+      <button class="close-btn" onclick="closeDetail()">Close</button>
+    </div>
+
+    <div class="detail-body">
+      <!-- Key Metrics -->
+      <div class="detail-section">
+        <div class="detail-section-title">Key Metrics</div>
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <div class="metric-label">Market Price</div>
+            <div class="metric-value">₹18,500</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-label">Best Bid</div>
+            <div class="metric-value positive">₹18,200</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-label">Best Ask</div>
+            <div class="metric-value negative">₹18,800</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-label">30d Change</div>
+            <div class="metric-value positive">+7.6%</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-label">vs Retail</div>
+            <div class="metric-value">₹21,995</div>
+            <div class="metric-change negative">-16%</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-label">Liquidity</div>
+            <div class="metric-value">High</div>
+            <div class="metric-change">247 listings</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price Chart -->
+      <div class="detail-section">
+        <div class="detail-section-title">Price History (90 Days)</div>
+        <div class="chart-placeholder">[Interactive price chart would render here]</div>
+      </div>
+
+      <!-- AI Signal -->
+      <div class="detail-section" style="background: rgba(0, 170, 0, 0.05); border-color: rgba(0, 170, 0, 0.3);">
+        <div class="detail-section-title">Market Intelligence</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="padding: 8px 15px; background: #00AA00; color: #FFF; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+              BUY
+            </div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #6B7280;">
+              87% CONFIDENCE
+            </div>
+          </div>
+        </div>
+        <div style="font-size: 13px; line-height: 1.7; color: #0A0E14;">
+          Current price (₹18,500) is <strong>16% below retail</strong> and <strong>7.6% above 30-day low</strong>. 
+          Market momentum is <strong>bullish</strong> with increasing liquidity. Cross-venue price consistency is strong.
+          Recommend acquisition at current levels.
+        </div>
+      </div>
+
+      <!-- Best Deals -->
+      <div class="detail-section">
+        <div class="detail-section-title">Best 3 Deals Available</div>
+        <div style="display: grid; gap: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #FFF; border: 1px solid #E5E7EB;">
+            <div>
+              <div style="font-size: 11px; color: #6B7280; margin-bottom: 4px;">#1 BEST • WhatsApp</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700;">₹17,200</div>
+              <div style="font-size: 10px; color: #6B7280; margin-top: 2px;">Mumbai • 2 available</div>
+            </div>
+            <button class="control-btn">Connect</button>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #FFF; border: 1px solid #E5E7EB;">
+            <div>
+              <div style="font-size: 11px; color: #6B7280; margin-bottom: 4px;">#2 • Marketplace</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700;">₹17,500</div>
+              <div style="font-size: 10px; color: #6B7280; margin-top: 2px;">Bangalore • 1 available</div>
+            </div>
+            <button class="control-btn">Connect</button>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #FFF; border: 1px solid #E5E7EB;">
+            <div>
+              <div style="font-size: 11px; color: #6B7280; margin-bottom: 4px;">#3 • StockX</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700;">₹17,800</div>
+              <div style="font-size: 10px; color: #6B7280; margin-top: 2px;">International • In stock</div>
+            </div>
+            <button class="control-btn">View</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="action-btn">Buy Now</button>
+        <button class="action-btn secondary">Add to Watchlist</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openDetail(name, size) {
+      document.getElementById('detailTitle').textContent = name;
+      document.getElementById('detailSubtitle').textContent = size;
+      document.getElementById('overlay').classList.add('active');
+      document.getElementById('detailPanel').classList.add('active');
+    }
+
+    function closeDetail() {
+      document.getElementById('overlay').classList.remove('active');
+      document.getElementById('detailPanel').classList.remove('active');
+    }
+
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDetail();
+      }
+    });
+  </script>
+</body>
+</html>
+

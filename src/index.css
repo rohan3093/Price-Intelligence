@@ -21,9 +21,15 @@
 }
 
 :root {
-  --brand-black: #0c0c0c;
-  --brand-gray: #bec2c6;
+  /* Refined color palette for better eye comfort */
+  --brand-black: #111111;           /* Softer black */
+  --brand-black-light: #1a1a1a;     /* For hover states */
+  --brand-gray: #e5e7eb;            /* Lighter borders */
+  --brand-gray-dark: #6b7280;       /* Secondary text */
+  --brand-gray-medium: #9ca3af;     /* Tertiary text */
+  --brand-gray-light: #f3f4f6;      /* Subtle backgrounds */
   --brand-white: #ffffff;
+  --brand-background: #fafafa;      /* Page background */
   --brand-yellow: #f7f126;
   --base-font-size: 16px;
 }
@@ -34,11 +40,11 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--brand-white, #ffffff);
-  color: var(--brand-black, #0c0c0c);
-  line-height: 1.4;
-  font-size: var(--base-font-size, 15px);
-  font-weight: 500; /* Slightly heavier default weight for better readability */
+  background-color: var(--brand-background, #fafafa);  /* Subtle off-white */
+  color: var(--brand-black, #111111);
+  line-height: 1.6;                      /* Better line spacing */
+  font-size: var(--base-font-size, 16px);
+  font-weight: 500;                      /* Slightly heavier for readability */
 }
 
 /* ============================================
@@ -52,45 +58,54 @@ body {
     letter-spacing: -0.01em;
   }
 
-  /* Consistent button styles */
+  /* Enhanced button styles with better spacing */
   .btn-primary {
-    @apply px-4 py-2 rounded-none border border-brand-black bg-brand-black text-brand-white text-sm font-body hover:bg-brand-black/90 transition;
+    @apply px-5 py-2.5 rounded-none border-2 border-brand-black bg-brand-black text-brand-white text-sm font-semibold hover:bg-brand-black-light transition-all shadow-soft;
   }
   
   .btn-secondary {
-    @apply px-4 py-2 rounded-none border border-brand-gray/20 bg-brand-white text-brand-black text-sm font-body hover:border-brand-black hover:bg-brand-gray/10 transition;
+    @apply px-5 py-2.5 rounded-none border-2 border-brand-gray bg-brand-white text-brand-black text-sm font-semibold hover:border-brand-black hover:shadow-soft transition-all;
   }
 
-  /* Consistent input styles */
+  /* Enhanced input styles */
   .input-base {
-    @apply w-full bg-brand-white border border-brand-gray/20 rounded-none px-3 py-2 text-sm font-body text-brand-black placeholder:text-brand-gray focus:outline-none focus:border-brand-black;
+    @apply w-full bg-brand-white border-2 border-brand-gray rounded-none px-4 py-2.5 text-sm font-body text-brand-black placeholder:text-brand-gray-medium focus:outline-none focus:border-brand-black focus:shadow-soft transition-all;
   }
 
-  /* Consistent card/panel styles */
+  /* Enhanced card/panel styles with subtle shadows */
   .card-base {
-    @apply border border-brand-gray/20 rounded-none bg-brand-white;
+    @apply border border-brand-gray rounded-none bg-brand-white shadow-soft;
   }
 
-  /* Consistent section padding - tighter for exchange feel */
+  /* Better section padding for breathing room */
   .section-padding {
+    @apply p-4 md:p-6;
+  }
+  
+  /* Compact padding option for data-dense views */
+  .section-padding-compact {
     @apply p-3 md:p-4;
   }
 
-  /* Exchange-style compact text sizes */
+  /* Improved text hierarchy with better readability */
   .text-label {
-    @apply text-[11px] font-body text-brand-black leading-tight;
+    @apply text-xs font-medium text-brand-gray-dark uppercase tracking-wide leading-tight;
+  }
+  
+  .text-meta {
+    @apply text-xs font-normal text-brand-gray-medium leading-relaxed;
   }
   
   .text-body-sm {
-    @apply text-xs font-body text-brand-black leading-snug;
+    @apply text-xs font-normal text-brand-black leading-relaxed;
   }
   
   .text-body {
-    @apply text-sm font-body text-brand-black leading-snug;
+    @apply text-sm font-normal text-brand-black leading-relaxed;
   }
   
   .text-heading-sm {
-    @apply text-sm font-heading font-normal text-brand-black leading-tight;
+    @apply text-sm font-heading font-normal text-brand-black uppercase tracking-wide leading-tight;
   }
   
   .text-heading {
@@ -101,14 +116,18 @@ body {
     @apply text-xl md:text-2xl font-heading font-normal text-brand-black leading-tight;
   }
 
-  /* Exchange-style price display */
+  /* Enhanced price display */
   .price-display {
-    @apply font-mono-numeric font-semibold tracking-tight;
+    @apply font-mono-numeric font-semibold tracking-tight text-brand-black;
   }
 
-  /* Exchange-style compact metric */
-  .metric-compact {
-    @apply text-[11px] leading-tight;
+  /* Data metric styles */
+  .metric-value {
+    @apply font-mono-numeric font-semibold text-brand-black;
+  }
+  
+  .metric-label {
+    @apply text-xs font-medium text-brand-gray-dark uppercase tracking-wide;
   }
 }
 
@@ -126,13 +145,215 @@ body {
     scrollbar-width: none;
   }
 
-  /* Consistent border colors */
-  .border-soft {
-    @apply border-brand-gray/20;
+  /* Custom scrollbar styling */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
   
-  .border-active {
-    @apply border-brand-gray/50;
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--brand-gray, #bec2c6);
+    opacity: 0.3;
+    transition: opacity 0.2s;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    opacity: 0.5;
+  }
+  
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(190, 194, 198, 0.3) transparent;
+  }
+
+  /* Refined border utilities */
+  .border-soft {
+    @apply border-brand-gray;
+  }
+  
+  .border-medium {
+    @apply border-brand-gray-dark;
+  }
+  
+  .border-strong {
+    @apply border-brand-black;
+  }
+  
+  /* Table row styles */
+  .table-row-hover {
+    @apply hover:bg-brand-gray-light transition-colors duration-150;
+  }
+  
+  .table-row-alt {
+    @apply even:bg-brand-gray-light/50;
+  }
+  
+  /* Interactive states */
+  .interactive-hover {
+    @apply hover:shadow-soft transition-all duration-200;
   }
 }
+
+/* ============================================
+   ACCESSIBILITY - Focus Indicators
+   ============================================ */
+/* Global focus visible styles for better keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--brand-black, #0c0c0c);
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Enhanced focus for interactive elements */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[role="option"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--brand-black, #0c0c0c);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(12, 12, 12, 0.1);
+}
+
+/* Focus within for compound components */
+.focus-within-ring:focus-within {
+  outline: 2px solid var(--brand-black, #0c0c0c);
+  outline-offset: 2px;
+}
+
+/* Skip link for keyboard users */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  z-index: 9999;
+  padding: 1rem;
+  background: var(--brand-black, #0c0c0c);
+  color: var(--brand-white, #ffffff);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Screen reader only class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  * {
+    border-color: currentColor !important;
+  }
+  
+  button,
+  a,
+  input,
+  select {
+    border-width: 2px !important;
+  }
+}
+
+/* Shimmer animation for loading skeletons */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Smooth fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Slide in from right (for toasts) */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Stagger animation for lists */
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-stagger {
+  animation: staggerFadeIn 0.3s ease-out backwards;
+}
+
+.animate-stagger:nth-child(1) { animation-delay: 0.05s; }
+.animate-stagger:nth-child(2) { animation-delay: 0.1s; }
+.animate-stagger:nth-child(3) { animation-delay: 0.15s; }
+.animate-stagger:nth-child(4) { animation-delay: 0.2s; }
+.animate-stagger:nth-child(5) { animation-delay: 0.25s; }
+.animate-stagger:nth-child(6) { animation-delay: 0.3s; }
+.animate-stagger:nth-child(7) { animation-delay: 0.35s; }
+.animate-stagger:nth-child(8) { animation-delay: 0.4s; }
+.animate-stagger:nth-child(9) { animation-delay: 0.45s; }
+.animate-stagger:nth-child(10) { animation-delay: 0.5s; }
 

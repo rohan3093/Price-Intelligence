@@ -3,7 +3,7 @@
  * Uses localStorage with proper error handling and data versioning
  */
 
-import { Asset, Drop } from "../types";
+import { Asset, Drop, PortfolioPosition } from "../types";
 import { B2BListing } from "../components/B2BListings";
 
 const STORAGE_KEYS = {
@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
   B2B_LISTINGS: "intelligence_exchange_b2b_listings",
   DROPS: "intelligence_exchange_drops",
   WATCHLIST: "intelligence_exchange_watchlist",
+  PORTFOLIO: "intelligence_exchange_portfolio",
   ANALYST_AUTH: "analyst_authenticated",
   ANALYST_EMAIL: "analyst_email",
   DESIGN_TOKENS: "designTokens",
@@ -187,6 +188,36 @@ export const storage = {
       return false; // Version changed
     }
     return true; // Same version
+  },
+
+  // Portfolio positions (local-only for now; future: sync to Firestore per user)
+  savePortfolio: (positions: PortfolioPosition[]): boolean => {
+    if (!isLocalStorageAvailable()) {
+      console.warn("localStorage not available, portfolio will not persist");
+      return false;
+    }
+    try {
+      localStorage.setItem(STORAGE_KEYS.PORTFOLIO, JSON.stringify(positions));
+      return true;
+    } catch (e) {
+      if (e instanceof DOMException && e.code === 22) {
+        console.error("localStorage quota exceeded while saving portfolio.");
+      } else {
+        console.error("Failed to save portfolio positions", e);
+      }
+      return false;
+    }
+  },
+
+  loadPortfolio: (): PortfolioPosition[] | null => {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.PORTFOLIO);
+      if (!data) return null;
+      return JSON.parse(data);
+    } catch (e) {
+      console.error("Failed to load portfolio positions", e);
+      return null;
+    }
   },
 };
 

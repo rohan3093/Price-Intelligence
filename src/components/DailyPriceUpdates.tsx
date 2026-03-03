@@ -131,13 +131,13 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
   return (
     <div className="space-y-6">
       {/* Market Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="border border-brand-gray/30 rounded-none p-4 bg-brand-white">
-          <p className="text-xs font-semibold text-brand-black/60 uppercase tracking-wide mb-2">Instruments</p>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="border border-brand-gray/20 bg-brand-background p-4" style={{ borderRadius: '8px' }}>
+          <p className="text-xs text-brand-black/50 mb-1">Instruments</p>
           <p className="text-2xl font-semibold text-brand-black">{assets.length}</p>
         </div>
-        <div className="border border-brand-gray/30 rounded-none p-4 bg-brand-white">
-          <p className="text-xs font-semibold text-brand-black/60 uppercase tracking-wide mb-2">Updated Today</p>
+        <div className="border border-brand-gray/20 bg-brand-background p-4" style={{ borderRadius: '8px' }}>
+          <p className="text-xs text-brand-black/50 mb-1">Updated Today</p>
           <p className="text-2xl font-semibold text-green-600">
             {assets.filter(a => {
               const today = new Date().toDateString();
@@ -146,8 +146,8 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
             }).length}
           </p>
         </div>
-        <div className="border border-brand-gray/30 rounded-none p-4 bg-brand-white">
-          <p className="text-xs font-semibold text-brand-black/60 uppercase tracking-wide mb-2">Pending</p>
+        <div className="border border-brand-gray/20 bg-brand-background p-4" style={{ borderRadius: '8px' }}>
+          <p className="text-xs text-brand-black/50 mb-1">Pending</p>
           <p className="text-2xl font-semibold text-red-600">
             {assets.filter(a => {
               const today = new Date().toDateString();
@@ -156,80 +156,54 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
             }).length}
           </p>
         </div>
-        <div className="border border-brand-gray/30 rounded-none p-4 bg-brand-white">
-          <p className="text-xs font-semibold text-brand-black/60 uppercase tracking-wide mb-2">Size Variants</p>
+        <div className="border border-brand-gray/20 bg-brand-background p-4" style={{ borderRadius: '8px' }}>
+          <p className="text-xs text-brand-black/50 mb-1">Size Variants</p>
           <p className="text-2xl font-semibold text-brand-black">
             {assets.reduce((sum, a) => sum + (a.sizes?.length || 0), 0)}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
         {/* Asset List */}
         <div className="lg:col-span-1">
-          <div className="border border-brand-gray/30 rounded-none p-5 bg-brand-white">
-            <h2 className="text-sm font-semibold text-brand-black mb-4 uppercase tracking-wide">
+          <div className="border border-brand-gray/20 bg-white shadow-sm p-4" style={{ borderRadius: '12px' }}>
+            <h2 className="text-sm font-semibold text-brand-black mb-4">
               Instruments
             </h2>
             {/* Search Bar + Status Filters */}
-            <div className="mb-4 space-y-2">
+            <div className="mb-4 space-y-3">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name, SKU, or brand..."
-                className="w-full bg-brand-white border border-brand-gray/30 py-2 px-3 text-xs font-body text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-brand-black"
-                style={{ borderRadius: '0px' }}
+                className="w-full bg-brand-background border border-brand-gray/20 py-2 px-3 text-xs text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-brand-black"
+                style={{ borderRadius: '8px' }}
               />
               <div className="flex flex-wrap gap-2 items-center">
-                <span className="text-[10px] uppercase tracking-wide text-brand-black/60">
-                  Status
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus("all")}
-                  className={`px-3 py-1 text-[10px] font-semibold uppercase tracking-wide border transition ${
-                    filterStatus === "all"
-                      ? "border-brand-black bg-brand-black text-brand-white"
-                      : "border-brand-gray/30 text-brand-black hover:border-brand-black"
-                  }`}
-                  style={{ borderRadius: '0px' }}
-                >
-                  All
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus("pending")}
-                  className={`px-3 py-1 text-[10px] font-semibold uppercase tracking-wide border transition ${
-                    filterStatus === "pending"
-                      ? "border-brand-black bg-brand-black text-brand-white"
-                      : "border-brand-gray/30 text-brand-black hover:border-brand-black"
-                  }`}
-                  style={{ borderRadius: '0px' }}
-                >
-                  Pending{" "}
-                  <span className="font-mono-numeric">
-                    ({getPendingAssets().length})
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus("updated")}
-                  className={`px-3 py-1 text-[10px] font-semibold uppercase tracking-wide border transition ${
-                    filterStatus === "updated"
-                      ? "border-brand-black bg-brand-black text-brand-white"
-                      : "border-brand-gray/30 text-brand-black hover:border-brand-black"
-                  }`}
-                  style={{ borderRadius: '0px' }}
-                >
-                  Updated Today
-                </button>
+                {(["all", "pending", "updated"] as const).map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => setFilterStatus(status)}
+                    className={`px-3 py-1.5 text-xs font-semibold transition ${
+                      filterStatus === status
+                        ? "bg-brand-black text-white"
+                        : "bg-white border border-brand-gray/30 text-brand-black hover:border-brand-black"
+                    }`}
+                    style={{ borderRadius: '6px' }}
+                  >
+                    {status === "all" ? "All" : status === "pending" ? (
+                      <>Pending <span className="font-mono-numeric">({getPendingAssets().length})</span></>
+                    ) : "Updated"}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="space-y-2 max-h-[600px] overflow-y-auto">
+            <div className="space-y-1.5 max-h-[500px] overflow-y-auto custom-scrollbar">
               {assets
                 .filter((asset) => {
-                  // Text search
                   if (searchQuery.trim()) {
                     const query = searchQuery.toLowerCase();
                     const matchesText =
@@ -238,68 +212,59 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
                       asset.brand.toLowerCase().includes(query);
                     if (!matchesText) return false;
                   }
-
-                  // Status filter
                   if (filterStatus !== "all") {
                     const today = new Date().toDateString();
                     const updated = asset.lastUpdated
                       ? new Date(asset.lastUpdated).toDateString()
                       : null;
                     const isUpdatedToday = updated === today;
-
                     if (filterStatus === "pending" && isUpdatedToday) return false;
                     if (filterStatus === "updated" && !isUpdatedToday) return false;
                   }
-
                   return true;
                 })
                 .map((asset) => {
                 const today = new Date().toDateString();
                 const updated = asset.lastUpdated ? new Date(asset.lastUpdated).toDateString() : null;
                 const isUpdatedToday = updated === today;
-
                 const isSelected = selectedAsset?.id === asset.id;
                 
                 return (
                   <div
                     key={asset.id}
-                    className={`border rounded-none p-3 cursor-pointer transition ${
+                    className={`border p-3 cursor-pointer transition-all ${
                       isSelected
-                        ? "border-brand-black bg-brand-black text-brand-white"
-                        : "border-brand-gray/30 bg-brand-white hover:border-brand-gray/50 hover:bg-brand-gray/5"
+                        ? "border-brand-black bg-brand-black text-white shadow-sm"
+                        : "border-brand-gray/20 bg-white hover:border-brand-gray/40 hover:shadow-soft"
                     }`}
+                    style={{ borderRadius: '8px' }}
                     onClick={() => {
                       setSelectedAsset(asset);
                       setSelectedSize(asset.sizes?.[0]?.size || null);
                     }}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className={`text-xs font-medium ${
-                            isSelected ? "text-brand-white" : "text-brand-black"
+                          <p className={`text-xs font-semibold truncate ${
+                            isSelected ? "text-white" : "text-brand-black"
                           }`}>
                             {asset.name}
                           </p>
                           {isUpdatedToday && (
-                            <span className={`text-xs px-1.5 py-0.5 ${
+                            <span className={`text-xs px-1.5 py-0.5 flex-shrink-0 ${
                               isSelected 
                                 ? "bg-green-500/30 text-green-300" 
-                                : "bg-green-500/20 text-green-600"
-                            }`}>
-                              Updated
+                                : "bg-green-100 text-green-700"
+                            }`} style={{ borderRadius: '4px' }}>
+                              ✓
                             </span>
                           )}
                         </div>
                         <p className={`text-xs ${
-                          isSelected ? "text-brand-white/70" : "text-brand-black"
+                          isSelected ? "text-white/70" : "text-brand-black/50"
                         }`}>
-                          {asset.sku}
-                        </p>
-                        <p className={`text-xs mt-1 ${
-                          isSelected ? "text-brand-white/70" : "text-brand-black"
-                        }`}>
-                          {asset.sizes?.length || 0} sizes
+                          {asset.sku} · {asset.sizes?.length || 0} sizes
                         </p>
                       </div>
                     </div>
@@ -320,9 +285,9 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
               onUpdatePricePoints={handleUpdatePricePoints}
             />
           ) : (
-            <div className="border border-brand-gray/30 rounded-none p-12 bg-brand-white text-center">
+            <div className="border border-brand-gray/20 bg-white shadow-sm p-12 text-center" style={{ borderRadius: '12px' }}>
               <p className="text-sm font-medium text-brand-black/60 mb-1">No Instrument Selected</p>
-              <p className="text-xs text-brand-black/50">Select an instrument to begin market data entry</p>
+              <p className="text-xs text-brand-black/40">Select an instrument to begin market data entry</p>
             </div>
           )}
         </div>
@@ -458,106 +423,103 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
   };
 
   return (
-    <div className="border border-brand-gray/20 rounded-none p-6 bg-brand-white space-y-6">
+    <div className="border border-brand-gray/20 bg-white shadow-sm p-5 space-y-5" style={{ borderRadius: '12px' }}>
       {/* Instrument Header */}
       <div className="border-b border-brand-gray/20 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold text-brand-black mb-1 uppercase tracking-wide">
+            <h2 className="text-lg font-semibold text-brand-black mb-1">
               {asset.name}
             </h2>
-            <div className="flex items-center gap-3 text-xs text-brand-black/60">
+            <div className="flex items-center gap-2 text-xs text-brand-black/50">
               <span>{asset.sku}</span>
               <span>•</span>
               <span>{asset.brand}</span>
               {asset.category && (
                 <>
                   <span>•</span>
-                  <span className="uppercase">{asset.category}</span>
+                  <span>{asset.category}</span>
                 </>
               )}
             </div>
           </div>
-          <div className="flex flex-col items-end gap-1">
-            {asset.lastUpdated && (
-              <div className="text-right">
-                <p className="text-[10px] text-brand-black/60 uppercase tracking-wide">
-                  Last Update
-                </p>
-                <p className="text-[11px] font-semibold text-brand-black">
-                  {new Date(asset.lastUpdated).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-            )}
-          </div>
+          {asset.lastUpdated && (
+            <div className="text-right flex-shrink-0">
+              <p className="text-xs text-brand-black/40 mb-0.5">Last Update</p>
+              <p className="text-xs font-semibold text-brand-black">
+                {new Date(asset.lastUpdated).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Size Selector */}
       {asset.sizes && asset.sizes.length > 0 ? (
         <div className="border-b border-brand-gray/20 pb-4">
-          <label className="block text-xs font-semibold text-brand-black mb-3 uppercase tracking-wide">
-            Size Variant {!selectedSize && <span className="text-red-600 font-normal">(Required)</span>}
+          <label className="block text-xs font-medium text-brand-black mb-3">
+            Size Variant {!selectedSize && <span className="text-red-500">(Required)</span>}
           </label>
           <div className="flex flex-wrap gap-2">
             {sortSizesByValue(asset.sizes).map((size) => (
               <button
                 key={size.size}
                 onClick={() => onSizeChange(size.size)}
-                className={`px-4 py-2 rounded-none border text-xs font-semibold uppercase tracking-wide transition ${
+                className={`px-4 py-2 border text-xs font-semibold transition ${
                   selectedSize === size.size
-                    ? "border-brand-black bg-brand-black text-brand-white"
-                    : "border-brand-gray/30 hover:border-brand-black text-brand-black"
+                    ? "border-brand-black bg-brand-black text-white"
+                    : "border-brand-gray/30 hover:border-brand-black text-brand-black bg-white"
                 }`}
+                style={{ borderRadius: '8px' }}
               >
                 {size.size}
               </button>
             ))}
           </div>
           {!selectedSize && (
-            <p className="text-xs text-red-600 mt-3 font-medium">
+            <p className="text-xs text-red-500 mt-3">
               Select a size variant to begin market data entry
             </p>
           )}
         </div>
       ) : (
-        <div className="border border-red-500/30 bg-red-500/5 rounded-none p-4">
-          <p className="text-xs font-semibold text-red-700 mb-1">No Size Variants Configured</p>
+        <div className="border border-red-200 bg-red-50 p-4" style={{ borderRadius: '8px' }}>
+          <p className="text-xs font-semibold text-red-800 mb-1">No Size Variants Configured</p>
           <p className="text-xs text-red-600">
-            Define size variants in the Portfolio tab before entering market data.
+            Define size variants in the Assets tab before entering market data.
           </p>
         </div>
       )}
 
       {/* Market Data Entry Header */}
-      <div className="border-b border-brand-gray/20 pb-4 mb-4">
-        <div className="flex items-start justify-between mb-4">
+      <div className="border-b border-brand-gray/20 pb-4">
+        <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-brand-black uppercase tracking-wide mb-1">
+            <h3 className="text-sm font-semibold text-brand-black mb-1">
               All Listings
             </h3>
-            <p className="text-xs text-brand-black/60">
-              View and edit all listings across all channels in one unified table.
+            <p className="text-xs text-brand-black/50">
+              View and edit all listings across all channels.
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setShowAddListingModal(true)}
-              className="px-3 py-1.5 border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition leading-tight"
-              style={{ borderRadius: '0px' }}
+              className="px-3 py-1.5 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition disabled:opacity-50"
+              style={{ borderRadius: '8px' }}
               disabled={!selectedSize}
             >
               + Add Listing
             </button>
             <button
               onClick={() => setShowBulkAddModal(true)}
-              className="px-3 py-1.5 border border-brand-gray/30 bg-brand-white text-brand-black text-xs font-semibold uppercase tracking-wide hover:border-brand-black hover:bg-brand-gray/10 transition leading-tight"
-              style={{ borderRadius: '0px' }}
+              className="px-3 py-1.5 border border-brand-gray/30 bg-white text-brand-black text-xs font-semibold hover:border-brand-black transition disabled:opacity-50"
+              style={{ borderRadius: '8px' }}
               disabled={!selectedSize}
             >
               + Bulk Add

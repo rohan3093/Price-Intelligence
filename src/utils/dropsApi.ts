@@ -130,6 +130,32 @@ function dropToFirestoreData(drop: Drop): any {
 }
 
 /**
+ * Helper: get full release Date object including time (if available)
+ * 
+ * - If `releaseTime` exists (e.g. "2:00 PM IST"), we parse it and set hours/minutes
+ * - Otherwise, we use the date as-is
+ */
+function getReleaseDateTime(drop: Drop): Date {
+  const releaseDate = new Date(drop.releaseDate);
+
+  if (drop.releaseTime) {
+    const timeMatch = drop.releaseTime.match(/(\d{1,2}):(\d{2})\s+(AM|PM)/i);
+    if (timeMatch) {
+      let hours = parseInt(timeMatch[1]);
+      const minutes = parseInt(timeMatch[2]);
+      const ampm = timeMatch[3].toUpperCase();
+
+      if (ampm === "PM" && hours !== 12) hours += 12;
+      if (ampm === "AM" && hours === 12) hours = 0;
+
+      releaseDate.setHours(hours, minutes, 0, 0);
+    }
+  }
+
+  return releaseDate;
+}
+
+/**
  * Get all drops from Firestore
  */
 export async function fetchAllDrops(): Promise<Drop[]> {
@@ -193,17 +219,19 @@ export async function fetchDropsByStatus(status: Drop['status']): Promise<Drop[]
 export async function fetchUpcomingDrops(): Promise<Drop[]> {
   const allDrops = await fetchAllDrops();
   const now = new Date();
-  return allDrops.filter(drop => {
-    if (drop.status === 'upcoming' || drop.status === 'live') {
-      const releaseDate = new Date(drop.releaseDate);
-      return releaseDate >= now;
-    }
-    return false;
-  }).sort((a, b) => {
-    const dateA = new Date(a.releaseDate).getTime();
-    const dateB = new Date(b.releaseDate).getTime();
-    return dateA - dateB;
-  });
+  return allDrops
+    .filter((drop) => {
+      if (drop.status === "upcoming" || drop.status === "live") {
+        const releaseDateTime = getReleaseDateTime(drop);
+        return releaseDateTime >= now;
+      }
+      return false;
+    })
+    .sort((a, b) => {
+      const dateA = getReleaseDateTime(a).getTime();
+      const dateB = getReleaseDateTime(b).getTime();
+      return dateA - dateB;
+    });
 }
 
 /**
