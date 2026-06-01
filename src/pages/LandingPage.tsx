@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { SignInModal } from "../components/SignInModal";
 import { analytics } from "../utils/analytics";
 
@@ -51,16 +51,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ showSignInModal, onCloseSignI
       <nav className="border-b border-brand-gray/30 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <img src="/sentria-logo.svg" alt="Sentria" className="h-5 sm:h-6" />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
+            <Link
+              to="/learn"
+              className="px-3 sm:px-4 py-1.5 text-xs font-semibold text-brand-black/70 hover:text-brand-black transition-colors"
+            >
+              Learn
+            </Link>
             <button
               onClick={handleExplore}
-              className="px-4 py-1.5 text-xs font-semibold text-brand-black hover:text-brand-black/70 transition-colors"
+              className="px-3 sm:px-4 py-1.5 text-xs font-semibold text-brand-black hover:text-brand-black/70 transition-colors hidden sm:inline-block"
             >
               See Live Data
             </button>
             <button
               onClick={handleGetStarted}
-              className="px-4 py-1.5 text-xs font-semibold bg-brand-black text-white hover:bg-brand-black/90 transition-colors"
+              className="px-3 sm:px-4 py-1.5 text-xs font-semibold bg-brand-black text-white hover:bg-brand-black/90 transition-colors"
             >
               Get Started
             </button>
@@ -144,6 +150,46 @@ const LandingPage: React.FC<LandingPageProps> = ({ showSignInModal, onCloseSignI
               >
                 See Live Market Data
               </button>
+            </div>
+
+            {/* Mobile data cards — replaces floating cards on small screens */}
+            <div className="flex gap-2.5 mt-8 overflow-x-auto pb-2 -mx-4 px-4 lg:hidden snap-x snap-mandatory">
+              <div className="bg-white border border-brand-gray/30 shadow-sm p-3 min-w-[140px] snap-start flex-shrink-0">
+                <p className="text-[9px] text-brand-black/40 uppercase tracking-wider mb-1">Dunk Low Cacao</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-bold font-mono text-brand-black">&#8377;8,550</span>
+                  <span className="text-[10px] font-semibold text-green-600">+3.1%</span>
+                </div>
+                <div className="flex gap-1 mt-1.5">
+                  <span className="text-[8px] px-1 py-0.5 bg-brand-black/5 text-brand-black/50">B2B &#8377;8,100</span>
+                  <span className="text-[8px] px-1 py-0.5 bg-brand-black/5 text-brand-black/50">StockX &#8377;9,800</span>
+                </div>
+              </div>
+              <div className="bg-white border border-green-200 shadow-sm p-3 min-w-[140px] snap-start flex-shrink-0">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  <span className="text-[9px] text-green-700 font-semibold uppercase">Arbitrage</span>
+                </div>
+                <p className="text-[10px] text-brand-black font-semibold">AJ1 Low Travis</p>
+                <p className="text-xs font-bold text-green-600 font-mono">+&#8377;2,400</p>
+              </div>
+              <div className="bg-white border border-brand-gray/30 shadow-sm p-3 min-w-[140px] snap-start flex-shrink-0">
+                <p className="text-[9px] text-brand-black/40 uppercase tracking-wider mb-0.5">Market Health</p>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm font-bold text-green-600">72</span>
+                  <span className="text-[9px] text-green-600 font-medium">Healthy</span>
+                </div>
+                <div className="w-full bg-brand-gray/30 h-1 mt-1.5">
+                  <div className="bg-green-500 h-1" style={{ width: '72%' }} />
+                </div>
+              </div>
+              <div className="bg-white border border-brand-gray/30 shadow-sm p-3 min-w-[140px] snap-start flex-shrink-0">
+                <p className="text-[9px] text-brand-black/40 uppercase tracking-wider mb-1">Jordan 4 Bred</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-bold font-mono text-brand-black">&#8377;24,500</span>
+                  <span className="text-[10px] font-semibold text-red-500">-1.2%</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -343,7 +389,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ showSignInModal, onCloseSignI
                 {[
                   "Scroll through 10+ WhatsApp groups to find B2B prices",
                   "Manually check CrepdogCrew, Mainstreet, Culture Circle one by one",
-                  "Convert StockX USD prices + estimate reshipping in your head",
+                  "Convert StockX USD prices + estimate fees in your head",
                   "No idea if you're buying at a good price or overpaying",
                   "Miss arbitrage because you can't compare fast enough",
                 ].map((item, i) => (
@@ -365,7 +411,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ showSignInModal, onCloseSignI
                 {[
                   "Every price from every channel on one screen, per size",
                   "See which channel has the lowest price instantly",
-                  "StockX & GOAT prices auto-converted with reshipping included",
+                  "StockX & GOAT prices auto-converted with platform fees included",
                   "Fair value ranges tell you if it's a good deal or not",
                   "Arbitrage flagged automatically with margin estimates",
                 ].map((item, i) => (
@@ -404,7 +450,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ showSignInModal, onCloseSignI
                   </div>
                   <p className="text-sm text-brand-black/55 leading-relaxed ml-12">
                     B2B prices from reseller groups. Consumer prices from CrepdogCrew, Mainstreet, Culture Circle, Hypefly.
-                    International prices from StockX and GOAT with reshipping costs baked in. All per size.
+                    International prices from StockX and GOAT with platform fees baked in. All per size.
                   </p>
                 </div>
                 {/* Mini visual: channel price comparison */}
@@ -645,9 +691,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ showSignInModal, onCloseSignI
       <footer className="border-t border-brand-gray/30 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <img src="/sentria-logo.svg" alt="Sentria" className="h-4 opacity-40" />
-          <p className="text-xs text-brand-black/40">
-            &copy; {new Date().getFullYear()} Sentria. Intelligence for secondary markets.
-          </p>
+          <div className="flex items-center gap-4">
+            <Link to="/learn" className="text-xs text-brand-black/40 hover:text-brand-black/70 transition-colors">
+              Learn
+            </Link>
+            <p className="text-xs text-brand-black/40">
+              &copy; {new Date().getFullYear()} Sentria. Intelligence for secondary markets.
+            </p>
+          </div>
         </div>
       </footer>
 

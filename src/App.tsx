@@ -8,6 +8,8 @@ import { EMAIL_FOR_SIGN_IN_KEY, clearStoredEmailForSignIn } from "./components/S
 
 const AppShell = lazy(() => import("./pages/AppShell"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
+const LearnIndex = lazy(() => import("./pages/LearnIndex"));
+const LearnArticle = lazy(() => import("./pages/LearnArticle"));
 
 const FullScreenLoader: React.FC = () => (
   <div className="min-h-screen bg-brand-background flex items-center justify-center">
@@ -24,6 +26,7 @@ const PriceDiscoveryApp: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authInitialized, setAuthInitialized] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
+  const [magicLinkError, setMagicLinkError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!auth) {
@@ -45,6 +48,7 @@ const PriceDiscoveryApp: React.FC = () => {
             window.history.replaceState(null, "", window.location.pathname);
           } catch (error) {
             console.error("Error completing magic link sign-in:", error);
+            setMagicLinkError("Sign-in link expired or already used. Please request a new one.");
           }
         }
       }
@@ -81,6 +85,16 @@ const PriceDiscoveryApp: React.FC = () => {
 
   return (
     <Suspense fallback={<FullScreenLoader />}>
+      {magicLinkError && (
+        <div className="fixed top-4 right-4 z-[100] max-w-md w-full px-4">
+          <div className="flex items-center gap-3 px-4 py-3 border-2 border-red-500 bg-red-50 text-red-800 shadow-lg">
+            <p className="text-sm font-medium flex-1">{magicLinkError}</p>
+            <button onClick={() => setMagicLinkError(null)} className="flex-shrink-0 hover:opacity-70">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+      )}
       <Routes>
         <Route
           path="/"
@@ -90,6 +104,8 @@ const PriceDiscoveryApp: React.FC = () => {
               : <LandingPage onSignInClick={() => setShowSignInModal(true)} showSignInModal={showSignInModal} onCloseSignIn={() => setShowSignInModal(false)} />
           }
         />
+        <Route path="/learn" element={<LearnIndex />} />
+        <Route path="/learn/:slug" element={<LearnArticle />} />
         <Route
           path="/app/*"
           element={

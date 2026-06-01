@@ -12,7 +12,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../utils/firebase";
+import { db, auth } from "../utils/firebase";
 import {
   ScrapedPrice,
   ScrapedPriceGroup,
@@ -263,7 +263,11 @@ export const ScrapedPricesReview: React.FC<ScrapedPricesReviewProps> = ({
 
         setProgress(data);
 
-        if (data.status === "complete" && triggeringScrapeRef.current) {
+        if (data.status === "complete") {
+          // Always refresh data when scrape completes — even if the HTTP
+          // fetch already timed out and cleared triggeringScrapeRef.
+          // Without this, a fetch timeout leaves the review queue blank
+          // (old entries were deleted at scrape start but loadData never ran).
           triggeringScrapeRef.current = false;
           setTriggeringScrape(false);
           setScrapeResult(
@@ -292,20 +296,33 @@ export const ScrapedPricesReview: React.FC<ScrapedPricesReviewProps> = ({
     startProgressListener();
 
     try {
+      const token = await auth?.currentUser?.getIdToken();
+      if (!token) {
+        setScrapeResult("Failed: Not signed in — please log in and try again.");
+        return;
+      }
+
       const response = await fetch(
-        "https://asia-south1-intelligence-exchange-8281f.cloudfunctions.net/manualScrapeMarketplaces?discover=false"
+        "https://asia-south1-intelligence-exchange-8281f.cloudfunctions.net/manualScrapeMarketplaces?discover=false",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       const data = await response.json();
       if (data.success) {
-        setScrapeResult(
-          `Done — ${data.totalListings} listings from ${Object.keys(data.byMarketplace || {}).length} stores`
-        );
+        if (!scrapeResult) {
+          setScrapeResult(
+            `Done — ${data.totalListings} listings from ${Object.keys(data.byMarketplace || {}).length} stores`
+          );
+        }
         await loadData();
       } else {
         setScrapeResult(`Failed: ${data.error || "Unknown error"}`);
+        await loadData();
       }
-    } catch {
-      setScrapeResult("Scrape still running — watch the progress bar.");
+    } catch (err) {
+      setScrapeResult("Scrape request failed — the function may still be running. Check back shortly.");
+      console.error("Scrape trigger error:", err);
     } finally {
       if (!triggeringScrapeRef.current) {
         // already handled by listener
@@ -674,7 +691,7 @@ const AssetCard: React.FC<{
                             </span>
                             {listing.channel === "international" && listing.priceUsd != null && (
                               <span className="text-[10px] text-brand-black/40 font-mono-numeric leading-tight">
-                                ${listing.priceUsd} + ${listing.reshippingCostUsd ?? 100} ship
+                                ${listing.priceUsd}{listing.platformFeeUsd ? ` + $${listing.platformFeeUsd} fees` : ""}
                               </span>
                             )}
                           </div>

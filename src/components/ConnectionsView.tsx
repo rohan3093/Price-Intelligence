@@ -15,9 +15,10 @@ import { TableRowSkeleton } from "./LoadingSkeleton";
 
 interface ConnectionsViewProps {
   currentUser: User | null;
+  onSignInClick?: () => void;
 }
 
-export const ConnectionsView: React.FC<ConnectionsViewProps> = ({ currentUser }) => {
+export const ConnectionsView: React.FC<ConnectionsViewProps> = ({ currentUser, onSignInClick }) => {
   const [connections, setConnections] = useState<ConnectionRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'received' | 'sent'>('received');
@@ -85,6 +86,7 @@ export const ConnectionsView: React.FC<ConnectionsViewProps> = ({ currentUser })
             Track all your buy/sell connection requests in one place
           </p>
           <button
+            onClick={onSignInClick}
             className="px-4 py-2 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition leading-tight"
             style={{ borderRadius: '8px' }}
           >
@@ -200,6 +202,13 @@ interface ConnectionCardProps {
   onMarkComplete: (connection: ConnectionRequest) => void;
 }
 
+function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!domain) return email;
+  const visible = local.slice(0, 2);
+  return `${visible}***@${domain}`;
+}
+
 const ConnectionCard: React.FC<ConnectionCardProps> = ({
   connection,
   currentUserId,
@@ -250,8 +259,8 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({
             </p>
             <p className="font-medium text-brand-black">
               {isReceived 
-                ? (connection.requesterName || connection.requesterEmail)
-                : (connection.targetName || connection.targetEmail)}
+                ? (connection.requesterName || maskEmail(connection.requesterEmail))
+                : (connection.targetName || maskEmail(connection.targetEmail))}
             </p>
           </div>
           <div>

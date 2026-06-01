@@ -483,7 +483,7 @@ export const ArbitrageView: React.FC<ArbitrageViewProps> = ({ assets }) => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <span>
-          Per-platform fees applied (CDC 9.5%, Mainstreet 8%, etc). International includes reshipping estimate.
+          Per-platform fees applied (CDC 9.5%, Mainstreet 8%, etc). International includes platform buyer fees.
           Marketplace sells are consignment/source-on-order — payout timing varies.
           Confidence is penalised for marketplace sell-side and stale data. Always verify before executing.
         </span>

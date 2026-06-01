@@ -57,6 +57,51 @@ admin.initializeApp();
 const db = admin.firestore();
 const sendgridApiKey = ((_a = functions.config().sendgrid) === null || _a === void 0 ? void 0 : _a.key) || process.env.SENDGRID_API_KEY;
 const sendgridFromEmail = ((_b = functions.config().sendgrid) === null || _b === void 0 ? void 0 : _b.from) || process.env.SENDGRID_FROM_EMAIL;
+// ── CORS helper ─────────────────────────────────────────────────────
+function setCors(res) {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Authorization, Content-Type");
+    res.set("Access-Control-Max-Age", "3600");
+}
+function handleCors(req, res) {
+    setCors(res);
+    if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return true;
+    }
+    return false;
+}
+// ── Analyst role management ──────────────────────────────────────────
+let _analystEmailsCache = null;
+const ANALYST_CACHE_TTL_MS = 60000;
+async function getAnalystEmails() {
+    var _a;
+    if (_analystEmailsCache && Date.now() - _analystEmailsCache.fetchedAt < ANALYST_CACHE_TTL_MS) {
+        return _analystEmailsCache.emails;
+    }
+    const snap = await db.collection("config").doc("analysts").get();
+    const emails = snap.exists ? (((_a = snap.data()) === null || _a === void 0 ? void 0 : _a.emails) || []).map((e) => e.toLowerCase()) : [];
+    _analystEmailsCache = { emails, fetchedAt: Date.now() };
+    return emails;
+}
+async function verifyAnalystFromRequest(req) {
+    var _a;
+    const authHeader = req.headers.authorization;
+    if (!(authHeader === null || authHeader === void 0 ? void 0 : authHeader.startsWith("Bearer ")))
+        return null;
+    try {
+        const token = await admin.auth().verifyIdToken(authHeader.split("Bearer ")[1]);
+        const email = (_a = token.email) === null || _a === void 0 ? void 0 : _a.toLowerCase();
+        if (!email)
+            return null;
+        const analysts = await getAnalystEmails();
+        return analysts.includes(email) ? token.uid : null;
+    }
+    catch (_b) {
+        return null;
+    }
+}
 if (sendgridApiKey) {
     mail_1.default.setApiKey(sendgridApiKey);
 }
@@ -408,7 +453,14 @@ exports.sendDropReminders = functions
 exports.manualSendDropReminders = functions
     .region("asia-south1")
     .https.onRequest(async (req, res) => {
-    console.log("Manual drop reminder check triggered");
+    if (handleCors(req, res))
+        return;
+    const uid = await verifyAnalystFromRequest(req);
+    if (!uid) {
+        res.status(403).json({ error: "Analyst auth required" });
+        return;
+    }
+    console.log(`Manual drop reminder check triggered by uid=${uid}`);
     try {
         const force = String(req.query.force || "").toLowerCase() === "true";
         const now = new Date();
@@ -581,9 +633,15 @@ exports.manualScrapeMarketplaces = functions
     memory: "512MB",
 })
     .https.onRequest(async (req, res) => {
-    console.log("Manual marketplace scrape triggered");
+    if (handleCors(req, res))
+        return;
+    const uid = await verifyAnalystFromRequest(req);
+    if (!uid) {
+        res.status(403).json({ error: "Analyst auth required" });
+        return;
+    }
+    console.log(`Manual marketplace scrape triggered by uid=${uid}`);
     try {
-        // Parse asset ID filters from query params
         let assetIds;
         if (req.query.assetId) {
             assetIds = [String(req.query.assetId)];
@@ -594,7 +652,6 @@ exports.manualScrapeMarketplaces = functions
                 .map((id) => id.trim())
                 .filter(Boolean);
         }
-        // Use discovery unless explicitly skipped (default: discover for manual runs)
         const skipDiscovery = req.query.discover === "false";
         const result = await (0, orchestrator_1.runDailyScrape)(assetIds, skipDiscovery);
         res.json(Object.assign({ success: true }, result));
@@ -622,6 +679,13 @@ exports.scrapeAssetPrices = functions
     memory: "256MB",
 })
     .https.onRequest(async (req, res) => {
+    if (handleCors(req, res))
+        return;
+    const uid = await verifyAnalystFromRequest(req);
+    if (!uid) {
+        res.status(403).json({ error: "Analyst auth required" });
+        return;
+    }
     const assetId = String(req.query.assetId || "");
     if (!assetId) {
         res.status(400).json({
@@ -654,7 +718,14 @@ exports.scrapeAssetPrices = functions
  */
 exports.getScrapersStatus = functions
     .region("asia-south1")
-    .https.onRequest(async (_req, res) => {
+    .https.onRequest(async (req, res) => {
+    if (handleCors(req, res))
+        return;
+    const uid = await verifyAnalystFromRequest(req);
+    if (!uid) {
+        res.status(403).json({ error: "Analyst auth required" });
+        return;
+    }
     res.json({
         success: true,
         scrapers: await (0, orchestrator_1.getScraperStatus)(),
@@ -668,7 +739,14 @@ exports.getScrapersStatus = functions
  */
 exports.scraperDiagnostics = functions
     .region("asia-south1")
-    .https.onRequest(async (_req, res) => {
+    .https.onRequest(async (req, res) => {
+    if (handleCors(req, res))
+        return;
+    const uid = await verifyAnalystFromRequest(req);
+    if (!uid) {
+        res.status(403).json({ error: "Analyst auth required" });
+        return;
+    }
     try {
         const db = admin.firestore();
         // List all top-level collections
@@ -722,9 +800,15 @@ exports.discoverMarketplaces = functions
     memory: "256MB",
 })
     .https.onRequest(async (req, res) => {
+    if (handleCors(req, res))
+        return;
+    const uid = await verifyAnalystFromRequest(req);
+    if (!uid) {
+        res.status(403).json({ error: "Analyst auth required" });
+        return;
+    }
     try {
         const shouldVerify = req.query.verify === "true";
-        // Step 1: Discover URLs from Firestore
         const discovery = await (0, urlDiscovery_1.discoverMarketplaceUrls)();
         // Step 2: Optionally verify each as Shopify
         if (shouldVerify) {

@@ -29,9 +29,13 @@ import { ScrapedListing } from "../types";
 
 const DEFAULT_HEADERS: Record<string, string> = {
   "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-  Accept: "text/html,application/xhtml+xml",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
   "Accept-Language": "en-IN,en;q=0.9",
+  "Sec-Fetch-Dest": "document",
+  "Sec-Fetch-Mode": "navigate",
+  "Sec-Fetch-Site": "none",
+  "Sec-Fetch-User": "?1",
 };
 
 const FYK_CDN_BASE = "https://cdn.findyourkicks.com/";
@@ -236,116 +240,171 @@ function extractProductRegexFallback(
 
 // ── Main fetch function ───────────────────────────────────────────────
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function fetchFindYourKicksProduct(
   productUrl: string,
   assetSku: string
 ): Promise<ScrapedListing[]> {
-  try {
-    const res = await fetch(productUrl, { headers: DEFAULT_HEADERS });
-    if (!res.ok) {
-      console.warn(
-        `[FindYourKicks] ${productUrl} returned ${res.status}`
-      );
-      return [];
-    }
+  const MAX_RETRIES = 2;
 
-    const html = await res.text();
-    const product = extractProductFromRsc(html);
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetch(productUrl, { headers: DEFAULT_HEADERS });
 
-    if (!product) {
-      console.warn(
-        `[FindYourKicks] Could not extract product data from ${productUrl}`
-      );
-      return [];
-    }
+      if (!res.ok) {
+        const isRetryable = res.status === 429 || res.status >= 500;
+        if (isRetryable && attempt < MAX_RETRIES) {
+          const backoff = (attempt + 1) * 1500;
+          console.warn(
+            `[FindYourKicks] ${productUrl} returned ${res.status}, retrying in ${backoff}ms (attempt ${attempt + 1}/${MAX_RETRIES})`
+          );
+          await sleep(backoff);
+          continue;
+        }
 
-    if (!product.vendor_products || product.vendor_products.length === 0) {
-      console.warn(
-        `[FindYourKicks] "${product.name}" has no vendor listings`
-      );
-      return [];
-    }
+        // Check for maintenance page
+        if (res.status === 503) {
+          try {
+            const body = await res.text();
+            if (body.toLowerCase().includes("maintenance")) {
+              console.warn(
+                `[FindYourKicks] Site is under maintenance — skipping ${productUrl}`
+              );
+              return [];
+            }
+          } catch { /* ignore body read failure */ }
+        }
 
-    const image = product.thumbnail_img
-      ? `${FYK_CDN_BASE}${product.thumbnail_img.file_name}`
-      : undefined;
-
-    // Group vendor listings by size and take the LOWEST price for each.
-    // Don't filter on qty — even if qty=0, the listing and its price are
-    // valuable intelligence. Track whether ANY vendor has stock per size.
-    const bestBySize = new Map<
-      string,
-      { price: number; vendor: FykVendorProduct; anyInStock: boolean }
-    >();
-
-    let skippedNoPrice = 0;
-    let skippedNoSize = 0;
-
-    for (const vp of product.vendor_products) {
-      if (vp.price <= 0) {
-        skippedNoPrice++;
-        continue;
-      }
-
-      const rawSize = vp.product_stock_id?.variant;
-      if (!rawSize) {
-        skippedNoSize++;
         console.warn(
-          `[FindYourKicks] Vendor product ${vp.vendor_product_id} has no variant/size`
+          `[FindYourKicks] ${productUrl} returned ${res.status}`
         );
-        continue;
+        return [];
       }
 
-      const size = normaliseSize(rawSize);
-      if (!size) {
-        skippedNoSize++;
-        continue;
+      const html = await res.text();
+
+      // Guard against Cloudflare challenge pages that return 200
+      if (html.includes("challenge-platform") || html.includes("cf-browser-verification")) {
+        if (attempt < MAX_RETRIES) {
+          const backoff = (attempt + 1) * 2000;
+          console.warn(
+            `[FindYourKicks] Cloudflare challenge detected, retrying in ${backoff}ms (attempt ${attempt + 1}/${MAX_RETRIES})`
+          );
+          await sleep(backoff);
+          continue;
+        }
+        console.warn(
+          `[FindYourKicks] Cloudflare challenge persists for ${productUrl} — skipping`
+        );
+        return [];
       }
 
-      const hasStock = vp.vendor_product_qty > 0;
-      const existing = bestBySize.get(size);
-      if (!existing || vp.price < existing.price) {
-        bestBySize.set(size, {
-          price: vp.price,
-          vendor: vp,
-          anyInStock: hasStock || (existing?.anyInStock ?? false),
+      const product = extractProductFromRsc(html);
+
+      if (!product) {
+        console.warn(
+          `[FindYourKicks] Could not extract product data from ${productUrl}`
+        );
+        return [];
+      }
+
+      if (!product.vendor_products || product.vendor_products.length === 0) {
+        console.warn(
+          `[FindYourKicks] "${product.name}" has no vendor listings`
+        );
+        return [];
+      }
+
+      const image = product.thumbnail_img
+        ? `${FYK_CDN_BASE}${product.thumbnail_img.file_name}`
+        : undefined;
+
+      const bestBySize = new Map<
+        string,
+        { price: number; vendor: FykVendorProduct; anyInStock: boolean }
+      >();
+
+      let skippedNoPrice = 0;
+      let skippedNoSize = 0;
+
+      for (const vp of product.vendor_products) {
+        if (vp.price <= 0) {
+          skippedNoPrice++;
+          continue;
+        }
+
+        const rawSize = vp.product_stock_id?.variant;
+        if (!rawSize) {
+          skippedNoSize++;
+          console.warn(
+            `[FindYourKicks] Vendor product ${vp.vendor_product_id} has no variant/size`
+          );
+          continue;
+        }
+
+        const size = normaliseSize(rawSize);
+        if (!size) {
+          skippedNoSize++;
+          continue;
+        }
+
+        const hasStock = vp.vendor_product_qty > 0;
+        const existing = bestBySize.get(size);
+        if (!existing || vp.price < existing.price) {
+          bestBySize.set(size, {
+            price: vp.price,
+            vendor: vp,
+            anyInStock: hasStock || (existing?.anyInStock ?? false),
+          });
+        } else if (hasStock && !existing.anyInStock) {
+          existing.anyInStock = true;
+        }
+      }
+
+      const listings: ScrapedListing[] = [];
+      let inStockCount = 0;
+
+      for (const [size, { price, vendor, anyInStock }] of bestBySize) {
+        if (anyInStock) inStockCount++;
+        listings.push({
+          sku: assetSku,
+          name: product.name,
+          size,
+          price: Math.round(price),
+          listingCount: 1,
+          url: `https://findyourkicks.com/product/${product.slug}`,
+          condition: "new",
+          sellerName: "FindYourKicks",
+          image,
+          platformVariantId: `fyk-${vendor.vendor_product_id}`,
+          inStock: anyInStock,
         });
-      } else if (hasStock && !existing.anyInStock) {
-        // Same price bucket but this vendor has stock
-        existing.anyInStock = true;
       }
+
+      console.log(
+        `[FindYourKicks] "${product.name}": ${listings.length} size(s) from ${product.vendor_products.length} vendor listing(s) ` +
+        `(${inStockCount} in-stock, skipped: ${skippedNoPrice} no-price, ${skippedNoSize} no-size)`
+      );
+      return listings;
+    } catch (err: any) {
+      if (attempt < MAX_RETRIES) {
+        const backoff = (attempt + 1) * 1500;
+        console.warn(
+          `[FindYourKicks] ${productUrl} failed (${err.message}), retrying in ${backoff}ms (attempt ${attempt + 1}/${MAX_RETRIES})`
+        );
+        await sleep(backoff);
+        continue;
+      }
+      console.warn(
+        `[FindYourKicks] Failed to fetch ${productUrl}: ${err.message}`
+      );
+      return [];
     }
-
-    const listings: ScrapedListing[] = [];
-    let inStockCount = 0;
-
-    for (const [size, { price, vendor, anyInStock }] of bestBySize) {
-      if (anyInStock) inStockCount++;
-      listings.push({
-        sku: assetSku,
-        name: product.name,
-        size,
-        price: Math.round(price),
-        listingCount: 1,
-        url: `https://findyourkicks.com/product/${product.slug}`,
-        condition: "new",
-        sellerName: "FindYourKicks",
-        image,
-        platformVariantId: `fyk-${vendor.vendor_product_id}`,
-        inStock: anyInStock,
-      });
-    }
-
-    console.log(
-      `[FindYourKicks] "${product.name}": ${listings.length} size(s) from ${product.vendor_products.length} vendor listing(s) ` +
-      `(${inStockCount} in-stock, skipped: ${skippedNoPrice} no-price, ${skippedNoSize} no-size)`
-    );
-    return listings;
-  } catch (err: any) {
-    console.warn(
-      `[FindYourKicks] Failed to fetch ${productUrl}: ${err.message}`
-    );
-    return [];
   }
+
+  return [];
 }
 

@@ -25,9 +25,12 @@ exports.fetchProductByUrl = fetchProductByUrl;
 exports.convertProductToListings = convertProductToListings;
 // ── Default helpers ──────────────────────────────────────────────────
 const DEFAULT_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
     "Accept": "application/json",
     "Accept-Language": "en-IN,en;q=0.9",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-origin",
 };
 /**
  * Normalise variant size strings into a consistent "UK X" format.
@@ -522,6 +525,7 @@ function extractProductJsonUrl(fullUrl) {
 /**
  * Fetch a single Shopify product by its product page URL.
  * Appends .json to get structured data with all variants, sizes, and prices.
+ * Retries up to 2 times on transient failures (network errors, 429, 5xx).
  */
 async function fetchProductByUrl(productPageUrl) {
     const jsonUrl = extractProductJsonUrl(productPageUrl);
@@ -529,19 +533,36 @@ async function fetchProductByUrl(productPageUrl) {
         console.warn(`[fetchProductByUrl] Could not extract JSON URL from: ${productPageUrl}`);
         return { product: null, jsonUrl: productPageUrl };
     }
-    try {
-        const res = await fetch(jsonUrl, { headers: DEFAULT_HEADERS });
-        if (!res.ok) {
+    const MAX_RETRIES = 2;
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            const res = await fetch(jsonUrl, { headers: DEFAULT_HEADERS });
+            if (res.ok) {
+                const data = await res.json();
+                return { product: data.product || null, jsonUrl };
+            }
+            const isRetryable = res.status === 429 || res.status >= 500;
+            if (isRetryable && attempt < MAX_RETRIES) {
+                const backoff = (attempt + 1) * 1000;
+                console.warn(`[fetchProductByUrl] ${jsonUrl} returned ${res.status}, retrying in ${backoff}ms (attempt ${attempt + 1}/${MAX_RETRIES})`);
+                await sleep(backoff);
+                continue;
+            }
             console.warn(`[fetchProductByUrl] ${jsonUrl} returned ${res.status}`);
             return { product: null, jsonUrl };
         }
-        const data = await res.json();
-        return { product: data.product || null, jsonUrl };
+        catch (err) {
+            if (attempt < MAX_RETRIES) {
+                const backoff = (attempt + 1) * 1000;
+                console.warn(`[fetchProductByUrl] ${jsonUrl} failed (${err.message}), retrying in ${backoff}ms (attempt ${attempt + 1}/${MAX_RETRIES})`);
+                await sleep(backoff);
+                continue;
+            }
+            console.warn(`[fetchProductByUrl] Failed to fetch ${jsonUrl}:`, err);
+            return { product: null, jsonUrl };
+        }
     }
-    catch (err) {
-        console.warn(`[fetchProductByUrl] Failed to fetch ${jsonUrl}:`, err);
-        return { product: null, jsonUrl };
-    }
+    return { product: null, jsonUrl };
 }
 /**
  * Convert a Shopify product to ScrapedListings using minimal store info.

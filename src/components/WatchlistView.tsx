@@ -8,6 +8,7 @@ interface WatchlistViewProps {
   onRemoveFromWatchlist: (assetId: number) => void;
   currentUser: User | null;
   onSignInClick: () => void;
+  onBrowseMarket?: () => void;
 }
 
 export const WatchlistView: React.FC<WatchlistViewProps> = ({
@@ -16,6 +17,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
   onRemoveFromWatchlist,
   currentUser,
   onSignInClick,
+  onBrowseMarket,
 }) => {
   const watchlistAssets = assets.filter((asset) => watchlistIds.includes(asset.id));
 
@@ -23,7 +25,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
   // Show sign-in prompt if user is not logged in
   if (!currentUser) {
     return (
-      <main className="flex-1 flex flex-col bg-brand-background px-2 py-2 md:px-3 md:py-3 pb-20 md:pb-4 w-full max-w-8xl mx-auto">
+      <main className="flex-1 min-h-0 flex flex-col bg-brand-background px-2 py-2 md:px-3 md:py-3 pb-20 md:pb-4 w-full max-w-8xl mx-auto overflow-y-auto">
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-heading font-normal text-brand-black mb-2">
             Watchlist
@@ -55,7 +57,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
   }
 
   return (
-    <main className="flex-1 flex flex-col bg-brand-background px-2 py-2 md:px-3 md:py-3 pb-20 md:pb-4 w-full max-w-8xl mx-auto">
+    <main className="flex-1 min-h-0 flex flex-col bg-brand-background px-2 py-2 md:px-3 md:py-3 pb-20 md:pb-4 w-full max-w-8xl mx-auto overflow-y-auto">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-start justify-between gap-4">
@@ -89,10 +91,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
             Add assets from the market view to track their prices and get alerts
           </p>
           <button
-            onClick={() => {
-              // Navigate to market view - this would need to be passed as a prop or use navigation
-              window.location.hash = "#market";
-            }}
+            onClick={onBrowseMarket}
             className="px-4 py-2 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition leading-tight"
             style={{ borderRadius: '8px' }}
           >

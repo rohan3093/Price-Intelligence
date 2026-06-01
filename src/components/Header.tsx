@@ -6,6 +6,7 @@ interface HeaderProps {
   view: View;
   setView: (view: View) => void;
   user?: User | null;
+  isAnalyst?: boolean;
   onSignInClick?: () => void;
   onSignOutClick?: () => void;
 }
@@ -14,6 +15,7 @@ export const Header: React.FC<HeaderProps> = ({
   view, 
   setView, 
   user,
+  isAnalyst,
   onSignInClick,
   onSignOutClick,
 }) => {
@@ -136,18 +138,22 @@ export const Header: React.FC<HeaderProps> = ({
         >
           Learn
         </button>
-        <div className="h-5 w-px bg-brand-gray/30 mx-1"></div>
-        <button
-          onClick={() => setView("analyst")}
-          className={`px-4 py-2 text-xs font-semibold transition-all ${
-            view === "analyst"
-              ? "bg-brand-black text-white"
-              : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
-          }`}
-          style={{ borderRadius: '8px' }}
-        >
-          Admin
-        </button>
+        {isAnalyst && (
+          <>
+            <div className="h-5 w-px bg-brand-gray/30 mx-1"></div>
+            <button
+              onClick={() => setView("analyst")}
+              className={`px-4 py-2 text-xs font-semibold transition-all ${
+                view === "analyst"
+                  ? "bg-brand-black text-white"
+                  : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+              }`}
+              style={{ borderRadius: '8px' }}
+            >
+              Admin
+            </button>
+          </>
+        )}
       </nav>
 
         {/* User Authentication Section */}
@@ -159,12 +165,15 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center gap-2 px-2 py-1 hover:bg-brand-gray/10 transition-colors"
                 style={{ borderRadius: '8px' }}
+                aria-label="Account menu"
+                aria-expanded={showUserMenu}
+                aria-haspopup="true"
               >
                 {/* Avatar */}
                 {user.photoURL ? (
                   <img
                     src={user.photoURL}
-                    alt={user.displayName || "User"}
+                    alt={`${user.displayName || "User"}'s profile picture`}
                     className="w-7 h-7 border border-brand-gray/30 object-cover"
                     style={{ borderRadius: '50%' }}
                   />
@@ -172,6 +181,8 @@ export const Header: React.FC<HeaderProps> = ({
                   <div 
                     className="w-7 h-7 bg-brand-black text-brand-white flex items-center justify-center text-[10px] font-bold"
                     style={{ borderRadius: '50%' }}
+                    role="img"
+                    aria-label={`${user.displayName || user.email || "User"}'s avatar`}
                   >
                     {getUserInitials(user)}
                   </div>
@@ -217,16 +228,16 @@ export const Header: React.FC<HeaderProps> = ({
                       </svg>
                       My Watchlist
                     </button>
-                    <button
-                      disabled
-                      className="w-full px-4 py-2.5 text-left text-xs text-brand-black/40 flex items-center gap-2 cursor-not-allowed"
+                    <div
+                      className="w-full px-4 py-2.5 text-left text-xs text-brand-black/40 flex items-center gap-2 cursor-default"
+                      title="Get notified when a sneaker hits your target price. Coming in a future update."
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                       </svg>
                       Price Alerts
-                      <span className="text-[9px] px-1.5 py-0.5 bg-brand-gray/20 text-brand-black/50 ml-auto" style={{ borderRadius: '4px' }}>Soon</span>
-                    </button>
+                      <span className="text-[9px] px-1.5 py-0.5 bg-brand-black/10 text-brand-black/50 ml-auto" style={{ borderRadius: '4px' }}>Coming Soon</span>
+                    </div>
                   </div>
 
                   {/* Sign Out */}

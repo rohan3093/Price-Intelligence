@@ -16,7 +16,7 @@ export const GettingStartedView: React.FC<GettingStartedViewProps> = ({ assets =
   };
 
   return (
-    <main className="flex-1 bg-brand-white px-2 py-2 md:px-3 md:py-3 pb-20 md:pb-4 w-full max-w-8xl mx-auto">
+    <main className="flex-1 min-h-0 bg-brand-white px-2 py-2 md:px-3 md:py-3 pb-20 md:pb-4 w-full max-w-8xl mx-auto overflow-y-auto">
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-heading font-normal text-brand-black mb-2">
           Start Your Sneaker Investing Journey

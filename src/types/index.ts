@@ -5,7 +5,7 @@
  * - WhatsApp groups (data source indicator - B2B prices come from WhatsApp groups)
  * - B2B Market price
  * - End customer market price
- * - StockX or Goat Price (reshipping to India)
+ * - StockX or Goat Price (with platform fees)
  * 
  * The Asset interface uses the new field names that directly map to Google Sheet columns.
  * Legacy fields (b2bRange, b2cRange, globalRange) are kept for backward compatibility
@@ -120,8 +120,10 @@ export interface PricePoint {
   condition?: 'new' | 'used' | 'deadstock';
   sellerType?: SellerType; // For WhatsApp context
   
-  // International platform specific
-  reshippingCost?: number; // Reshipping cost to India (in rupees) - excludes customs duties
+  // International platform specific (legacy: reshippingCost, new: platform fees baked into price)
+  reshippingCost?: number; // Legacy — old data only. New prices include platform fees in the base price.
+  priceUsd?: number; // Original USD price from platform
+  platformFeeUsd?: number; // Platform buyer fees (processing + shipping) in USD
   
   // Legacy support
   legacySource?: 'whatsapp' | 'marketplace' | 'stockx' | 'goat' | 'instagram';
@@ -218,12 +220,15 @@ export interface InvestmentOpportunity {
 // Educational content
 export interface Guide {
   id: number;
+  slug: string;
   title: string;
   category: 'basics' | 'buying' | 'selling' | 'strategy' | 'risks';
   description: string;
   content: string;
-  estimatedTime: string; // e.g., "5 min read"
+  estimatedTime: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
+  seoTitle: string;
+  seoDescription: string;
 }
 
 export interface Category {

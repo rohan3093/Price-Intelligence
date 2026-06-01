@@ -70,10 +70,12 @@ export interface ScrapedPrice {
 
   // International pricing breakdown (only for channel === "international")
   priceUsd?: number | null; // Original USD price from platform
-  reshippingCostUsd?: number | null; // Reshipping fee in USD
-  reshippingCostInr?: number | null; // Reshipping fee converted to INR
-  reshippingCost?: number; // Legacy field (INR) used by writeScrapedPricesToAsset
+  platformFeeUsd?: number | null; // Platform buyer fees (processing + shipping) in USD
   exchangeRate?: number | null; // USD→INR rate used for conversion
+  // Legacy fields from old reshipping model (kept for backward compat with existing docs)
+  reshippingCostUsd?: number | null;
+  reshippingCostInr?: number | null;
+  reshippingCost?: number;
 
   // Analyst review
   reviewedBy: string | null;
@@ -397,7 +399,7 @@ export async function writeScrapedPricesToAsset(
     const newPoint: any = {
       price: scraped.editedPrice || scraped.price,
       listingCount: scraped.listingCount || 1,
-      lastSeen: new Date().toISOString(),
+      lastSeen: scraped.scrapedAt ? (typeof scraped.scrapedAt.toDate === 'function' ? scraped.scrapedAt.toDate().toISOString() : new Date().toISOString()) : new Date().toISOString(),
       channel,
       source: scraped.marketplace,
       marketplaceName: scraped.marketplaceDisplayName,
@@ -407,11 +409,11 @@ export async function writeScrapedPricesToAsset(
       condition: scraped.condition || "new",
     };
 
-    // For international prices, store the reshipping cost and USD breakdown
+    // For international prices, store the USD breakdown for reference.
+    // Note: price already includes platform buyer fees (processing + shipping),
+    // so no separate reshippingCost is needed.
     if (channel === "international") {
-      newPoint.reshippingCost = scraped.reshippingCostInr ?? scraped.reshippingCost ?? null;
       newPoint.priceUsd = scraped.priceUsd ?? null;
-      newPoint.reshippingCostUsd = scraped.reshippingCostUsd ?? null;
       newPoint.exchangeRate = scraped.exchangeRate ?? null;
     }
 

@@ -42,6 +42,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
     { value: 'hypefly', label: 'Hypefly' },
     { value: 'dawntown', label: 'Dawntown' },
     { value: '10hillsstudio', label: '10 Hills Studio' },
+    { value: 'hustleculture', label: 'Hustle Culture' },
     { value: 'findyourkicks', label: 'Find your Kicks' },
     { value: 'instagram', label: 'Instagram Seller' },
     { value: 'facebook', label: 'Facebook Marketplace' },

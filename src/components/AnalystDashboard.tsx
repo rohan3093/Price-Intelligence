@@ -100,7 +100,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
   };
 
   return (
-    <main className="flex-1 bg-brand-background px-2 py-2 md:px-4 md:py-4 pb-20 md:pb-4 w-full max-w-8xl mx-auto min-h-screen overflow-y-auto">
+    <main className="flex-1 min-h-0 bg-brand-background px-2 py-2 md:px-4 md:py-4 pb-20 md:pb-4 w-full max-w-8xl mx-auto overflow-y-auto">
       {/* Page Header */}
       <div className="mb-5">
         <h1 className="text-2xl md:text-3xl font-heading font-normal text-brand-black mb-1">

@@ -26,7 +26,7 @@ export const PLATFORM_SELL_FEES: Record<string, number> = {
 };
 
 export const DEFAULT_MARKETPLACE_FEE = 0.085; // fallback if platform unknown
-export const DEFAULT_INTL_RESHIPPING = 10_000; // ₹ flat fallback
+export const DEFAULT_INTL_RESHIPPING = 0; // New prices include platform fees; legacy data with reshippingCost still gets added
 
 // ─── Turnaround Time Estimates (days) ─────────────────────────
 // Keyed by "buyChannel→sellChannel"

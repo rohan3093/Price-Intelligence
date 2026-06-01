@@ -142,21 +142,32 @@ export const OrderBook: React.FC<OrderBookProps> = ({
   return (
     <div className="space-y-4">
       {/* Summary Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className={`grid gap-4 ${bids.length === 0 || asks.length === 0 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-3'}`}>
         <div className="bg-brand-background/30 border border-brand-gray/20 p-3 text-center" style={{ borderRadius: '8px' }}>
           <div className="text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold mb-1">Lowest Ask</div>
           <div className="text-lg font-bold font-mono-numeric text-brand-black">{bestAsk > 0 ? formatPrice(bestAsk) : '—'}</div>
           <div className="text-xs text-brand-black/50 mt-1">{asks.length} selling</div>
         </div>
-        <div className="bg-brand-background/30 border border-brand-gray/20 p-3 text-center" style={{ borderRadius: '8px' }}>
-          <div className="text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold mb-1">Spread</div>
-          <div className="text-lg font-bold font-mono-numeric text-brand-black">
-            {spread > 0 ? formatPrice(spread) : '—'}
+        {(bids.length > 0 && asks.length > 0) && (
+          <div className={`border p-3 text-center ${spread < 0 ? 'bg-green-50/50 border-green-200/50' : 'bg-brand-background/30 border-brand-gray/20'}`} style={{ borderRadius: '8px' }}>
+            <div className="text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold mb-1">Spread</div>
+            {spread > 0 ? (
+              <>
+                <div className="text-lg font-bold font-mono-numeric text-brand-black">{formatPrice(spread)}</div>
+                <div className="text-xs text-brand-black/50 mt-1">{spreadPercent.toFixed(1)}%</div>
+              </>
+            ) : spread < 0 ? (
+              <>
+                <div className="text-lg font-bold font-mono-numeric text-green-700">Crossed</div>
+                <div className="text-xs text-green-600/80 mt-1" title="Highest bid exceeds lowest ask — buyers are willing to pay more than sellers are asking. This typically signals an arbitrage opportunity across channels.">
+                  Bid exceeds ask by {formatPrice(Math.abs(spread))}
+                </div>
+              </>
+            ) : (
+              <div className="text-lg font-bold font-mono-numeric text-brand-black">₹0</div>
+            )}
           </div>
-          {spread > 0 && (
-            <div className="text-xs text-brand-black/50 mt-1">{spreadPercent.toFixed(1)}%</div>
-          )}
-        </div>
+        )}
         <div className="bg-brand-background/30 border border-brand-gray/20 p-3 text-center" style={{ borderRadius: '8px' }}>
           <div className="text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold mb-1">Highest Bid</div>
           <div className="text-lg font-bold font-mono-numeric text-brand-black">{bestBid > 0 ? formatPrice(bestBid) : '—'}</div>
@@ -164,74 +175,123 @@ export const OrderBook: React.FC<OrderBookProps> = ({
         </div>
       </div>
 
-      {/* Order Book Table */}
+      {/* Crossed market notice */}
+      {spread < 0 && bids.length > 0 && asks.length > 0 && (
+        <div className="flex items-start gap-2 text-xs bg-green-50/50 border border-green-200/50 p-3" style={{ borderRadius: '8px' }}>
+          <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+          <div>
+            <p className="font-semibold text-green-800">Crossed market — arbitrage opportunity</p>
+            <p className="text-green-700/70 mt-0.5">The highest bid ({formatPrice(bestBid)}) exceeds the lowest ask ({formatPrice(bestAsk)}). In a traditional exchange these would auto-match, but since these are across different channels (WhatsApp, marketplaces, international), the price gap represents a potential arbitrage opportunity. Check the Arbitrage tab for actionable strategies.</p>
+          </div>
+        </div>
+      )}
+
+      {/* One-sided market notice */}
+      {bids.length === 0 && asks.length > 0 && (
+        <div className="flex items-start gap-2 text-xs bg-brand-background/50 border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }}>
+          <svg className="w-4 h-4 text-brand-black/40 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p className="font-semibold text-brand-black/70">Sellers-only market</p>
+            <p className="text-brand-black/50 mt-0.5">No active buy orders (bids) for this asset. Spread cannot be calculated without buyers. This typically means demand is being fulfilled off-platform or hasn't been expressed yet.</p>
+          </div>
+        </div>
+      )}
+      {asks.length === 0 && bids.length > 0 && (
+        <div className="flex items-start gap-2 text-xs bg-brand-background/50 border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }}>
+          <svg className="w-4 h-4 text-brand-black/40 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p className="font-semibold text-brand-black/70">Buyers-only market</p>
+            <p className="text-brand-black/50 mt-0.5">No active sell orders (asks) for this asset. Buyers are looking but no sellers are listing — this can indicate limited supply.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Order Book Table — only show the side(s) that have data */}
       <div className="border border-brand-gray/20" style={{ borderRadius: '12px', overflow: 'hidden' }}>
         <table className="w-full font-mono-numeric text-sm table-fixed">
           <colgroup>
-            <col style={{ width: '35%' }} />
-            <col style={{ width: '15%' }} />
-            <col style={{ width: '35%' }} />
-            <col style={{ width: '15%' }} />
+            {asks.length > 0 && <col style={{ width: bids.length > 0 ? '35%' : '60%' }} />}
+            {asks.length > 0 && <col style={{ width: bids.length > 0 ? '15%' : '40%' }} />}
+            {bids.length > 0 && <col style={{ width: asks.length > 0 ? '35%' : '60%' }} />}
+            {bids.length > 0 && <col style={{ width: asks.length > 0 ? '15%' : '40%' }} />}
           </colgroup>
           <thead className="bg-brand-background/50 border-b-2 border-brand-gray/20">
             <tr>
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60">
-                Sellers (Ask)
-              </th>
-              <th className="text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60 border-r-2 border-brand-gray/20">
-                Qty
-              </th>
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60">
-                Buyers (Bid)
-              </th>
-              <th className="text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60">
-                Qty
-              </th>
+              {asks.length > 0 && (
+                <>
+                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60">
+                    Sellers (Ask)
+                  </th>
+                  <th className={`text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60 ${bids.length > 0 ? 'border-r-2 border-brand-gray/20' : ''}`}>
+                    Qty
+                  </th>
+                </>
+              )}
+              {bids.length > 0 && (
+                <>
+                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60">
+                    Buyers (Bid)
+                  </th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60">
+                    Qty
+                  </th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
-            {/* Render rows - pair up asks and bids */}
             {Array.from({ length: Math.max(displayAsks.length, displayBids.length, 1) }).map((_, i) => {
               const ask = displayAsks[i];
               const bid = displayBids[i];
               
               return (
                 <tr key={i} className="border-b border-brand-gray/10 hover:bg-brand-background/50 transition-colors">
-                  {/* Ask side */}
-                  <td className="py-3 px-4">
-                    {ask ? (
-                      <span className="font-semibold text-brand-black" title={ask.sources.join(', ')}>
-                        {formatPrice(ask.price)}
-                      </span>
-                    ) : (
-                      <span className="text-brand-black/20">—</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-center border-r-2 border-brand-gray/20">
-                    {ask ? (
-                      <span className="text-brand-black">{ask.quantity}</span>
-                    ) : (
-                      <span className="text-brand-black/20">—</span>
-                    )}
-                  </td>
-                  
-                  {/* Bid side */}
-                  <td className="py-3 px-4">
-                    {bid ? (
-                      <span className="font-semibold text-brand-black" title={bid.sources.join(', ')}>
-                        {formatPrice(bid.price)}
-                      </span>
-                    ) : (
-                      <span className="text-brand-black/20">—</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    {bid ? (
-                      <span className="text-brand-black">{bid.quantity}</span>
-                    ) : (
-                      <span className="text-brand-black/20">—</span>
-                    )}
-                  </td>
+                  {asks.length > 0 && (
+                    <>
+                      <td className="py-3 px-4">
+                        {ask ? (
+                          <span className="font-semibold text-brand-black" title={ask.sources.join(', ')}>
+                            {formatPrice(ask.price)}
+                          </span>
+                        ) : (
+                          <span className="text-brand-black/20">—</span>
+                        )}
+                      </td>
+                      <td className={`py-3 px-4 text-center ${bids.length > 0 ? 'border-r-2 border-brand-gray/20' : ''}`}>
+                        {ask ? (
+                          <span className="text-brand-black">{ask.quantity}</span>
+                        ) : (
+                          <span className="text-brand-black/20">—</span>
+                        )}
+                      </td>
+                    </>
+                  )}
+                  {bids.length > 0 && (
+                    <>
+                      <td className="py-3 px-4">
+                        {bid ? (
+                          <span className="font-semibold text-brand-black" title={bid.sources.join(', ')}>
+                            {formatPrice(bid.price)}
+                          </span>
+                        ) : (
+                          <span className="text-brand-black/20">—</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        {bid ? (
+                          <span className="text-brand-black">{bid.quantity}</span>
+                        ) : (
+                          <span className="text-brand-black/20">—</span>
+                        )}
+                      </td>
+                    </>
+                  )}
                 </tr>
               );
             })}

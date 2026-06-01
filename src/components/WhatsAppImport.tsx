@@ -464,35 +464,35 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
 
           {/* Listings table */}
           <div className="border border-brand-gray/20 overflow-hidden" style={{ borderRadius: "8px" }}>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
               <table className="min-w-full text-[11px]">
-                <thead>
+                <thead className="sticky top-0 z-10">
                   <tr className="bg-brand-gray/5 border-b border-brand-gray/20">
-                    <th className="w-8 px-2 py-2 text-center">
+                    <th className="w-8 px-2 py-2 text-center bg-brand-gray/5">
                       <span className="sr-only">Select</span>
                     </th>
-                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px]">
+                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px] bg-brand-gray/5">
                       Side
                     </th>
-                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px]">
+                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px] bg-brand-gray/5">
                       Sender
                     </th>
-                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px]">
+                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px] bg-brand-gray/5">
                       Extracted Text
                     </th>
-                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px]">
+                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px] bg-brand-gray/5">
                       Matched Asset
                     </th>
-                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px]">
+                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px] bg-brand-gray/5">
                       Size
                     </th>
-                    <th className="px-2 py-2 text-right font-semibold text-brand-black/60 uppercase tracking-wide text-[9px]">
+                    <th className="px-2 py-2 text-right font-semibold text-brand-black/60 uppercase tracking-wide text-[9px] bg-brand-gray/5">
                       Price
                     </th>
-                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px]">
+                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px] bg-brand-gray/5">
                       Confidence
                     </th>
-                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px]">
+                    <th className="px-2 py-2 text-left font-semibold text-brand-black/60 uppercase tracking-wide text-[9px] bg-brand-gray/5">
                       Time
                     </th>
                   </tr>
@@ -531,8 +531,10 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
             </div>
           </div>
 
-          {/* Import action */}
-          <div className="flex items-center justify-between pt-2 border-t border-brand-gray/15">
+          {/* Import action — always visible below the scrollable table */}
+          <div
+            className="flex items-center justify-between pt-3 pb-1 border-t border-brand-gray/15 bg-white"
+          >
             <div className="text-xs text-brand-black/50">
               <span className="font-semibold text-brand-black">{stats.selected}</span>{" "}
               listing{stats.selected !== 1 ? "s" : ""} selected for import
@@ -540,7 +542,7 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
             <button
               onClick={handleImport}
               disabled={stats.selected === 0 || isSaving}
-              className="px-5 py-2 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ borderRadius: "8px" }}
             >
               {isSaving
@@ -616,11 +618,11 @@ const MessageDetailModal: React.FC<{
       }}
     >
       <div
-        className="bg-white w-full max-w-lg shadow-2xl border border-brand-gray/20 overflow-hidden"
+        className="bg-white w-full max-w-lg max-h-[85vh] shadow-2xl border border-brand-gray/20 flex flex-col"
         style={{ borderRadius: "12px" }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-brand-gray/15 bg-brand-gray/5">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-brand-gray/15 bg-brand-gray/5 flex-shrink-0">
           <div className="flex items-center gap-2">
             <span
               className={`px-1.5 py-0.5 text-[10px] font-semibold border ${
@@ -649,8 +651,8 @@ const MessageDetailModal: React.FC<{
           </button>
         </div>
 
-        {/* Full message */}
-        <div className="px-4 py-3 space-y-3">
+        {/* Full message — scrollable */}
+        <div className="px-4 py-3 space-y-3 overflow-y-auto flex-1 min-h-0">
           <div>
             <p className="text-[9px] font-semibold text-brand-black/40 uppercase tracking-wide mb-1">
               Full Message

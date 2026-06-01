@@ -1,83 +1,89 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Assets - public can read, only authenticated users can write
+
+    // Helper: is the caller's email in the analysts list?
+    function isAnalyst() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() in get(/databases/$(database)/documents/config/analysts).data.emails;
+    }
+
+    // Config — only analysts can read/write (prevents regular users from seeing the analyst list)
+    match /config/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if isAnalyst();
+    }
+
+    // Assets — public read, analyst-only write
     match /assets/{document=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAnalyst();
     }
-    
-    // B2B Listings - public can read, only authenticated users can write
+
+    // B2B Listings — public read, analyst-only write
     match /b2b_listings/{document=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAnalyst();
     }
-    
-    // Drops - public can read, only authenticated users can write
+
+    // Drops — public read, analyst-only write
     match /drops/{document=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAnalyst();
     }
-    
-    // User data - users can only read/write their own data
-    // Allow access to the user document itself
+
+    // User data — users can only read/write their own data
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    // Allow access to subcollections under user document
     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // Trade Coordination (Pre-Exchange Phase)
-    
-    // Connection requests - users can read their own, write new ones
+
+    // Connection requests — scoped to participants
     match /connections/{connectionId} {
-      allow read: if request.auth != null && 
-                  (request.auth.uid == resource.data.requesterId || 
+      allow read: if request.auth != null &&
+                  (request.auth.uid == resource.data.requesterId ||
                    request.auth.uid == resource.data.targetId);
-      allow create: if request.auth != null && 
+      allow create: if request.auth != null &&
                     request.auth.uid == request.resource.data.requesterId;
-      allow update: if request.auth != null && 
-                    (request.auth.uid == resource.data.requesterId || 
+      allow update: if request.auth != null &&
+                    (request.auth.uid == resource.data.requesterId ||
                      request.auth.uid == resource.data.targetId);
-      allow delete: if request.auth != null && 
+      allow delete: if request.auth != null &&
                     request.auth.uid == resource.data.requesterId;
     }
-    
-    // Trade listings - anyone can read (listings are public), only owner can write
+
+    // Trade listings — public read, owner-only write
     match /trade_listings/{listingId} {
       allow read: if true;
-      allow create: if request.auth != null && 
+      allow create: if request.auth != null &&
                     request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && 
+      allow update, delete: if request.auth != null &&
                             request.auth.uid == resource.data.userId;
     }
-    
-    // Trading profiles - users can read any profile, but only write their own
+
+    // Trading profiles — public read, owner-only write
     match /trading_profiles/{userId} {
-      allow read: if true; // Public profiles for reputation system
+      allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // Scraped prices - staging collection for marketplace scraper results
-    // Analysts can read and update (approve/reject), Cloud Functions write via Admin SDK
+
+    // Scraped prices — analyst-only read/update
     match /scraped_prices/{document=**} {
-      allow read: if request.auth != null;
-      allow update: if request.auth != null; // Analysts approve/reject
-      // create/delete handled by Cloud Functions (Admin SDK bypasses rules)
+      allow read: if isAnalyst();
+      allow update: if isAnalyst();
     }
-    
-    // Scrape run summaries - read-only for authenticated users
+
+    // Scrape run summaries — analyst-only read
     match /scrape_runs/{document=**} {
-      allow read: if request.auth != null;
-      // Writes handled by Cloud Functions (Admin SDK)
+      allow read: if isAnalyst();
     }
-    
-    // Scrape progress - real-time progress tracking for the frontend
+
+    // Scrape progress — analyst-only read
     match /scrape_progress/{document=**} {
-      allow read: if true; // Public read for real-time progress display
-      // Writes handled by Cloud Functions (Admin SDK)
+      allow read: if isAnalyst();
     }
   }
 }

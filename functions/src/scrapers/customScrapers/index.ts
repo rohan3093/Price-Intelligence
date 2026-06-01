@@ -8,8 +8,15 @@
  *   - Culture Circle  (JSON-LD structured data)
  *   - HypeFly         (__NEXT_DATA__ + JSON-LD)
  *   - FindYourKicks   (RSC stream embedded data)
- *   - StockX          (GraphQL API + got-scraping TLS impersonation)
- *   - GOAT            (REST API — /api/v1/product_templates + /product_variants)
+ *   - StockX          (DISABLED — awaiting Developer API access; see stockx.ts)
+ *   - GOAT            (DISABLED — Cloudflare bot-protected, alternative TBD;
+ *                      see goat.ts)
+ *
+ * Note: disabled scrapers still appear in the registry and run on the
+ * normal scrape path. They short-circuit to [] internally so the
+ * orchestrator records them as "0 listings, fetch-success=false" cleanly
+ * rather than tossing errors. URL detection (`isCustomScraperUrl`) still
+ * routes StockX/GOAT URLs here — it's the fetch step that's a no-op.
  *
  * How the orchestrator uses this:
  *   1. First checks if the URL is a known custom scraper via `isCustomScraperUrl()`
@@ -35,6 +42,17 @@ interface CustomStoreConfig {
   domains: string[];
   /** Fetch product data from a URL */
   fetchProduct: (url: string, assetSku: string) => Promise<ScrapedListing[]>;
+  /**
+   * Whether the scraper is currently operational. Disabled scrapers are
+   * recognised by `isCustomScraperUrl` / `getCustomStoreConfig` (so URL
+   * routing still works) but the orchestrator skips the entire store's
+   * URL list without making any network calls — see the orchestrator's
+   * `isCustomStoreEnabled` check.
+   *
+   * Flip to `true` once the underlying replacement is in place. See the
+   * per-scraper module docstring for context on each disable.
+   */
+  enabled: boolean;
 }
 
 const CUSTOM_STORES: CustomStoreConfig[] = [
@@ -43,30 +61,41 @@ const CUSTOM_STORES: CustomStoreConfig[] = [
     displayName: "Culture Circle",
     domains: ["culture-circle.com", "www.culture-circle.com"],
     fetchProduct: fetchCultureCircleProduct,
+    enabled: true,
   },
   {
     id: "hypefly",
     displayName: "HypeFly",
     domains: ["hypefly.co.in", "www.hypefly.co.in"],
     fetchProduct: fetchHypeflyProduct,
+    enabled: true,
   },
   {
     id: "findyourkicks",
     displayName: "FindYourKicks",
     domains: ["findyourkicks.com", "www.findyourkicks.com"],
     fetchProduct: fetchFindYourKicksProduct,
+    enabled: true,
   },
   {
     id: "stockx",
     displayName: "StockX",
     domains: ["stockx.com", "www.stockx.com"],
     fetchProduct: fetchStockXProduct,
+    // Disabled — awaiting StockX Developer API access (developer.stockx.com).
+    // See customScrapers/stockx.ts for the full status writeup.
+    enabled: false,
   },
   {
     id: "goat",
     displayName: "GOAT",
     domains: ["goat.com", "www.goat.com"],
     fetchProduct: fetchGoatProduct,
+    // Disabled — Cloudflare bot tier blocks both direct fetches and our
+    // Playwright/stealth bypass after the first ~20 requests per IP.
+    // See customScrapers/goat.ts for the full status writeup and the
+    // open follow-up (residential proxy vs managed scraper vs drop).
+    enabled: false,
   },
 ];
 
@@ -82,6 +111,24 @@ export function isCustomScraperUrl(url: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Whether the custom-scraper with this source id is operational.
+ *
+ * The orchestrator uses this at the per-store level to skip disabled
+ * scrapers' entire URL lists in one shot — avoiding ~200 per-URL no-op
+ * fetch calls (each of which would otherwise be counted as a failure
+ * and trip the consecutive-failures circuit breaker) and the
+ * accompanying warn-level log spam.
+ *
+ * For unknown / non-custom sources this returns `true` so non-custom
+ * stores (Shopify) aren't accidentally skipped.
+ */
+export function isCustomStoreEnabled(source: string): boolean {
+  const store = CUSTOM_STORES.find((s) => s.id === source);
+  if (!store) return true;
+  return store.enabled;
 }
 
 /**

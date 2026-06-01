@@ -35,6 +35,7 @@ import {
   isCustomScraperUrl,
   fetchCustomProduct,
   getCustomStoreConfig,
+  isCustomStoreEnabled,
 } from "./customScrapers";
 import { SHOPIFY_MARKETPLACE_CONFIGS } from "./marketplaceConfigs";
 
@@ -92,8 +93,12 @@ function resolveStoreFromUrl(
 
 // ── International pricing constants ──────────────────────────────────
 
-/** Flat reshipping + processing fee added to international prices (in USD) */
-const RESHIPPING_FEE_USD = 100;
+/** Per-platform buyer fees (processing + shipping to US address) */
+const PLATFORM_FEES: Record<string, { processingPct: number; shippingUsd: number }> = {
+  stockx: { processingPct: 0.03, shippingUsd: 14 },
+  goat:   { processingPct: 0.03, shippingUsd: 12 },
+};
+const DEFAULT_PLATFORM_FEE = { processingPct: 0.03, shippingUsd: 13 };
 
 /** Fallback exchange rate if live API is unavailable */
 const FALLBACK_USD_INR_RATE = 87;
@@ -439,6 +444,45 @@ export async function runDailyScrape(
         const storeName = storeEntries[0].marketplaceName;
         const storeSource = storeEntries[0].source;
 
+        // Skip disabled custom scrapers (e.g. StockX awaiting Developer API
+        // access, GOAT pending a Cloudflare-bypass decision). Without this
+        // we'd run the per-URL fetch loop for ~200 URLs, each returning []
+        // and counting as a failure — the circuit breaker would trip at
+        // 15 consecutive failures and emit a misleading warn-level log.
+        // One info-level "scraper disabled" line per store per run is
+        // enough; URLs still count toward fetchedUrls so the progress bar
+        // tracks correctly.
+        if (!isCustomStoreEnabled(storeSource)) {
+          console.log(
+            `[Orchestrator] ${storeName}: scraper disabled — skipping ` +
+              `${storeEntries.length} URL${storeEntries.length === 1 ? "" : "s"}`
+          );
+          completedStores.count++;
+          fetchedUrls.count += storeEntries.length;
+          await updateProgress({
+            completedStores: completedStores.count,
+            fetchedUrls: fetchedUrls.count,
+            currentMarketplace: `${storeName} ⏸ (disabled)`,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+          return {
+            storeBaseUrl,
+            storeName,
+            storeSource,
+            storeListings: [] as Array<{
+              assetId: string;
+              assetSku: string;
+              assetName: string;
+              source: string;
+              marketplaceName: string;
+              channel: "marketplace" | "international";
+              listings: ScrapedListing[];
+            }>,
+            storeListingCount: 0,
+            error: null as string | null,
+          };
+        }
+
         try {
           await updateProgress({
             currentMarketplace: `Fetching ${storeName}… (${storeEntries.length} products)`,
@@ -457,11 +501,20 @@ export async function runDailyScrape(
           }> = [];
 
           let consecutive404s = 0;
-          const MAX_CONSECUTIVE_404S = 5; // Skip store if first 5 URLs all 404
+          let totalAttempted = 0;
+          let totalFailed = 0;
+          const MAX_CONSECUTIVE_404S = 15;
+          const MIN_ATTEMPTS_FOR_RATE_CHECK = 8;
+          const MAX_FAILURE_RATE = 0.85;
 
           for (const entry of storeEntries) {
-            // Skip remaining URLs if store appears non-functional
-            if (consecutive404s >= MAX_CONSECUTIVE_404S) {
+            // Skip remaining URLs if store appears non-functional:
+            // either too many consecutive 404s OR a very high overall failure rate
+            const failureRate = totalAttempted > 0 ? totalFailed / totalAttempted : 0;
+            const shouldBail = consecutive404s >= MAX_CONSECUTIVE_404S ||
+              (totalAttempted >= MIN_ATTEMPTS_FOR_RATE_CHECK && failureRate >= MAX_FAILURE_RATE);
+
+            if (shouldBail) {
               fetchedUrls.count++;
               continue;
             }
@@ -500,11 +553,13 @@ export async function runDailyScrape(
             }
 
             fetchedUrls.count++;
+            totalAttempted++;
 
             if (!fetchSuccess) {
               consecutive404s++;
+              totalFailed++;
             } else {
-              consecutive404s = 0; // Reset on success
+              consecutive404s = 0;
             }
 
             // Assign listings to each asset that references this product URL
@@ -575,10 +630,17 @@ export async function runDailyScrape(
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
           });
 
-          if (consecutive404s >= MAX_CONSECUTIVE_404S) {
-            console.warn(
-              `[Orchestrator] ${storeName}: skipped after ${MAX_CONSECUTIVE_404S} consecutive failures`
-            );
+          {
+            const finalFailRate = totalAttempted > 0 ? totalFailed / totalAttempted : 0;
+            if (consecutive404s >= MAX_CONSECUTIVE_404S) {
+              console.warn(
+                `[Orchestrator] ${storeName}: skipped remaining URLs after ${MAX_CONSECUTIVE_404S} consecutive failures`
+              );
+            } else if (totalAttempted >= MIN_ATTEMPTS_FOR_RATE_CHECK && finalFailRate >= MAX_FAILURE_RATE) {
+              console.warn(
+                `[Orchestrator] ${storeName}: skipped remaining URLs — ${totalFailed}/${totalAttempted} failed (${(finalFailRate * 100).toFixed(0)}%)`
+              );
+            }
           }
 
           console.log(
@@ -622,6 +684,7 @@ export async function runDailyScrape(
   await updateProgress({
     phase: "writing",
     currentMarketplace: "Writing results…",
+    fetchedUrls: totalUrls,
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 
@@ -629,13 +692,9 @@ export async function runDailyScrape(
   // Reset cache for each run to get a fresh rate
   _cachedExchangeRate = null;
   const exchangeRate = await getExchangeRate();
-  const intlPricing = {
-    exchangeRate,
-    reshippingFeeUsd: RESHIPPING_FEE_USD,
-  };
 
   console.log(
-    `[Orchestrator] International pricing: $${RESHIPPING_FEE_USD} reshipping, ₹${exchangeRate}/USD`
+    `[Orchestrator] International pricing: platform fees (3% + shipping), ₹${exchangeRate}/USD`
   );
 
   for (const storeResult of storeResults) {
@@ -696,8 +755,7 @@ export async function runDailyScrape(
         group.channel,
         batchId,
         today,
-        // Pass international pricing only for international channel
-        group.channel === "international" ? intlPricing : undefined
+        group.channel === "international" ? exchangeRate : undefined
       );
     }
 
@@ -759,51 +817,41 @@ async function writeListingsToFirestore(
   channel: string,
   batchId: string,
   batchDate: string,
-  /** For international listings: the exchange rate and reshipping fee used */
-  intlPricing?: {
-    exchangeRate: number;
-    reshippingFeeUsd: number;
-  }
+  /** For international listings: the USD→INR exchange rate */
+  intlExchangeRate?: number
 ): Promise<void> {
   const db = getDb();
   const batch = db.batch();
 
   for (const listing of listings) {
-    // For international listings, convert USD → INR and add reshipping fee
     let finalPrice = listing.price;
     let priceUsd: number | null = null;
-    let reshippingCostUsd: number | null = null;
-    let reshippingCostInr: number | null = null;
     let exchangeRate: number | null = null;
+    let platformFeeUsd: number | null = null;
 
-    if (channel === "international" && intlPricing) {
-      priceUsd = listing.price; // Original USD price from scraper
-      reshippingCostUsd = intlPricing.reshippingFeeUsd;
-      exchangeRate = intlPricing.exchangeRate;
-      reshippingCostInr = Math.round(reshippingCostUsd * exchangeRate);
-      // Landed price in INR = (platform USD price + reshipping fee) × exchange rate
-      finalPrice = Math.round(
-        (priceUsd + reshippingCostUsd) * exchangeRate
-      );
+    if (channel === "international" && intlExchangeRate) {
+      priceUsd = listing.price;
+      exchangeRate = intlExchangeRate;
+      const fees = PLATFORM_FEES[marketplaceId] || DEFAULT_PLATFORM_FEE;
+      platformFeeUsd = Math.round(priceUsd * fees.processingPct + fees.shippingUsd);
+      // Price in INR = (USD price + platform buyer fees) × exchange rate
+      finalPrice = Math.round((priceUsd + platformFeeUsd) * exchangeRate);
     }
 
     const ref = db.collection("scraped_prices").doc();
     batch.set(ref, {
-      // Asset reference
       assetId: asset.id,
       assetSku: asset.sku,
       assetName: asset.name,
 
-      // Marketplace info
       marketplace: marketplaceId,
       marketplaceDisplayName,
       channel,
 
-      // Listing data (flattened for easy querying)
       sku: listing.sku,
       name: listing.name,
       size: listing.size,
-      price: finalPrice, // INR for all channels
+      price: finalPrice,
       listingCount: listing.listingCount,
       url: listing.url || null,
       condition: listing.condition || "new",
@@ -811,28 +859,24 @@ async function writeListingsToFirestore(
       image: listing.image || null,
       platformVariantId: listing.platformVariantId || null,
 
-      // Stock status: true = store holds the item, false = just listed
       ...(listing.inStock !== undefined && listing.inStock !== null
         ? { inStock: listing.inStock }
         : {}),
 
-      // International pricing breakdown (null for domestic)
-      ...(channel === "international" && intlPricing
+      // International pricing breakdown
+      ...(channel === "international" && intlExchangeRate
         ? {
             priceUsd,
-            reshippingCostUsd,
-            reshippingCostInr,
+            platformFeeUsd,
             exchangeRate,
           }
         : {}),
 
-      // Review workflow
       status: "pending_review",
       batchId,
       batchDate,
       scrapedAt: admin.firestore.FieldValue.serverTimestamp(),
 
-      // Will be set when analyst reviews
       reviewedBy: null,
       reviewedAt: null,
     });

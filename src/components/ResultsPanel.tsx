@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { Asset, PricePoint } from "../types";
+
+export type SortOption = "default" | "name-asc" | "name-desc" | "price-asc" | "price-desc" | "change-desc" | "change-asc";
 
 interface ResultsPanelProps {
   assets: Asset[];
@@ -112,24 +114,7 @@ function formatSizeRange(asset: Asset): string {
     return sizes[0];
   }
 
-  // Extract numeric part for sorting (handles formats like "UK 6", "US 9", etc.)
-  const extractNumeric = (size: string): number => {
-    const match = size.match(/(\d+(?:\.\d+)?)/);
-    return match ? parseFloat(match[1]) : 0;
-  };
-
-  // Sort sizes by numeric value
-  const sortedSizes = [...sizes].sort((a, b) => extractNumeric(a) - extractNumeric(b));
-  
-  const minSize = sortedSizes[0];
-  const maxSize = sortedSizes[sortedSizes.length - 1];
-
-  // If min and max are the same, return single size
-  if (minSize === maxSize) {
-    return minSize;
-  }
-
-  return `${minSize} - ${maxSize}`;
+  return `${sizes.length} sizes`;
 }
 
 // Loading skeleton for asset card - more compact with shimmer
@@ -205,7 +190,7 @@ const AssetRow: React.FC<AssetRowProps> = React.memo(({
             onSelect(asset.id);
                   }
                 }}
-        className={`border cursor-pointer transition-all duration-200 flex items-center gap-3 p-3 active:scale-[0.98] focus:outline-none focus:ring-2 ${
+        className={`border cursor-pointer transition-all duration-200 flex items-start gap-3 p-3 active:scale-[0.98] focus:outline-none focus:ring-2 ${
                   isSelected 
                     ? "border-brand-black bg-brand-black text-brand-white shadow-sm" 
                     : "border-brand-gray/20 bg-white hover:border-brand-gray/40 hover:shadow-sm"
@@ -233,103 +218,84 @@ const AssetRow: React.FC<AssetRowProps> = React.memo(({
                   />
                 </div>
                 
-                {/* Asset info */}
-                <div className="flex-1 min-w-0 flex items-center justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className={`font-semibold truncate text-sm leading-tight ${
-                        isSelected ? "text-brand-white" : "text-brand-black"
-                      }`}>
+                {/* Asset info — stacked layout for full-width name */}
+                <div className="flex-1 min-w-0">
+                  {/* Row 1: Name + watchlist star */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`font-semibold text-sm leading-snug line-clamp-2 ${
+                          isSelected ? "text-brand-white" : "text-brand-black"
+                        }`}
+                        title={asset.name}
+                      >
                         {searchQuery ? highlightText(asset.name, searchQuery) : asset.name}
                       </p>
-                      {isBestDeal(asset) && (
-                        <span className={`px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide leading-none ${
-                          isSelected 
-                            ? "bg-green-500 text-white" 
-                            : "bg-green-500/10 text-green-700 border border-green-500/30"
-                        }`}>
-                          DEAL
-                        </span>
-                      )}
                     </div>
-                    <p className={`text-xs leading-tight mt-1 ${
-                      isSelected ? "text-brand-white/80" : "text-brand-gray-dark"
-                    }`}>
-                      {searchQuery ? highlightText(asset.brand, searchQuery) : asset.brand} · {sizeRange}
-                    </p>
-                  </div>
-                  
-                  {/* Metrics row */}
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    {/* Price metrics group */}
-                    <div className="flex items-center gap-3 pr-3 border-r border-brand-gray">
-                      {/* Best Price */}
-                      {bestPrice !== undefined && (
-                        <div className="text-right cursor-help" title={`Best available price across all channels: ₹${bestPrice.toLocaleString("en-IN")}`}>
-                          <p className={`text-sm font-mono-numeric font-semibold leading-tight ${
-                            isSelected ? "text-brand-white" : "text-brand-black"
-                          }`}>
-                            ₹{bestPrice.toLocaleString("en-IN")}
-                          </p>
-                          <p className={`text-xs leading-tight mt-0.5 ${
-                            isSelected ? "text-brand-white/70" : "text-brand-gray-medium"
-                          }`}>
-                            Best
-                          </p>
-                        </div>
-                      )}
-                      
-                      {/* 30d Change */}
-                      {asset.change30d && (
-                        <div 
-                          className={`text-right min-w-[50px] cursor-help ${
-                            isSelected ? "text-brand-white" : ""
-                          }`}
-                          title={`30-day price change: ${asset.change30d}`}
-                        >
-                          <p
-                            className={`text-sm font-mono-numeric font-semibold leading-tight ${
-                              asset.change30d.startsWith("-")
-                                ? "text-red-600"
-                                : asset.change30d.startsWith("+")
-                                ? "text-green-600"
-                                : isSelected ? "text-brand-white" : "text-brand-black"
-                            }`}
-                          >
-                            {asset.change30d}
-                          </p>
-                          <p className={`text-[9px] leading-tight mt-0.5 ${
-                            isSelected ? "text-brand-white/60" : "text-brand-black/50"
-                          }`}>
-                            30d
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Watchlist star button */}
+                    {isBestDeal(asset) && (
+                      <span className={`flex-shrink-0 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide leading-none mt-0.5 ${
+                        isSelected 
+                          ? "bg-green-500 text-white" 
+                          : "bg-green-500/10 text-green-700 border border-green-500/30"
+                      }`} style={{ borderRadius: '4px' }}>
+                        DEAL
+                      </span>
+                    )}
                     {onToggleWatchlist && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onToggleWatchlist(asset.id);
                         }}
-                className={`w-9 h-9 flex items-center justify-center border transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none ${
+                        className={`flex-shrink-0 w-7 h-7 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 focus:outline-none ${
                           isSelected
                             ? isWatchlisted
-                              ? "border-yellow-400 text-yellow-400 hover:border-yellow-300 hover:bg-yellow-400/10"
-                              : "border-brand-white/30 text-brand-white/50 hover:border-brand-white/50 hover:text-brand-white/70 hover:bg-brand-white/10"
+                              ? "text-yellow-400"
+                              : "text-brand-white/40 hover:text-brand-white/70"
                             : isWatchlisted
-                            ? "border-brand-gray/30 text-yellow-500 hover:border-yellow-500 hover:bg-yellow-500/10"
-                            : "border-brand-gray/30 text-brand-gray-dark hover:border-brand-black hover:text-brand-black hover:bg-brand-gray/10"
+                            ? "text-yellow-500"
+                            : "text-brand-gray-dark/40 hover:text-brand-black"
                         }`}
-                        style={{ borderRadius: '6px' }}
                         title={isWatchlisted ? "Remove from watchlist" : "Add to watchlist"}
                         aria-label={isWatchlisted ? "Remove from watchlist" : "Add to watchlist"}
                       >
-                        <span className="text-base leading-none">{isWatchlisted ? "★" : "☆"}</span>
+                        <span className="text-sm leading-none">{isWatchlisted ? "★" : "☆"}</span>
                       </button>
                     )}
+                  </div>
+                  {/* Row 2: Brand · Size | Price | 30d */}
+                  <div className="flex items-center justify-between gap-2 mt-1">
+                    <p className={`text-xs leading-tight truncate ${
+                      isSelected ? "text-brand-white/70" : "text-brand-gray-dark"
+                    }`}>
+                      {searchQuery ? highlightText(asset.brand, searchQuery) : asset.brand} · {sizeRange}
+                    </p>
+                    <div className="flex items-center gap-2.5 flex-shrink-0">
+                      {bestPrice !== undefined && (
+                        <span
+                          className={`text-xs font-mono-numeric font-semibold ${
+                            isSelected ? "text-brand-white" : "text-brand-black"
+                          }`}
+                          title={`Best price: ₹${bestPrice.toLocaleString("en-IN")}`}
+                        >
+                          ₹{bestPrice.toLocaleString("en-IN")}
+                        </span>
+                      )}
+                      {asset.change30d && (
+                        <span
+                          className={`text-xs font-mono-numeric font-semibold ${
+                            asset.change30d.startsWith("-")
+                              ? "text-red-600"
+                              : asset.change30d.startsWith("+")
+                              ? "text-green-600"
+                              : isSelected ? "text-brand-white/70" : "text-brand-black/60"
+                          }`}
+                          title={`30d change: ${asset.change30d}`}
+                        >
+                          {asset.change30d.startsWith("-") ? "↓" : asset.change30d.startsWith("+") ? "↑" : ""}{asset.change30d}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -350,11 +316,68 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef<HTMLDivElement>(null);
-  
+  const [sortBy, setSortBy] = useState<SortOption>("default");
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(e.target as Node)) {
+        setShowSortMenu(false);
+      }
+    };
+    if (showSortMenu) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showSortMenu]);
+
+  const parseChange = (changeStr: string | undefined): number | null => {
+    if (!changeStr) return null;
+    const match = changeStr.match(/[+-]?[\d.]+/);
+    return match ? parseFloat(changeStr.startsWith("-") ? `-${match[0]}` : match[0]) : null;
+  };
+
+  const sortedAssets = useMemo(() => {
+    if (sortBy === "default") return assets;
+    const sorted = [...assets];
+    switch (sortBy) {
+      case "name-asc":
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "name-desc":
+        sorted.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case "price-asc":
+        sorted.sort((a, b) => (calculateBestPrice(a) ?? Infinity) - (calculateBestPrice(b) ?? Infinity));
+        break;
+      case "price-desc":
+        sorted.sort((a, b) => (calculateBestPrice(b) ?? 0) - (calculateBestPrice(a) ?? 0));
+        break;
+      case "change-desc": {
+        sorted.sort((a, b) => (parseChange(b.change30d) ?? -Infinity) - (parseChange(a.change30d) ?? -Infinity));
+        break;
+      }
+      case "change-asc": {
+        sorted.sort((a, b) => (parseChange(a.change30d) ?? Infinity) - (parseChange(b.change30d) ?? Infinity));
+        break;
+      }
+    }
+    return sorted;
+  }, [assets, sortBy]);
+
+  const sortLabels: Record<SortOption, string> = {
+    "default": "Default",
+    "name-asc": "Name A → Z",
+    "name-desc": "Name Z → A",
+    "price-asc": "Price: Low → High",
+    "price-desc": "Price: High → Low",
+    "change-desc": "30d Change: Best",
+    "change-asc": "30d Change: Worst",
+  };
+
   // Calculate selected index for scrolling
   const selectedIndex = useMemo(() => 
-    assets.findIndex(a => a.id === selectedId),
-    [assets, selectedId]
+    sortedAssets.findIndex(a => a.id === selectedId),
+    [sortedAssets, selectedId]
   );
 
   // Auto-scroll selected item into view
@@ -374,34 +397,33 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
 
   // Memoized keyboard navigation handler
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Don't handle if typing in an input/textarea or if no assets
-    if (assets.length === 0 || isLoading) return;
+    if (sortedAssets.length === 0 || isLoading) return;
     if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
       return;
     }
 
-    const currentIndex = assets.findIndex(a => a.id === selectedId);
+    const currentIndex = sortedAssets.findIndex(a => a.id === selectedId);
     
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      const nextIndex = currentIndex < assets.length - 1 ? currentIndex + 1 : 0;
-      setSelectedId(assets[nextIndex].id);
+      const nextIndex = currentIndex < sortedAssets.length - 1 ? currentIndex + 1 : 0;
+      setSelectedId(sortedAssets[nextIndex].id);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      const prevIndex = currentIndex > 0 ? currentIndex - 1 : assets.length - 1;
-      setSelectedId(assets[prevIndex].id);
+      const prevIndex = currentIndex > 0 ? currentIndex - 1 : sortedAssets.length - 1;
+      setSelectedId(sortedAssets[prevIndex].id);
     } else if (e.key === 'Home') {
       e.preventDefault();
-      if (assets.length > 0) {
-        setSelectedId(assets[0].id);
+      if (sortedAssets.length > 0) {
+        setSelectedId(sortedAssets[0].id);
       }
     } else if (e.key === 'End') {
       e.preventDefault();
-      if (assets.length > 0) {
-        setSelectedId(assets[assets.length - 1].id);
+      if (sortedAssets.length > 0) {
+        setSelectedId(sortedAssets[sortedAssets.length - 1].id);
       }
     }
-  }, [assets, selectedId, setSelectedId, isLoading]);
+  }, [sortedAssets, selectedId, setSelectedId, isLoading]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -419,16 +441,51 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
           <h2 className="text-xs font-semibold text-brand-black uppercase tracking-wider">
             Assets
           </h2>
-          {!isLoading && searchQuery && (
+          {!isLoading && (
             <span className="text-xs text-brand-black/60 font-medium">
-              {assets.length} found
+              {assets.length}{searchQuery ? " found" : ""}
             </span>
           )}
         </div>
         {!isLoading && (
-          <span className="text-sm text-brand-black font-mono-numeric font-bold">
-            {assets.length}
-          </span>
+          <div className="relative" ref={sortMenuRef}>
+            <button
+              onClick={() => setShowSortMenu(!showSortMenu)}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium border transition-all ${
+                sortBy !== "default"
+                  ? "border-brand-black bg-brand-black text-white"
+                  : "border-brand-gray/30 text-brand-black/70 hover:border-brand-black"
+              }`}
+              style={{ borderRadius: '6px' }}
+              aria-label="Sort assets"
+              title="Sort assets"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+              </svg>
+              <span className="hidden lg:inline">{sortBy !== "default" ? sortLabels[sortBy] : "Sort"}</span>
+            </button>
+            {showSortMenu && (
+              <div
+                className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-brand-gray/20 shadow-lg z-50 py-1"
+                style={{ borderRadius: '8px' }}
+              >
+                {(Object.keys(sortLabels) as SortOption[]).map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => { setSortBy(option); setShowSortMenu(false); }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      sortBy === option
+                        ? "bg-brand-black text-white font-semibold"
+                        : "text-brand-black hover:bg-brand-background/50"
+                    }`}
+                  >
+                    {sortLabels[option]}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
       <div 
@@ -445,12 +502,11 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
               <AssetCardSkeleton key={i} />
             ))}
           </div>
-        ) : assets.length === 0 ? (
+        ) : sortedAssets.length === 0 ? (
           <EmptyState searchQuery={searchQuery} />
         ) : (
-          // Optimized list with memoized rows
           <div className="space-y-2">
-            {assets.map((asset) => (
+            {sortedAssets.map((asset) => (
               <div key={asset.id} ref={selectedId === asset.id ? selectedRef : null}>
                 <AssetRow
                   asset={asset}

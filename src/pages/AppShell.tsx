@@ -16,8 +16,9 @@ import { analytics } from "../utils/analytics";
 import { fetchAllAssets } from "../utils/assetsApi";
 import { loadUserWatchlist, saveUserWatchlist } from "../utils/watchlistApi";
 import { loadUserPortfolio, saveUserPortfolio } from "../utils/portfolioApi";
-import { auth } from "../utils/firebase";
+import { auth, db } from "../utils/firebase";
 import { signOut, User } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 const WatchlistView = lazy(() => import("../components/WatchlistView").then(m => ({ default: m.WatchlistView })));
 const GettingStartedView = lazy(() => import("../components/GettingStartedView").then(m => ({ default: m.GettingStartedView })));
@@ -47,7 +48,7 @@ interface AppShellProps {
 }
 
 export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized, onSignInClick: _onSignInClick }) => {
-  const { toasts, removeToast } = useToast();
+  const { toasts, toast, removeToast } = useToast();
 
   const [assets, setAssets] = useState<Asset[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(true);
@@ -92,8 +93,10 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
       if (localAssets && localAssets.length > 0) {
         setAssets(localAssets);
         setAssetsError("Using cached data. Pull to refresh for latest.");
+        toast.warning("Couldn't reach server — showing cached data");
       } else {
         setAssetsError(error instanceof Error ? error.message : "Failed to load assets. Please try again.");
+        toast.error("Failed to load market data. Check your connection and retry.");
       }
     } finally {
       setAssetsLoading(false);
@@ -133,6 +136,7 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
       } catch (error) {
         console.error("Error loading watchlist:", error);
         setWatchlistIds([]);
+        toast.error("Couldn't load your watchlist. Please refresh.");
       } finally {
         setWatchlistLoading(false);
         setWatchlistInitialized(true);
@@ -158,6 +162,7 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
       } catch (error) {
         console.error("Error loading portfolio:", error);
         setPortfolioPositions([]);
+        toast.error("Couldn't load your portfolio. Please refresh.");
       } finally {
         setPortfolioLoading(false);
         setPortfolioInitialized(true);
@@ -170,6 +175,7 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
     if (!portfolioInitialized || portfolioLoading || !currentUser) return;
     saveUserPortfolio(currentUser.uid, portfolioPositions).catch((error) => {
       console.error("Error saving portfolio to Firestore:", error);
+      toast.error("Failed to save portfolio changes");
     });
   }, [portfolioPositions, currentUser, portfolioInitialized, portfolioLoading]);
 
@@ -190,12 +196,19 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
 
   useEffect(() => {
     storage.checkVersion();
-    if (!auth) {
+    if (!auth || !db) {
       const authenticated = localStorage.getItem("analyst_authenticated") === "true";
       setIsAnalystAuthenticated(authenticated);
-    } else {
-      setIsAnalystAuthenticated(!!currentUser);
+      return;
     }
+    if (!currentUser?.email) {
+      setIsAnalystAuthenticated(false);
+      return;
+    }
+    getDoc(doc(db, "config", "analysts")).then((snap) => {
+      const emails: string[] = snap.exists() ? (snap.data().emails || []) : [];
+      setIsAnalystAuthenticated(emails.map((e: string) => e.toLowerCase()).includes(currentUser.email!.toLowerCase()));
+    }).catch(() => setIsAnalystAuthenticated(false));
   }, [currentUser]);
 
   useEffect(() => {
@@ -263,6 +276,7 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
         : [...prev, assetId];
       saveUserWatchlist(currentUser.uid, newWatchlist).catch((error) => {
         console.error('Error saving watchlist:', error);
+        toast.error("Failed to save watchlist");
       });
       return newWatchlist;
     });
@@ -342,6 +356,7 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
             view={view}
             setView={handleViewChange}
             user={currentUser}
+            isAnalyst={isAnalystAuthenticated}
             onSignInClick={() => setShowSignInModal(true)}
             onSignOutClick={async () => {
               if (auth && currentUser) {
@@ -408,7 +423,7 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
               )}
 
               <div className="flex-shrink-0">
-                <MarketOverview assets={assets} />
+                <MarketOverview assets={assets} onSelectAsset={(id) => setSelectedId(id)} />
               </div>
 
               <div className="hidden md:flex flex-1 min-h-0">
@@ -531,7 +546,7 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
             )
           ) : view === "connections" ? (
             <Suspense fallback={<ViewLoadingFallback />}>
-              <ConnectionsView currentUser={currentUser} />
+              <ConnectionsView currentUser={currentUser} onSignInClick={() => setShowSignInModal(true)} />
             </Suspense>
           ) : view === "analyst" && isAnalystAuthenticated ? (
             <Suspense fallback={<ViewLoadingFallback />}>
@@ -558,12 +573,14 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
               <WatchlistView
                 assets={assets}
                 watchlistIds={watchlistIds}
+                onBrowseMarket={() => setView("home")}
                 onRemoveFromWatchlist={(assetId) => {
                   if (!currentUser) return;
                   setWatchlistIds((prev) => {
                     const newWatchlist = prev.filter((id) => id !== assetId);
                     saveUserWatchlist(currentUser.uid, newWatchlist).catch((error) => {
                       console.error('Error saving watchlist:', error);
+                      toast.error("Failed to save watchlist");
                     });
                     return newWatchlist;
                   });
@@ -574,7 +591,7 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
             </Suspense>
           )}
 
-          <MobileBottomNav view={view} setView={handleViewChange} />
+          <MobileBottomNav view={view} setView={handleViewChange} isAnalyst={isAnalystAuthenticated} />
           <AssetDetailModal
             open={detailOpen}
             onClose={() => setDetailOpen(false)}

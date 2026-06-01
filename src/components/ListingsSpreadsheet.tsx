@@ -31,6 +31,7 @@ interface ListingRow {
   url?: string;
   reshippingCost?: number;
   source?: string;
+  lastSeen?: Date | string;
   originalIndex: number; // Index in the original channel array
 }
 
@@ -96,6 +97,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
           url: point.url,
           reshippingCost: point.reshippingCost,
           source: point.source,
+          lastSeen: point.lastSeen,
           originalIndex: index,
         });
       });
@@ -130,9 +132,11 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
     const editedRow = editedRows.get(row.id);
     if (!editedRow) return;
 
+    const originalRow = tableRows.find((r) => r.id === row.id)!;
     const updatedListing: PricePoint = {
-      ...tableRows.find((r) => r.id === row.id)!,
+      ...originalRow,
       ...editedRow,
+      lastSeen: originalRow.lastSeen || new Date(),
     } as PricePoint;
 
     // Get all listings for this channel and size
@@ -303,6 +307,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
     { value: 'hypefly', label: 'Hypefly' },
     { value: 'dawntown', label: 'Dawntown' },
     { value: '10hillsstudio', label: '10 Hills Studio' },
+    { value: 'hustleculture', label: 'Hustle Culture' },
     { value: 'findyourkicks', label: 'Find your Kicks' },
     { value: 'instagram', label: 'Instagram Seller' },
     { value: 'facebook', label: 'Facebook Marketplace' },
@@ -483,7 +488,8 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                       />
                     </td>
                     {columns.map((col, colIndex) => {
-                      const value = editedRow[col.key as keyof ListingRow];
+                      const rawValue = editedRow[col.key as keyof ListingRow];
+                      const value = rawValue instanceof Date ? rawValue.toISOString() : rawValue;
                       const isEditable = col.editable && (col.key === 'price' || col.key === 'listingCount' || 
                         col.key === 'sellerName' || col.key === 'sellerLocation' || col.key === 'sellerContact' ||
                         col.key === 'marketplaceName' || col.key === 'url' || col.key === 'reshippingCost');
@@ -651,7 +657,8 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
               <tr className="border-b-2 border-brand-black bg-brand-black/5">
                 <td className="p-1.5"></td>
                 {columns.map((col, colIndex) => {
-                  const value = newRow[col.key as keyof ListingRow];
+                  const rawNewValue = newRow[col.key as keyof ListingRow];
+                  const value = rawNewValue instanceof Date ? rawNewValue.toISOString() : rawNewValue;
                   const isEditable = col.editable || col.key === 'channel' || col.key === 'transactionType';
 
                   return (

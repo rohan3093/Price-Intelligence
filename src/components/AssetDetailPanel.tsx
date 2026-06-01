@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Asset, SizeVariant, PricePoint, PortfolioPosition, TradeListing } from "../types";
 import { TradingChart } from "./TradingChart";
-import { Pill } from "./Pill";
 import { OrderBook } from "./OrderBook";
 import { ConnectionRequestModal } from "./ConnectionRequestModal";
+import { ToastContainer } from "./Toast";
+import { useToast } from "../hooks/useToast";
 import { createConnectionRequest, getAssetListings, createTradeListing } from "../utils/connectionsApi";
 import { User } from "firebase/auth";
 import {
@@ -52,12 +53,13 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({
   return (
     <div ref={ref} className={`bg-white border border-brand-gray/20 shadow-sm ${className}`} style={{ borderRadius: '16px' }}>
       {title && (
-        <div className="px-5 py-4 border-b border-brand-gray/10">
-          <div className="flex items-center justify-between">
-            <div>
+        <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-brand-gray/10">
+          {/* Header: stack title + action vertically on mobile, side-by-side on sm+ */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
                 {icon}
-                <h3 className="text-sm font-bold text-brand-black uppercase tracking-wide">
+                <h3 className="text-sm font-bold text-brand-black uppercase tracking-wide truncate">
                   {title}
                 </h3>
               </div>
@@ -65,11 +67,15 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({
                 <p className="text-xs text-brand-black/60 mt-1">{subtitle}</p>
               )}
             </div>
-            {headerAction}
+            {headerAction && (
+              <div className="min-w-0">
+                {headerAction}
+              </div>
+            )}
           </div>
         </div>
       )}
-      <div className={noPadding ? "" : "p-5"}>
+      <div className={noPadding ? "" : "p-3 sm:p-5"}>
         {children}
       </div>
     </div>
@@ -189,31 +195,31 @@ interface ListingCardProps {
 }
 
 const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
-  const getChannelColor = (channel: string) => {
+  const getChannelAccent = (channel: string) => {
     switch (channel) {
-      case 'Sentria':
-        return 'border-emerald-600 bg-emerald-50';
-      case 'WhatsApp':
-        return 'border-green-600 bg-green-50';
-      case 'Marketplace':
-        return 'border-blue-600 bg-blue-50';
-      case 'International':
-        return 'border-purple-600 bg-purple-50';
-      default:
-        return 'border-brand-gray/30 bg-white';
+      case 'Sentria':       return 'border-l-emerald-600';
+      case 'WhatsApp':      return 'border-l-green-600';
+      case 'Marketplace':   return 'border-l-blue-600';
+      case 'International': return 'border-l-purple-600';
+      default:              return 'border-l-brand-gray/40';
+    }
+  };
+
+  const getChannelDot = (channel: string) => {
+    switch (channel) {
+      case 'Sentria':       return 'bg-emerald-600';
+      case 'WhatsApp':      return 'bg-green-600';
+      case 'Marketplace':   return 'bg-blue-600';
+      case 'International': return 'bg-purple-600';
+      default:              return 'bg-brand-gray';
     }
   };
 
   const getSideColor = (side: string) => {
     switch (side) {
-      case 'Buy':
-        return 'bg-green-100 text-green-800 border-green-300';
-      case 'Sell':
-        return 'bg-red-100 text-red-800 border-red-300';
-      case 'Listing':
-        return 'bg-gray-100 text-gray-800 border-gray-300';
-      default:
-        return 'bg-brand-gray/10 text-brand-black/80 border-brand-gray/20';
+      case 'Buy':  return 'bg-green-50 text-green-700';
+      case 'Sell': return 'bg-red-50 text-red-700';
+      default:     return ''; // No badge for generic "Listing"
     }
   };
 
@@ -225,47 +231,61 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
     }
   };
 
+  // Only show side badge when it conveys distinct info (Buy/Sell), not the generic "Listing" fallback
+  const showSideBadge = listing.side === 'Buy' || listing.side === 'Sell';
+
   return (
-    <div className={`border-l-4 ${getChannelColor(listing.channel)} p-4 mb-3`} style={{ borderRadius: '8px' }}>
-      {/* Header: Channel + Side + Price */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-bold uppercase tracking-wide text-brand-black">
+    <div
+      className={`bg-white border border-brand-gray/20 border-l-4 ${getChannelAccent(listing.channel)} p-3 mb-2.5 shadow-sm`}
+      style={{ borderRadius: '10px' }}
+    >
+      {/* Header: Channel dot + label, optional side badge, price (right) */}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+          <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-brand-black">
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${getChannelDot(listing.channel)}`} />
             {listing.channel}
           </span>
-          <span className={`px-2 py-1 text-xs font-semibold uppercase border ${getSideColor(listing.side)}`} style={{ borderRadius: '4px' }}>
-            {listing.side}
-          </span>
+          {showSideBadge && (
+            <span className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase ${getSideColor(listing.side)}`} style={{ borderRadius: '4px' }}>
+              {listing.side}
+            </span>
+          )}
         </div>
-        <div className="text-right">
-          <div className="text-2xl font-mono-numeric font-bold text-brand-black leading-tight">
+        <div className="text-right flex-shrink-0">
+          <div className="text-lg sm:text-xl font-mono-numeric font-bold text-brand-black leading-tight tabular-nums">
             ₹{listing.price.toLocaleString('en-IN')}
           </div>
           {listing.landedPrice && listing.landedPrice !== listing.price && (
-            <div className="text-xs text-brand-black/60 mt-1">
-              Landed: ₹{listing.landedPrice.toLocaleString('en-IN')}
+            <div className="text-[10px] text-brand-black/60 mt-0.5">
+              Landed ₹{listing.landedPrice.toLocaleString('en-IN')}
             </div>
           )}
         </div>
       </div>
 
-      {/* Details Grid */}
-      <div className="grid grid-cols-2 gap-2 text-xs text-brand-black/70 mb-3">
-        <div>
-          <span className="font-semibold">Source:</span> {listing.sourceLabel}
-        </div>
-        <div>
-          <span className="font-semibold">Qty:</span> {listing.listingCount}
-        </div>
+      {/* Compact metadata row — inline, no separate grid */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-brand-black/60 mb-2.5">
+        <span className="truncate min-w-0 max-w-full">
+          <span className="text-brand-black/40">Source </span>
+          <span className="text-brand-black/80 font-medium">{listing.sourceLabel}</span>
+        </span>
+        <span className="text-brand-black/20">·</span>
+        <span>
+          <span className="text-brand-black/40">Qty </span>
+          <span className="text-brand-black/80 font-medium">{listing.listingCount}</span>
+        </span>
         {listing.location && (
-          <div>
-            <span className="font-semibold">Location:</span> {listing.location}
-          </div>
+          <>
+            <span className="text-brand-black/20">·</span>
+            <span className="truncate min-w-0 max-w-[120px]">{listing.location}</span>
+          </>
         )}
         {listing.lastSeen && (
-          <div>
-            <span className="font-semibold">Updated:</span> {formatLastSeen(listing.lastSeen)}
-          </div>
+          <>
+            <span className="text-brand-black/20">·</span>
+            <span className="whitespace-nowrap">{formatLastSeen(listing.lastSeen)}</span>
+          </>
         )}
       </div>
 
@@ -273,7 +293,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
       {listing.contactType && listing.contactValue && (
         <button
           onClick={handleAction}
-          className="w-full min-h-[44px] px-4 py-3 bg-brand-black text-white text-sm font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-colors active:scale-[0.98]"
+          className="w-full min-h-[40px] px-4 py-2 bg-brand-black text-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-colors active:scale-[0.98]"
           style={{ borderRadius: '8px' }}
         >
           {listing.side === 'Sell' ? 'Sell To' : 'Buy From'} →
@@ -342,7 +362,7 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
             <div className="text-xs font-semibold text-brand-black">{channelLabel(opp.sell.channel)}</div>
             <div className="text-[10px] text-brand-black/50 truncate max-w-[140px]">{opp.sell.source}</div>
             {opp.sellReliability === "consignment" && (
-              <span className="inline-block mt-0.5 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200/60" style={{ borderRadius: '3px' }}>
+              <span className="inline-block mt-0.5 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200/60 cursor-help" style={{ borderRadius: '3px' }} title="Consignment: marketplace lists your item and pays you after it sells. Payout timing varies.">
                 Consignment
               </span>
             )}
@@ -367,10 +387,40 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="mt-2 flex items-center justify-between text-[10px] text-brand-black/40">
-        <span>{opp.scalable} pair{opp.scalable !== 1 ? 's' : ''} available</span>
-        <span>Buy: {opp.buy.count} · Sell: {opp.sell.count}</span>
+      {/* Action + Footer */}
+      <div className="mt-3 flex items-center justify-between">
+        {opp.buy.sellerContact ? (
+          <a
+            href={`https://wa.me/${opp.buy.sellerContact.replace(/[^0-9]/g, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors"
+            style={{ borderRadius: '6px' }}
+          >
+            Contact Seller
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        ) : opp.buy.url ? (
+          <a
+            href={opp.buy.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-brand-black text-white hover:bg-brand-black/80 transition-colors"
+            style={{ borderRadius: '6px' }}
+          >
+            View Listing
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        ) : (
+          <span />
+        )}
+        <span className="text-[10px] text-brand-black/40">
+          {opp.scalable} pair{opp.scalable !== 1 ? 's' : ''} · Buy: {opp.buy.count} · Sell: {opp.sell.count}
+        </span>
       </div>
     </div>
   );
@@ -413,13 +463,20 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
   const [connectionTarget, setConnectionTarget] = useState<{userId: string; email: string; name?: string} | null>(null);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [showSellModal, setShowSellModal] = useState(false);
+  const [buyModalExpandWhatsapp, setBuyModalExpandWhatsapp] = useState(false);
+  const [buyModalExpandMarketplace, setBuyModalExpandMarketplace] = useState(false);
+  const [buyModalExpandIntl, setBuyModalExpandIntl] = useState(false);
   const [tradeListings, setTradeListings] = useState<TradeListing[]>([]);
   
   // Mobile detection state
   const [isMobile, setIsMobile] = useState(false);
   
-  // Main tab system for asset detail sections
-  const [mainTab, setMainTab] = useState<'chart' | 'orderbook' | 'listings' | 'arbitrage' | 'analytics' | 'insight'>('chart');
+  // Main tab system — 3 tabs: Overview (chart+analytics+insight), Listings (orderbook+listings), Arbitrage
+  const [mainTab, setMainTab] = useState<'overview' | 'listings' | 'arbitrage'>('overview');
+  const [listingsViewMode, setListingsViewMode] = useState<'individual' | 'aggregated'>('individual');
+
+  // Toast notification system
+  const { toasts, toast, removeToast } = useToast();
 
   // Mobile detection effect
   useEffect(() => {
@@ -507,10 +564,9 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
     );
 
     if (result.success) {
-      // Success feedback - you could add a toast notification here
-      alert('Connection request sent! The seller will be notified.');
+      toast.success('Connection request sent! The seller will be notified.');
     } else {
-      alert('Failed to send request: ' + result.error);
+      toast.error('Failed to send request: ' + result.error);
     }
   };
 
@@ -809,6 +865,27 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
     });
   }, [asset, sizeVariant, minArbNetPct, minArbNetRs]);
 
+  // Best arbitrage across ALL sizes — for the "best size" banner
+  const bestSizeArb = useMemo((): { size: string; opp: ArbitrageOpportunity } | null => {
+    if (!asset?.sizes || asset.sizes.length < 2) return null;
+    let best: { size: string; opp: ArbitrageOpportunity } | null = null;
+    for (const sv of asset.sizes) {
+      if (sv.size === selectedSize) continue;
+      const opps = computeOpportunities(sv, {
+        ...DEFAULT_CONFIG,
+        minNetPct: 0.03,
+        minNetRs: 0,
+        limit: 1,
+      }, { assetId: asset.id, assetName: asset.name, volatility: asset.volatility });
+      if (opps.length > 0 && (!best || opps[0].netProfit > best.opp.netProfit)) {
+        best = { size: sv.size, opp: opps[0] };
+      }
+    }
+    // Only show if the other size is meaningfully better than current best
+    if (best && arbitrageOpps.length > 0 && best.opp.netProfit <= arbitrageOpps[0].netProfit) return null;
+    return best;
+  }, [asset, selectedSize, arbitrageOpps]);
+
   // Memoized calculation of best available price (lowest price across all channels)
   // For international prices, use total landed cost (platform price + reshipping cost)
   const bestPrice = useMemo(() => {
@@ -889,48 +966,174 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               </div>
             </div>
 
-            {/* Size Selector - Modern Pill Style */}
-            {asset.sizes && asset.sizes.length > 0 && (
-              <div>
-                <p className="text-sm font-semibold uppercase text-brand-black/60 mb-2 tracking-wide">Select Size</p>
-                <div className="flex flex-wrap gap-2">
-                  {sortSizesNumerically(asset.sizes).map((sizeVariant) => (
-                    <Pill
-                      key={sizeVariant.size}
-                      label={sizeVariant.size}
-                      active={selectedSize === sizeVariant.size}
-                      onClick={() => setSelectedSize(sizeVariant.size)}
-                      size="md"
-                    />
-                  ))}
+            {/* Size Selector — Visual buttons with best price per size */}
+            {asset.sizes && asset.sizes.length > 0 && (() => {
+              const sorted = sortSizesNumerically(asset.sizes);
+              const sizePriceMap = new Map<string, number | null>();
+              sorted.forEach(sv => {
+                const prices: number[] = [];
+                if (sv.pricePoints) {
+                  (sv.pricePoints.whatsapp || []).filter((p: PricePoint) => !p.transactionType || p.transactionType === 'buy' || p.transactionType === 'both').forEach((p: PricePoint) => prices.push(p.price));
+                  (sv.pricePoints.marketplace || []).forEach((p: PricePoint) => prices.push(p.price));
+                  (sv.pricePoints.international || []).forEach((p: PricePoint) => prices.push(p.price + (p.reshippingCost || 0)));
+                } else if (sv.legacyPricePoints) {
+                  (sv.legacyPricePoints.b2b || []).filter((p: PricePoint) => !p.transactionType || p.transactionType === 'buy' || p.transactionType === 'both').forEach((p: PricePoint) => prices.push(p.price));
+                  (sv.legacyPricePoints.endCustomer || []).forEach((p: PricePoint) => prices.push(p.price));
+                  (sv.legacyPricePoints.stockxGoat || []).forEach((p: PricePoint) => prices.push(p.price + (p.reshippingCost || 0)));
+                }
+                sizePriceMap.set(sv.size, prices.length > 0 ? Math.min(...prices) : null);
+              });
+
+              const pricedSizes = Array.from(sizePriceMap.entries()).filter(([, p]) => p !== null) as [string, number][];
+              const cheapestPrice = pricedSizes.length > 0 ? Math.min(...pricedSizes.map(([, p]) => p)) : null;
+
+              return (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-semibold uppercase text-brand-black/50 tracking-wide">Size</label>
+                    {cheapestPrice !== null && pricedSizes.length > 1 && (
+                      <span className="text-[10px] text-green-600 font-semibold">
+                        Best: {pricedSizes.find(([, p]) => p === cheapestPrice)?.[0]} at ₹{cheapestPrice.toLocaleString('en-IN')}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {sorted.map(sv => {
+                      const best = sizePriceMap.get(sv.size) ?? null;
+                      const isSelected = sv.size === selectedSize;
+                      const isCheapest = best !== null && best === cheapestPrice && pricedSizes.length > 1;
+                      const hasPrice = best !== null && best !== undefined;
+                      return (
+                        <button
+                          key={sv.size}
+                          onClick={() => setSelectedSize(sv.size)}
+                          className={`px-2.5 py-1.5 text-center transition-all min-w-[60px] ${
+                            isSelected
+                              ? 'bg-brand-black text-white shadow-sm'
+                              : isCheapest
+                              ? 'bg-green-50 border border-green-300 text-brand-black hover:border-green-500'
+                              : 'bg-white border border-brand-gray/30 text-brand-black hover:border-brand-black'
+                          }`}
+                          style={{ borderRadius: '8px' }}
+                        >
+                          <span className="block text-xs font-semibold leading-tight">{sv.size}</span>
+                          {hasPrice ? (
+                            <span className={`block text-[10px] font-mono-numeric font-bold mt-0.5 leading-tight tabular-nums ${
+                              isSelected ? 'text-white/80' : isCheapest ? 'text-green-600' : 'text-brand-black/60'
+                            }`}>
+                              {(() => {
+                                const v = best!;
+                                if (v >= 1_00_00_000) return `₹${(v / 1_00_00_000).toFixed(v >= 1_00_00_00_000 ? 0 : 1)}Cr`;
+                                if (v >= 1_00_000) return `₹${(v / 1_00_000).toFixed(v >= 10_00_000 ? 0 : 1)}L`;
+                                if (v >= 10_000) return `₹${Math.round(v / 1000)}k`;
+                                if (v >= 1_000) return `₹${(v / 1000).toFixed(1)}k`;
+                                return `₹${v.toLocaleString('en-IN')}`;
+                              })()}
+                            </span>
+                          ) : (
+                            <span className={`block text-[10px] mt-0.5 leading-tight ${isSelected ? 'text-white/50' : 'text-brand-black/30'}`}>—</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Quick Decision Card - Key Metrics at a Glance */}
             <div className="bg-brand-background border border-brand-gray/30 p-3" style={{ borderRadius: '12px' }}>
-              <div className="flex items-baseline justify-between gap-4 mb-2">
-                <div>
-                  <p className="text-sm text-brand-black/50 uppercase tracking-wider mb-1">Best Price</p>
-                  <p className="text-2xl md:text-3xl font-mono-numeric font-bold text-green-600 leading-tight">
+              <div className="flex items-baseline justify-between gap-3 mb-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-brand-black/50 uppercase tracking-wider mb-1">Best Price</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-mono-numeric font-bold text-green-600 leading-tight break-words">
                     {bestPrice ? `₹${bestPrice.toLocaleString("en-IN")}` : "—"}
                   </p>
                 </div>
                 {bestPrice && anchor?.retailIndia && (
-                  <div className="text-right">
-                    <p className="text-sm text-brand-black/50 uppercase tracking-wider mb-1">vs Retail</p>
-                    <p className={`text-lg font-mono-numeric font-bold leading-tight ${
-                      bestPrice < anchor.retailIndia ? "text-green-600" : "text-red-600"
-                    }`}>
-                      {bestPrice < anchor.retailIndia ? "-" : "+"}
+                  <div className="text-right flex-shrink-0" title={`Retail: ₹${anchor.retailIndia.toLocaleString("en-IN")}. Best price is ${bestPrice < anchor.retailIndia ? "below" : "above"} retail by ${Math.abs(((bestPrice - anchor.retailIndia) / anchor.retailIndia) * 100).toFixed(0)}%.`}>
+                    <p className="text-xs sm:text-sm text-brand-black/50 uppercase tracking-wider mb-1 flex items-center justify-end gap-1 whitespace-nowrap">
+                      vs Retail
+                      <span className="cursor-help text-brand-black/30 hover:text-brand-black/60 transition-colors">ⓘ</span>
+                    </p>
+                    <p className="text-base sm:text-lg font-mono-numeric font-bold leading-tight text-brand-black">
+                      {bestPrice < anchor.retailIndia ? "↓ -" : "↑ +"}
                       {Math.abs(((bestPrice - anchor.retailIndia) / anchor.retailIndia) * 100).toFixed(0)}%
+                    </p>
+                    <p className="text-[9px] text-brand-black/40 mt-0.5">
+                      {bestPrice < anchor.retailIndia ? "Below retail" : "Above retail"}
                     </p>
                   </div>
                 )}
               </div>
-              
+
+              {/* Per-Channel Best Prices */}
+              {(() => {
+                const channels: { label: string; price: number | undefined; count: number }[] = [];
+                if (whatsappPrices.buy.length > 0) {
+                  channels.push({
+                    label: "WhatsApp",
+                    price: Math.min(...whatsappPrices.buy.map(p => p.price)),
+                    count: whatsappPrices.buy.length,
+                  });
+                }
+                if (marketplacePrices.length > 0) {
+                  channels.push({
+                    label: "Marketplace",
+                    price: Math.min(...marketplacePrices.map(p => p.price)),
+                    count: marketplacePrices.length,
+                  });
+                }
+                if (internationalPrices.length > 0) {
+                  channels.push({
+                    label: "International",
+                    price: Math.min(...internationalPrices.map(p => p.price + (p.reshippingCost || 0))),
+                    count: internationalPrices.length,
+                  });
+                }
+                if (channels.length === 0) return null;
+                const overallBest = bestPrice;
+                return (
+                  <div className={`grid gap-2 pt-2 border-t border-brand-gray/30 ${
+                    channels.length === 1 ? "grid-cols-1" : channels.length === 2 ? "grid-cols-2" : "grid-cols-3"
+                  }`}>
+                    {channels.map((ch) => {
+                      const isBest = overallBest !== undefined && ch.price === overallBest;
+                      const shortLabel =
+                        ch.label === "Marketplace" ? "Market"
+                        : ch.label === "International" ? "Intl"
+                        : ch.label; // WhatsApp short enough already
+                      const tooltip =
+                        ch.label === "Marketplace"
+                          ? "Best price from Indian resale platforms (e.g. Culture Circle, HypeFly). Shipped domestically."
+                          : ch.label === "International"
+                          ? "Best landed price from global platforms (e.g. StockX, GOAT). Includes platform fees."
+                          : "Best price from WhatsApp trade groups. Direct seller-to-buyer.";
+                      return (
+                        <div
+                          key={ch.label}
+                          className={`px-1.5 sm:px-2.5 py-2 text-center relative group/ch min-w-0 ${isBest ? "bg-green-50 border border-green-200" : "bg-white border border-brand-gray/15"}`}
+                          style={{ borderRadius: '8px' }}
+                          title={tooltip}
+                        >
+                          <p className="text-[9px] sm:text-[10px] text-brand-black/50 uppercase tracking-wider mb-0.5 leading-tight flex items-center justify-center gap-1">
+                            <span className="sm:hidden">{shortLabel}</span>
+                            <span className="hidden sm:inline">{ch.label}</span>
+                            <span className="hidden sm:inline cursor-help text-brand-black/30 hover:text-brand-black/60 transition-colors flex-shrink-0">ⓘ</span>
+                          </p>
+                          <p className={`text-[13px] sm:text-sm font-mono-numeric font-bold leading-tight truncate ${isBest ? "text-green-600" : "text-brand-black"}`}>
+                            {ch.price !== undefined ? `₹${ch.price.toLocaleString("en-IN")}` : "—"}
+                          </p>
+                          <p className="text-[9px] sm:text-[10px] text-brand-black/40 mt-0.5 leading-tight">{ch.count} listing{ch.count !== 1 ? "s" : ""}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+
               {/* Quick Stats Row with Icons */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-brand-gray/30">
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-brand-gray/30 mt-2">
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 text-sm text-brand-black/50 mb-1">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -981,13 +1184,14 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 if (activeChannels.length === 0) return null;
                 
                 return (
-                  <div className="flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-1 min-w-0">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
-                    <span className="font-medium">{activeChannels.length} {activeChannels.length === 1 ? 'channel' : 'channels'}</span>
-                    <span className="text-brand-black/40">·</span>
-                    <span>{activeChannels.join(', ')}</span>
+                    <span className="font-medium whitespace-nowrap">{activeChannels.length} {activeChannels.length === 1 ? 'channel' : 'channels'}</span>
+                    {/* Detailed channel list — desktop only (redundant on mobile, channel chips above already show this) */}
+                    <span className="hidden sm:inline text-brand-black/40">·</span>
+                    <span className="hidden sm:inline truncate">{activeChannels.join(', ')}</span>
                   </div>
                 );
               })()}
@@ -1024,10 +1228,10 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 
                 return (
                   <div className="flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                    <span className="font-medium">{sellerCount} {sellerCount === 1 ? 'seller' : 'sellers'}</span>
+                    <span className="font-medium whitespace-nowrap">{sellerCount} {sellerCount === 1 ? 'seller' : 'sellers'}</span>
                   </div>
                 );
               })()}
@@ -1075,35 +1279,39 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 
                 return (
                   <div className="flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="font-medium">Updated {timeAgo}</span>
+                    <span className="font-medium whitespace-nowrap">Updated {timeAgo}</span>
                   </div>
                 );
               })()}
               </div>
             </div>
 
-            {/* Clean Action Toolbar - Intelligence First */}
+            {/* Action Toolbar */}
             <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-brand-gray/20">
               <button
-                onClick={() => setShowBuyModal(true)}
-                className="flex-1 min-w-[120px] px-4 py-2.5 bg-brand-black text-white text-sm font-bold uppercase tracking-wide hover:bg-brand-black/90 transition-all duration-200 active:scale-95"
+                onClick={() => { setShowBuyModal(true); setBuyModalExpandWhatsapp(false); setBuyModalExpandMarketplace(false); setBuyModalExpandIntl(false); }}
+                className="flex-1 min-w-[120px] px-4 py-2 bg-brand-black text-white text-center hover:bg-brand-black/90 transition-all duration-200 active:scale-95"
                 style={{ borderRadius: '8px' }}
+                title="Send a buy request to connect with sellers"
               >
-                Buy
+                <span className="text-sm font-bold uppercase tracking-wide block">Buy</span>
+                <span className="text-[9px] font-normal opacity-70 block -mt-0.5">Request to connect</span>
               </button>
               <button
                 onClick={() => setShowSellModal(true)}
-                className="flex-1 min-w-[120px] px-4 py-2.5 border-2 border-brand-black text-sm font-bold uppercase tracking-wide text-brand-black hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
+                className="flex-1 min-w-[120px] px-4 py-2 border-2 border-brand-black text-brand-black text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
                 style={{ borderRadius: '8px' }}
+                title="List your pair for other traders to find"
               >
-                Sell
+                <span className="text-sm font-bold uppercase tracking-wide block">Sell</span>
+                <span className="text-[9px] font-normal opacity-50 block -mt-0.5">List your pair</span>
               </button>
               <button
                 onClick={onToggleWatchlist}
-                className={`px-4 py-2.5 border-2 text-sm font-semibold uppercase tracking-wide transition-all duration-200 active:scale-95 ${
+                className={`px-4 py-2.5 border-2 text-sm font-semibold uppercase tracking-wide transition-all duration-200 active:scale-95 flex items-center gap-2 ${
                   watchlisted
                     ? "border-yellow-600 bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
                     : "border-brand-gray text-brand-black hover:bg-brand-gray/10"
@@ -1111,14 +1319,11 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 style={{ borderRadius: '8px' }}
               >
                 {watchlisted ? "★ Watching" : "☆ Watch"}
-              </button>
-              <button
-                onClick={() => alert('Price alerts coming soon!')}
-                className="px-4 py-2.5 border-2 border-brand-gray text-xs font-semibold text-brand-black hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
-                style={{ borderRadius: '8px' }}
-                title="Set price alert"
-              >
-                🔔
+                <span
+                  className="text-xs opacity-50 cursor-help"
+                  title="Price alerts coming soon — get notified when this asset hits your target price"
+                  onClick={(e) => { e.stopPropagation(); toast.info('Price alerts coming soon!'); }}
+                >🔔</span>
               </button>
             </div>
           </div>
@@ -1129,35 +1334,27 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
 
       {/* Platform Disclaimer - Compact */}
       {/* ============================================ */}
-      {/* MAIN TAB NAVIGATION */}
+      {/* MAIN TAB NAVIGATION — 3 Tabs */}
       {/* ============================================ */}
       <div className="mt-6 mb-4">
-        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 pb-2">
           <button
-            onClick={() => setMainTab('chart')}
-            className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${
-              mainTab === 'chart'
+            onClick={() => setMainTab('overview')}
+            className={`flex-1 min-w-0 px-2 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+              mainTab === 'overview'
                 ? 'bg-brand-black text-white'
                 : 'bg-white text-brand-black border-2 border-brand-gray/30 hover:border-brand-black'
             }`}
             style={{ borderRadius: '12px' }}
           >
-            Market Data
-          </button>
-          <button
-            onClick={() => setMainTab('orderbook')}
-            className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${
-              mainTab === 'orderbook'
-                ? 'bg-brand-black text-white'
-                : 'bg-white text-brand-black border-2 border-brand-gray/30 hover:border-brand-black'
-            }`}
-            style={{ borderRadius: '12px' }}
-          >
-            Order Book
+            Overview
+            {currentData.insight && (
+              <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-blue-500 align-middle" title="Insight available"></span>
+            )}
           </button>
           <button
             onClick={() => setMainTab('listings')}
-            className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${
+            className={`flex-1 min-w-0 px-2 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
               mainTab === 'listings'
                 ? 'bg-brand-black text-white'
                 : 'bg-white text-brand-black border-2 border-brand-gray/30 hover:border-brand-black'
@@ -1165,14 +1362,14 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             style={{ borderRadius: '12px' }}
           >
             Listings {unifiedListings.length > 0 && (
-              <span className="ml-1.5 px-2 py-0.5 bg-brand-black/10 text-xs font-bold" style={{ borderRadius: '6px' }}>
+              <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'listings' ? 'bg-white/20' : 'bg-brand-black/10'}`} style={{ borderRadius: '6px' }}>
                 {unifiedListings.length}
               </span>
             )}
           </button>
           <button
             onClick={() => setMainTab('arbitrage')}
-            className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${
+            className={`flex-1 min-w-0 px-2 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
               mainTab === 'arbitrage'
                 ? 'bg-brand-black text-white'
                 : 'bg-white text-brand-black border-2 border-brand-gray/30 hover:border-brand-black'
@@ -1180,35 +1377,11 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             style={{ borderRadius: '12px' }}
           >
             Arbitrage {arbitrageOpps.length > 0 && (
-              <span className="ml-1.5 px-2 py-0.5 bg-brand-black/10 text-xs font-bold" style={{ borderRadius: '6px' }}>
+              <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'arbitrage' ? 'bg-white/20' : 'bg-brand-black/10'}`} style={{ borderRadius: '6px' }}>
                 {arbitrageOpps.length}
               </span>
             )}
           </button>
-          <button
-            onClick={() => setMainTab('analytics')}
-            className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${
-              mainTab === 'analytics'
-                ? 'bg-brand-black text-white'
-                : 'bg-white text-brand-black border-2 border-brand-gray/30 hover:border-brand-black'
-            }`}
-            style={{ borderRadius: '12px' }}
-          >
-            Analytics
-          </button>
-          {currentData.insight && (
-            <button
-              onClick={() => setMainTab('insight')}
-              className={`px-6 py-3 text-sm font-semibold transition-all whitespace-nowrap ${
-                mainTab === 'insight'
-                  ? 'bg-brand-black text-white'
-                  : 'bg-white text-brand-black border-2 border-brand-gray/30 hover:border-brand-black'
-              }`}
-              style={{ borderRadius: '12px' }}
-            >
-              Insight
-            </button>
-          )}
         </div>
       </div>
 
@@ -1216,11 +1389,12 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       {/* TAB CONTENT */}
       {/* ============================================ */}
 
-      {/* CHART TAB */}
-      {mainTab === 'chart' && (
+      {/* OVERVIEW TAB — Chart + Analytics + Insight */}
+      {mainTab === 'overview' && (
         <div className="space-y-4">
+          {/* Price Chart */}
           <Card
-            title="Market Data"
+            title="Price Chart"
             subtitle="Cross-venue view • Updated continuously"
             icon={
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1229,37 +1403,24 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             }
             className="shadow-sm"
           >
-            {/* Professional Trading Chart */}
             <TradingChart
-              pricePoints={sizeVariant?.pricePoints || sizeVariant?.legacyPricePoints || asset.pricePoints}
+              pricePoints={(() => {
+                const sp = sizeVariant?.pricePoints;
+                if (sp) {
+                  const hasData = ('whatsapp' in sp && sp.whatsapp?.length)
+                    || ('marketplace' in sp && sp.marketplace?.length)
+                    || ('international' in sp && sp.international?.length);
+                  if (hasData) return sp;
+                }
+                return sizeVariant?.legacyPricePoints || asset.pricePoints;
+              })()}
             />
-            {/* Performance Stats Below Chart */}
-            {(currentData.change30d && currentData.change30d !== "N/A" && 
-              currentData.change90d && currentData.change90d !== "N/A") && (
-              <div className="mt-3 flex items-center justify-center gap-6 text-sm text-brand-black/70">
-                <div>
-                  30d: <span className={`font-semibold ${currentData.change30d.startsWith('-') ? 'text-red-600' : 'text-green-600'}`}>
-                    {currentData.change30d}
-                  </span>
-                </div>
-                <span className="text-brand-black/30">•</span>
-                <div>
-                  90d: <span className={`font-semibold ${currentData.change90d.startsWith('-') ? 'text-red-600' : 'text-green-600'}`}>
-                    {currentData.change90d}
-                  </span>
-                </div>
-              </div>
-            )}
           </Card>
-        </div>
-      )}
 
-      {/* ORDER BOOK TAB */}
-      {mainTab === 'orderbook' && (
-        <div className="space-y-4">
+          {/* Market Analytics */}
           <Card
-            title="Order Book"
-            subtitle="Aggregated buy/sell orders at each price level"
+            title="Market Analytics"
+            subtitle="Price dynamics and market structure"
             icon={
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -1267,23 +1428,222 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             }
             className="shadow-sm"
           >
-            <OrderBook
-              whatsappBuyPrices={whatsappPrices.buy}
-              whatsappSellPrices={whatsappPrices.sell}
-              marketplacePrices={marketplacePrices}
-              internationalPrices={internationalPrices}
-            />
+            {(() => {
+              const whatsappBest = whatsappPrices.buy.length > 0 ? whatsappPrices.buy[0].price : 0;
+              const whatsappMax = whatsappPrices.buy.length > 0 ? Math.max(...whatsappPrices.buy.map(p => p.price)) : 0;
+              const marketplaceBest = marketplacePrices.length > 0 ? marketplacePrices[0].price : 0;
+              const marketplaceMax = marketplacePrices.length > 0 ? marketplacePrices[marketplacePrices.length - 1].price : 0;
+              const internationalBest = internationalPrices.length > 0
+                ? Math.min(...internationalPrices.map(p => p.price + (p.reshippingCost || 0)))
+                : 0;
+              const internationalAll = internationalPrices.length > 0
+                ? internationalPrices.map(p => p.price + (p.reshippingCost || 0))
+                : [];
+              const internationalMax = internationalAll.length > 0 ? Math.max(...internationalAll) : 0;
+
+              const allPrices = [whatsappBest, whatsappMax, marketplaceBest, marketplaceMax, internationalBest, internationalMax].filter(p => p > 0);
+              const marketMin = allPrices.length > 0 ? Math.min(...allPrices) : 0;
+              const marketMax = allPrices.length > 0 ? Math.max(...allPrices) : 0;
+              const priceRangeWidth = marketMax - marketMin;
+              const priceRangePct = marketMin > 0 ? (priceRangeWidth / marketMin) * 100 : 0;
+
+              const getPriceStability = () => {
+                if (priceRangePct === 0) return { level: 'N/A', label: 'No Data', color: 'text-brand-black/40' };
+                if (priceRangePct <= 5) return { level: 'Tight', label: 'Very Stable', color: 'text-green-600' };
+                if (priceRangePct <= 15) return { level: 'Moderate', label: 'Stable', color: 'text-yellow-600' };
+                if (priceRangePct <= 50) return { level: 'Wide', label: 'Volatile', color: 'text-orange-600' };
+                return { level: 'Very Wide', label: 'Highly Volatile', color: 'text-red-600' };
+              };
+              const priceStability = getPriceStability();
+
+              const whatsappAvg = whatsappPrices.buy.length > 0
+                ? whatsappPrices.buy.reduce((sum, p) => sum + p.price, 0) / whatsappPrices.buy.length
+                : 0;
+              const marketplaceAvg = marketplacePrices.length > 0
+                ? marketplacePrices.reduce((sum, p) => sum + p.price, 0) / marketplacePrices.length
+                : 0;
+              const whatsappEfficiency = whatsappBest > 0 && whatsappAvg > 0
+                ? ((whatsappAvg - whatsappBest) / whatsappAvg) * 100
+                : 0;
+              const marketplaceEfficiency = marketplaceBest > 0 && marketplaceAvg > 0
+                ? ((marketplaceAvg - marketplaceBest) / marketplaceAvg) * 100
+                : 0;
+              const avgEfficiency = (whatsappEfficiency + marketplaceEfficiency) / 2;
+
+              return (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }} title="Based on price fluctuation patterns across data points.">
+                    <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">Volatility</p>
+                    <p className={`text-lg font-semibold capitalize ${
+                      asset.volatility === 'low' ? 'text-green-600' : asset.volatility === 'high' ? 'text-red-600' : 'text-yellow-600'
+                    }`}>{asset.volatility ? `${asset.volatility[0].toUpperCase()}${asset.volatility.slice(1)}` : "—"}</p>
+                  </div>
+                  <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }} title={`Lowest price: ₹${marketMin.toLocaleString('en-IN')} — Highest price: ₹${marketMax.toLocaleString('en-IN')}`}>
+                    <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">Price Range</p>
+                    {marketMin > 0 ? (
+                      <>
+                        <p className="text-lg font-mono-numeric font-bold text-brand-black">
+                          ₹{priceRangeWidth.toLocaleString('en-IN')}
+                        </p>
+                        <p className="text-[9px] text-brand-black/50 mt-0.5">
+                          {priceRangePct.toFixed(1)}% spread
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-lg font-bold text-brand-black/30">—</p>
+                    )}
+                  </div>
+                  <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }} title="Measures how close best prices are to the average across channels.">
+                    <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1 flex items-center gap-1">
+                      Efficiency
+                      <span className="cursor-help text-brand-black/30 hover:text-brand-black/60 transition-colors">ⓘ</span>
+                    </p>
+                    {avgEfficiency > 0 ? (
+                      <>
+                        <p className={`text-lg font-mono-numeric font-bold ${
+                          avgEfficiency <= 5 ? 'text-green-600' : avgEfficiency <= 10 ? 'text-yellow-600' : 'text-red-600'
+                        }`}>{avgEfficiency.toFixed(1)}%</p>
+                        <p className="text-[9px] text-brand-black/50 mt-0.5">
+                          {avgEfficiency <= 5 ? 'Highly efficient' : avgEfficiency <= 10 ? 'Moderate' : 'Inefficient'}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-lg font-bold text-brand-black/30">—</p>
+                    )}
+                  </div>
+                  <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }} title={`Price stability: ${priceRangePct.toFixed(1)}% spread.`}>
+                    <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1 flex items-center gap-1">
+                      Stability
+                      <span className="cursor-help text-brand-black/30 hover:text-brand-black/60 transition-colors">ⓘ</span>
+                    </p>
+                    <p className={`text-lg font-semibold ${priceStability.color}`}>{priceStability.level}</p>
+                    <p className="text-[9px] text-brand-black/50 mt-0.5">
+                      {priceRangePct > 0 ? `${priceRangePct.toFixed(1)}% low–high` : 'No data'}
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
           </Card>
+
+          {/* Insight Card — shown inline when data exists */}
+          {currentData.insight && (
+            <Card
+              className={`shadow-sm ${
+                currentData.insight.recommendation === 'buy'
+                  ? 'bg-gradient-to-br from-green-50/50 to-green-100/30 border-green-200'
+                  : currentData.insight.recommendation === 'sell'
+                  ? 'bg-gradient-to-br from-red-50/50 to-red-100/30 border-red-200'
+                  : 'bg-gradient-to-br from-blue-50/50 to-blue-100/30 border-blue-200'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-4 mb-3">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  <span className="text-sm font-bold text-brand-black/70 uppercase tracking-wide">Market Insight</span>
+                  {selectedSize && <span className="text-xs text-brand-black/50">({selectedSize})</span>}
+                </div>
+                <div className={`px-3 py-1.5 font-bold text-sm uppercase tracking-wide ${
+                  currentData.insight.recommendation === 'buy'
+                    ? 'bg-green-600 text-white'
+                    : currentData.insight.recommendation === 'sell'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-blue-600 text-white'
+                }`} style={{ borderRadius: '8px' }}>
+                  {currentData.insight.recommendation.toUpperCase()}
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
+                  <span className="text-brand-black/70">Confidence</span>
+                  <span className="font-mono text-brand-black">{currentData.insight.confidence}%</span>
+                </div>
+                <div className="h-1.5 bg-brand-gray/20 overflow-hidden" style={{ borderRadius: '4px' }}>
+                  <div
+                    className={`h-full transition-all ${
+                      currentData.insight.recommendation === 'buy'
+                        ? 'bg-green-600'
+                        : currentData.insight.recommendation === 'sell'
+                        ? 'bg-red-600'
+                        : 'bg-blue-600'
+                    }`}
+                    style={{ width: `${currentData.insight.confidence}%` }}
+                  />
+                </div>
+              </div>
+
+              <p className="text-sm text-brand-black leading-relaxed">{currentData.insight.reasoning}</p>
+              {currentData.insight.expectedMovement && (
+                <p className="text-sm text-brand-black/70 italic mt-2">
+                  <span className="font-semibold">Expected: </span>{currentData.insight.expectedMovement}
+                </p>
+              )}
+
+              <p className="text-[10px] text-brand-black/40 mt-3 pt-2 border-t border-brand-gray/20">
+                Algorithmic recommendation based on current data. Not financial advice.
+              </p>
+            </Card>
+          )}
         </div>
       )}
 
-      {/* LISTINGS TAB */}
+      {/* LISTINGS TAB — Combined Order Book + Individual Listings */}
       {mainTab === 'listings' && (
         <div className="space-y-4">
-      {unifiedListings.length > 0 ? (
+      {/* View Mode Toggle */}
+      <div className="inline-flex items-center gap-1 bg-white border border-brand-gray/30 p-1 w-full sm:w-fit" style={{ borderRadius: '10px' }}>
+        <button
+          onClick={() => setListingsViewMode('individual')}
+          className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-semibold transition-all whitespace-nowrap ${
+            listingsViewMode === 'individual'
+              ? 'bg-brand-black text-white'
+              : 'text-brand-black/60 hover:text-brand-black'
+          }`}
+          style={{ borderRadius: '8px' }}
+        >
+          <span className="sm:hidden">Individual</span>
+          <span className="hidden sm:inline">Individual Listings</span>
+        </button>
+        <button
+          onClick={() => setListingsViewMode('aggregated')}
+          className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-semibold transition-all whitespace-nowrap ${
+            listingsViewMode === 'aggregated'
+              ? 'bg-brand-black text-white'
+              : 'text-brand-black/60 hover:text-brand-black'
+          }`}
+          style={{ borderRadius: '8px' }}
+        >
+          <span className="sm:hidden">Order Book</span>
+          <span className="hidden sm:inline">Aggregated (Order Book)</span>
+        </button>
+      </div>
+
+      {/* Aggregated Order Book View */}
+      {listingsViewMode === 'aggregated' ? (
         <Card
-          title="All Listings (Across Channels)"
-          subtitle={`${unifiedListings.length} listings found`}
+          title="Order Book"
+          subtitle="Buy/sell orders aggregated at each price level"
+          icon={
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          }
+          className="shadow-sm"
+        >
+          <OrderBook
+            whatsappBuyPrices={whatsappPrices.buy}
+            whatsappSellPrices={whatsappPrices.sell}
+            marketplacePrices={marketplacePrices}
+            internationalPrices={internationalPrices}
+          />
+        </Card>
+      ) : unifiedListings.length > 0 ? (
+        <Card
+          title="All Listings"
+          subtitle={isMobile ? undefined : `${unifiedListings.length} listings across all channels`}
           icon={
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -1291,8 +1651,108 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
           }
           className="shadow-sm"
         >
-            {/* Enhanced Filters - Cleaner Pill Style */}
-            <div className="space-y-4 mb-4">
+            {/* MOBILE: Compact toolbar. DESKTOP: Original spacious layout. */}
+            {/* Mobile toolbar (hidden on sm+) */}
+            <div className="sm:hidden mb-3">
+              {/* Row: count + sort */}
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-[11px] font-medium text-brand-black/60">
+                  {unifiedListings.length} {unifiedListings.length === 1 ? 'listing' : 'listings'}
+                </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'price' | 'quantity' | 'newest')}
+                  className="text-[11px] border border-brand-gray/30 bg-white px-2 py-1 text-brand-black focus:outline-none focus:border-brand-black"
+                  style={{ borderRadius: '6px' }}
+                  aria-label="Sort listings"
+                >
+                  <option value="price">Sort: Price ↑</option>
+                  <option value="quantity">Sort: Qty ↓</option>
+                  <option value="newest">Sort: Newest</option>
+                </select>
+              </div>
+
+              {/* Channel chips (horizontal scroll) */}
+              <div className="flex gap-1.5 overflow-x-auto -mx-3 px-3 pb-1.5 custom-scrollbar">
+                {[
+                  { key: 'all', label: 'All' },
+                  { key: 'Sentria', label: 'Sentria' },
+                  { key: 'WhatsApp', label: 'WhatsApp' },
+                  { key: 'Marketplace', label: 'Market' },
+                  { key: 'International', label: 'Intl' },
+                ].map((opt) => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() =>
+                      setUnifiedChannelFilter(
+                        opt.key as 'all' | 'WhatsApp' | 'Marketplace' | 'International' | 'Sentria'
+                      )
+                    }
+                    className={`flex-shrink-0 px-3 py-1.5 text-[11px] font-medium transition-all whitespace-nowrap ${
+                      unifiedChannelFilter === opt.key
+                        ? 'bg-brand-black text-white'
+                        : 'bg-white text-brand-black/70 border border-brand-gray/30'
+                    }`}
+                    style={{ borderRadius: '999px' }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Side chips (only show when not 'all', as a tiny secondary filter row) */}
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <span className="text-[10px] uppercase tracking-wider text-brand-black/40 font-medium flex-shrink-0">Side</span>
+                <div className="flex gap-1 overflow-x-auto custom-scrollbar">
+                  {[
+                    { key: 'all', label: 'All' },
+                    { key: 'Buy', label: 'Buy' },
+                    { key: 'Sell', label: 'Sell' },
+                    { key: 'Listing', label: 'Listing' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() =>
+                        setUnifiedSideFilter(
+                          opt.key as 'all' | 'Buy' | 'Sell' | 'Listing'
+                        )
+                      }
+                      className={`flex-shrink-0 px-2 py-0.5 text-[10px] font-medium transition-all whitespace-nowrap ${
+                        unifiedSideFilter === opt.key
+                          ? 'bg-brand-black text-white'
+                          : 'bg-transparent text-brand-black/60 border border-brand-gray/25'
+                      }`}
+                      style={{ borderRadius: '999px' }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Location dropdown only when relevant */}
+              {unifiedListings.some(r => r.location) && (
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-[10px] uppercase tracking-wider text-brand-black/40 font-medium flex-shrink-0">Location</span>
+                  <select
+                    value={filterLocation || ''}
+                    onChange={(e) => setFilterLocation(e.target.value || null)}
+                    className="flex-1 min-w-0 text-[11px] border border-brand-gray/30 bg-white px-2 py-1 text-brand-black focus:outline-none focus:border-brand-black"
+                    style={{ borderRadius: '6px' }}
+                  >
+                    <option value="">All locations</option>
+                    {Array.from(new Set(unifiedListings.map(row => row.location).filter((loc): loc is string => Boolean(loc)))).map((loc: string) => (
+                      <option key={loc} value={loc}>{loc}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop filters (hidden on mobile) */}
+            <div className="hidden sm:block space-y-4 mb-4">
               {/* Channel and Side Filters */}
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
@@ -1355,9 +1815,10 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   </div>
                 </div>
               </div>
-              
+
               {/* Location Filter and Sort */}
               <div className="flex flex-wrap items-center gap-4">
+                {unifiedListings.some(r => r.location) && (
                 <div className="flex items-center gap-2 flex-1 min-w-[200px]">
                   <label className="text-sm text-brand-black/60 uppercase tracking-wider font-semibold whitespace-nowrap">Location:</label>
                   <select
@@ -1372,6 +1833,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     ))}
                   </select>
                 </div>
+                )}
                 <div className="flex items-center gap-2 flex-1 min-w-[200px]">
                   <label className="text-sm text-brand-black/60 uppercase tracking-wider font-semibold whitespace-nowrap">Sort:</label>
                   <select
@@ -1405,20 +1867,30 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               
               if (daysSinceOldest > 7) {
                 return (
-                  <div className="mb-3 flex items-start gap-2 text-xs text-brand-black/60 bg-orange-50/50 border border-orange-200/50 p-2.5" style={{ borderRadius: '8px' }}>
-                    <svg className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <span className="font-semibold text-brand-black">Data Freshness:</span> Some listings are over {daysSinceOldest} days old. Prices and availability may have changed. Contact sellers to confirm current status.
+                  <>
+                    {/* Mobile: tight one-liner */}
+                    <div className="sm:hidden mb-3 flex items-center gap-1.5 text-[11px] text-orange-800 bg-orange-50/70 border border-orange-200/60 px-2.5 py-1.5" style={{ borderRadius: '999px' }}>
+                      <svg className="w-3.5 h-3.5 text-orange-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="truncate">Some listings over {daysSinceOldest}d old · verify with seller</span>
                     </div>
-                  </div>
+                    {/* Desktop: original verbose warning */}
+                    <div className="hidden sm:flex mb-3 items-start gap-2 text-xs text-brand-black/60 bg-orange-50/50 border border-orange-200/50 p-2.5" style={{ borderRadius: '8px' }}>
+                      <svg className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <span className="font-semibold text-brand-black">Data Freshness:</span> Some listings are over {daysSinceOldest} days old. Prices and availability may have changed. Contact sellers to confirm current status.
+                      </div>
+                    </div>
+                  </>
                 );
               }
               return null;
             })()}
 
-            <div className="overflow-x-auto -mx-2 md:mx-0 custom-scrollbar">
+            <div className="md:overflow-x-auto md:mx-0 md:custom-scrollbar">
               {(() => {
                 let filtered = unifiedListings;
                 
@@ -1475,18 +1947,25 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   return topDealIndices.has(idx);
                 };
 
+                const hasAnyLocation = filtered.some(r => r.location);
+                const isRowStale = (lastSeen?: Date | string) => {
+                  if (!lastSeen) return false;
+                  const date = typeof lastSeen === 'string' ? new Date(lastSeen) : lastSeen;
+                  return (Date.now() - date.getTime()) > 7 * 24 * 60 * 60 * 1000;
+                };
+
                 return isMobile ? (
                   // MOBILE: Card View
-                  <div className="px-2">
+                  <div>
                     {filtered.length > 0 ? (
                       filtered.map((row, idx) => {
                         const isBestDeal = isTopDeal(row, idx);
                         return (
                           <div key={idx} className="relative">
                             {isBestDeal && (
-                              <div className="absolute -top-2 -left-2 z-10 flex items-center gap-1 bg-yellow-400 text-brand-black px-2 py-1 text-xs font-bold uppercase tracking-wide shadow-sm">
+                              <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-yellow-400 text-brand-black px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-sm" style={{ borderRadius: '4px' }}>
                                 <span>⭐</span>
-                                <span>Best Deal</span>
+                                <span>Best</span>
                               </div>
                             )}
                             <ListingCard
@@ -1509,12 +1988,31 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     ) : (
                       <div className="py-12 text-center text-brand-black/60">
                         <p className="text-sm">No listings match your filters</p>
-                        <p className="text-xs mt-2">Try adjusting your filters</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUnifiedChannelFilter('all');
+                            setUnifiedSideFilter('all');
+                            setFilterLocation(null);
+                          }}
+                          className="text-xs mt-2 underline text-brand-black/70"
+                        >
+                          Reset filters
+                        </button>
                       </div>
                     )}
                   </div>
                 ) : (
                   // DESKTOP: Table View - Clean Minimal Design
+              <>
+              {/* Channel color legend */}
+              <div className="flex items-center gap-3 mb-2 text-[10px] text-brand-black/50">
+                <span className="font-semibold uppercase tracking-wider">Channels:</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span> Sentria</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-600 inline-block"></span> WhatsApp</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span> Marketplace</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-600 inline-block"></span> International</span>
+              </div>
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b-2 border-brand-gray/20">
@@ -1524,7 +2022,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     <th className="text-right px-3 py-2.5 text-xs font-semibold text-brand-black/60 uppercase tracking-wider">Landed</th>
                     <th className="text-center px-3 py-2.5 text-xs font-semibold text-brand-black/60 uppercase tracking-wider">Qty</th>
                     <th className="text-left px-3 py-2.5 text-xs font-semibold text-brand-black/60 uppercase tracking-wider">Source</th>
-                    <th className="text-left px-3 py-2.5 text-xs font-semibold text-brand-black/60 uppercase tracking-wider">Location</th>
+                    {hasAnyLocation && <th className="text-left px-3 py-2.5 text-xs font-semibold text-brand-black/60 uppercase tracking-wider">Location</th>}
                     <th className="text-right px-3 py-2.5 text-xs font-semibold text-brand-black/60 uppercase tracking-wider">Last Seen</th>
                     <th className="text-right px-3 py-2.5 text-xs font-semibold text-brand-black/60 uppercase tracking-wider">Action</th>
                   </tr>
@@ -1532,7 +2030,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 <tbody>
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="px-3 py-12 text-center">
+                      <td colSpan={hasAnyLocation ? 9 : 8} className="px-3 py-12 text-center">
                         <p className="text-sm text-brand-black/60">No listings match your filters</p>
                         <p className="text-xs text-brand-black/40 mt-2">Try adjusting your filter criteria</p>
                       </td>
@@ -1550,7 +2048,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     return (
                       <tr
                         key={idx}
-                        className="border-b border-brand-gray/10 hover:bg-brand-background/50 transition-colors"
+                        className={`border-b border-brand-gray/10 hover:bg-brand-background/50 transition-colors ${isRowStale(row.lastSeen) ? 'opacity-60' : ''}`}
                       >
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-2">
@@ -1598,14 +2096,17 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                             <span className="text-sm text-brand-black">{row.sourceLabel}</span>
                           </div>
                         </td>
-                        <td className="px-3 py-2.5">
-                          <span className="text-sm text-brand-black/70">
-                            {row.location || '—'}
-                          </span>
-                        </td>
+                        {hasAnyLocation && (
+                          <td className="px-3 py-2.5">
+                            <span className="text-sm text-brand-black/70">
+                              {row.location || '—'}
+                            </span>
+                          </td>
+                        )}
                         <td className="px-3 py-2.5 text-right">
-                          <span className="text-xs text-brand-black/50">
+                          <span className={`text-xs ${isRowStale(row.lastSeen) ? 'text-orange-600 font-medium' : 'text-brand-black/50'}`}>
                             {row.lastSeen ? formatLastSeen(row.lastSeen) : '—'}
+                            {isRowStale(row.lastSeen) && <span className="ml-1" title="This listing may be outdated">⚠</span>}
                           </span>
                         </td>
                         <td className="px-3 py-2.5 text-right">
@@ -1625,7 +2126,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                     });
                                     setShowConnectionModal(true);
                                   } else {
-                                    alert('Please sign in to request introductions');
+                                    toast.warning('Please sign in to request introductions');
                                   }
                                 }}
                                 className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors whitespace-nowrap"
@@ -1666,18 +2167,19 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   )}
                 </tbody>
               </table>
-                )
-              })()}
+              </>
+            );
+            })()}
             </div>
         </Card>
       ) : (
-        <Card title="All Listings (Across Channels)" subtitle="No listings found for this asset" className="shadow-sm">
+        <Card title="All Listings" subtitle="No listings found for this asset" className="shadow-sm">
           <div className="py-12 text-center text-brand-black/60">
             <svg className="w-12 h-12 mx-auto mb-3 text-brand-gray/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <p className="text-sm font-semibold text-brand-black/60">No Listings Available</p>
-            <p className="text-xs text-brand-black/40 mt-1">Check back later or adjust filters</p>
+            <p className="text-xs text-brand-black/40 mt-1">Check back later or try the aggregated view</p>
           </div>
         </Card>
       )}
@@ -1687,71 +2189,174 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       {/* ARBITRAGE TAB */}
       {mainTab === 'arbitrage' && (
         <div className="space-y-4">
+
+      {/* Best Size Banner — shows when another size has a better opportunity */}
+      {bestSizeArb && (
+        <button
+          onClick={() => setSelectedSize(bestSizeArb.size)}
+          className="w-full flex items-center gap-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 p-3 text-left hover:border-green-500 transition-colors"
+          style={{ borderRadius: '12px' }}
+        >
+          <div className="w-8 h-8 bg-green-600 text-white flex items-center justify-center flex-shrink-0" style={{ borderRadius: '8px' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-green-800 uppercase tracking-wide">Better opportunity in {bestSizeArb.size}</p>
+            <p className="text-sm text-green-700 mt-0.5">
+              ₹{bestSizeArb.opp.netProfit.toLocaleString('en-IN')} profit ({(bestSizeArb.opp.netPct * 100).toFixed(1)}% ROI) — tap to switch
+            </p>
+          </div>
+          <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
+
       {arbitrageOpps.length > 0 ? (
+        <>
+        {/* Top Pick — highlight the single best opportunity */}
+        {(() => {
+          const top = arbitrageOpps[0];
+          const topRoi = top.netPct * 100;
+          const buyAction = top.buy.sellerContact
+            ? { type: 'whatsapp' as const, href: `https://wa.me/${top.buy.sellerContact.replace(/[^0-9]/g, '')}` }
+            : top.buy.url
+            ? { type: 'link' as const, href: top.buy.url }
+            : null;
+          return (
+            <Card className="shadow-sm border-2 border-brand-black" noPadding>
+              <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-brand-black text-white flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-sm font-bold uppercase tracking-wide whitespace-nowrap">Top Pick</span>
+                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-white/20 truncate" style={{ borderRadius: '4px' }}>
+                    {strategyLabel(top.strategy)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                  <span className={`text-[11px] sm:text-xs font-bold font-mono-numeric whitespace-nowrap ${top.confidence >= 70 ? 'text-green-400' : top.confidence >= 40 ? 'text-yellow-400' : 'text-red-400'}`}>
+                    {top.confidence}% conf
+                  </span>
+                  <span className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase whitespace-nowrap ${
+                    top.risk === 'low' ? 'bg-green-500/30 text-green-300' : top.risk === 'medium' ? 'bg-yellow-500/30 text-yellow-300' : 'bg-red-500/30 text-red-300'
+                  }`} style={{ borderRadius: '3px' }}>{top.risk} risk</span>
+                </div>
+              </div>
+              <div className="p-3 sm:p-4">
+                {/* Mobile: stacked Buy → Profit → Sell. Desktop: 3-column grid. */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 sm:items-center">
+                  {/* Buy */}
+                  <div className="flex sm:block items-center justify-between bg-brand-background/40 sm:bg-transparent border sm:border-0 border-brand-gray/15 p-2.5 sm:p-0 min-w-0" style={{ borderRadius: '8px' }}>
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5 sm:mb-1">Buy from</p>
+                      <p className="text-sm font-semibold text-brand-black truncate">{channelLabel(top.buy.channel)}</p>
+                      <p className="text-[10px] text-brand-black/50 truncate">{top.buy.source}</p>
+                    </div>
+                    <p className="text-base font-bold font-mono-numeric text-brand-black mt-0 sm:mt-1 ml-2 sm:ml-0 whitespace-nowrap">₹{top.buy.allIn.toLocaleString('en-IN')}</p>
+                  </div>
+
+                  {/* Profit (center on desktop, prominent banner on mobile) */}
+                  <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:gap-1 bg-green-50 sm:bg-transparent border sm:border-0 border-green-200 p-2.5 sm:p-0" style={{ borderRadius: '8px' }}>
+                    <svg className="hidden sm:block w-5 h-5 text-brand-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                    <div className="sm:text-center">
+                      <p className="text-[10px] text-green-700 sm:hidden uppercase font-semibold tracking-wider">Net Profit</p>
+                      <p className="text-lg sm:text-xl font-bold font-mono-numeric text-green-600">₹{top.netProfit.toLocaleString('en-IN')}</p>
+                    </div>
+                    <p className="text-xs font-semibold text-green-600 whitespace-nowrap">{topRoi.toFixed(1)}% ROI</p>
+                    <p className={`hidden sm:block text-[10px] font-semibold ${turnaroundColor(top.turnaroundDays)}`}>{turnaroundLabel(top.turnaroundDays)}</p>
+                  </div>
+
+                  {/* Sell */}
+                  <div className="flex sm:block items-center justify-between bg-brand-background/40 sm:bg-transparent border sm:border-0 border-brand-gray/15 p-2.5 sm:p-0 sm:text-right min-w-0" style={{ borderRadius: '8px' }}>
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5 sm:mb-1">Sell to</p>
+                      <p className="text-sm font-semibold text-brand-black truncate">{channelLabel(top.sell.channel)}</p>
+                      <p className="text-[10px] text-brand-black/50 truncate">{top.sell.source}</p>
+                    </div>
+                    <div className="sm:mt-1 ml-2 sm:ml-0 text-right">
+                      <p className="text-base font-bold font-mono-numeric text-brand-black whitespace-nowrap">₹{top.sell.net.toLocaleString('en-IN')}</p>
+                      {top.sellFeeAmount > 0 && (
+                        <p className="text-[10px] text-brand-black/40 font-mono-numeric">−{(top.sellFeeRate * 100).toFixed(1)}% fee</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* Turnaround label on mobile (hidden on desktop where it's in the profit block) */}
+                <p className={`sm:hidden mt-2 text-[10px] font-semibold ${turnaroundColor(top.turnaroundDays)}`}>
+                  {turnaroundLabel(top.turnaroundDays)}
+                </p>
+                {buyAction && (
+                  <div className="mt-3 pt-3 border-t border-brand-gray/20">
+                    <a
+                      href={buyAction.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors ${
+                        buyAction.type === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-brand-black hover:bg-brand-black/80'
+                      }`}
+                      style={{ borderRadius: '8px' }}
+                    >
+                      {buyAction.type === 'whatsapp' ? 'Contact Seller on WhatsApp' : 'View Buy Listing'}
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  </div>
+                )}
+              </div>
+            </Card>
+          );
+        })()}
+
+        {/* Remaining Opportunities */}
+        {arbitrageOpps.length > 1 && (
         <Card
-          title="All Arbitrage Opportunities"
-          subtitle="Buy from one channel and sell to another to capture price differences"
+          title={`All Opportunities (${arbitrageOpps.length})`}
+          subtitle="Sorted by profit — top pick highlighted above"
           icon={
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
             </svg>
           }
           className="shadow-sm"
-        >
-          {/* Filters Row */}
-          <div className="mb-4 pb-4 border-b border-brand-gray/20">
-            <div className="flex flex-wrap items-center gap-4">
+          headerAction={
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <div className="flex items-center gap-2">
-                <label className="text-xs text-brand-black/70 uppercase tracking-wider font-semibold whitespace-nowrap">Min ROI:</label>
+                <label className="text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold whitespace-nowrap">Min ROI:</label>
                 <input
                   type="number"
                   value={(minArbNetPct * 100).toFixed(1)}
                   onChange={(e) => setMinArbNetPct(Math.max(0, Number(e.target.value) / 100))}
-                  className="w-20 border border-brand-gray/30 px-3 py-2 text-sm text-brand-black font-mono-numeric focus:outline-none focus:border-brand-black bg-brand-white"
-                  style={{ borderRadius: '8px' }}
+                  className="w-16 border border-brand-gray/30 px-2 py-1 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-brand-black bg-brand-white"
+                  style={{ borderRadius: '6px' }}
                   step="0.5"
                 />
-                <span className="text-xs text-brand-black/60">%</span>
+                <span className="text-[10px] text-brand-black/50">%</span>
               </div>
               <div className="flex items-center gap-2">
-                <label className="text-xs text-brand-black/70 uppercase tracking-wider font-semibold whitespace-nowrap">Min Profit:</label>
+                <label className="text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold whitespace-nowrap">Min ₹:</label>
                 <input
                   type="number"
                   value={minArbNetRs}
                   onChange={(e) => setMinArbNetRs(Math.max(0, Number(e.target.value)))}
-                  className="w-24 border border-brand-gray/30 px-3 py-2 text-sm text-brand-black font-mono-numeric focus:outline-none focus:border-brand-black bg-brand-white"
-                  style={{ borderRadius: '8px' }}
+                  className="w-20 border border-brand-gray/30 px-2 py-1 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-brand-black bg-brand-white"
+                  style={{ borderRadius: '6px' }}
                   step="500"
                 />
-                <span className="text-xs text-brand-black/60">₹</span>
-              </div>
-              <div className="flex-1" />
-              <div className="text-sm text-brand-black/60 font-medium">
-                {arbitrageOpps.length} {arbitrageOpps.length === 1 ? "opportunity" : "opportunities"}
               </div>
             </div>
-          </div>
-
-          {/* Fee & Confidence Disclaimer */}
-          <div className="mb-4 flex items-start gap-2 text-xs text-brand-black/70 bg-brand-background/50 border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }}>
-            <svg className="w-4 h-4 text-brand-black/50 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <span className="font-semibold text-brand-black">Note:</span> Per-platform fees applied (varies by marketplace). Marketplace sells are consignment/source-on-order — payout timing varies. Confidence is penalised for marketplace sell-side and stale data. Always verify before executing.
-            </div>
-          </div>
-
-          {/* Opportunities */}
+          }
+        >
           {isMobile ? (
-            // MOBILE: Card View
             <div className="space-y-3">
-              {arbitrageOpps.map((opp, idx) => (
+              {arbitrageOpps.slice(1).map((opp, idx) => (
                 <ArbCard key={idx} opp={opp} />
               ))}
             </div>
           ) : (
-            // DESKTOP: Table View
             <div className="border border-brand-gray/20 overflow-hidden" style={{ borderRadius: '12px' }}>
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="min-w-full text-sm border-collapse">
@@ -1763,34 +2368,35 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       <th className="text-left px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Sell To</th>
                       <th className="text-right px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Sell Net</th>
                       <th className="text-right px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Profit</th>
-                      <th className="text-center px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Time Horizon</th>
                       <th className="text-center px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Conf / Risk</th>
-                      <th className="text-center px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Scale</th>
+                      <th className="text-right px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {arbitrageOpps.map((opp, idx) => {
+                    {arbitrageOpps.slice(1).map((opp, idx) => {
                       const roiPct = opp.netPct * 100;
                       const isEven = idx % 2 === 0;
+                      const buyAction = opp.buy.sellerContact
+                        ? { type: 'whatsapp' as const, href: `https://wa.me/${opp.buy.sellerContact.replace(/[^0-9]/g, '')}` }
+                        : opp.buy.url
+                        ? { type: 'link' as const, href: opp.buy.url }
+                        : null;
 
                       return (
                         <tr
                           key={idx}
                           className={`border-b border-brand-gray/10 ${isEven ? 'bg-white' : 'bg-brand-gray/5'} hover:bg-brand-background/50 transition-colors`}
                         >
-                          {/* Strategy */}
                           <td className="px-3 py-2.5">
                             <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-black/80">
                               <span>{strategyIcon(opp.strategy)}</span>
                               <span>{strategyLabel(opp.strategy)}</span>
                             </span>
                           </td>
-                          {/* Buy From */}
                           <td className="px-3 py-2.5">
                             <div className="text-xs font-semibold text-brand-black">{channelLabel(opp.buy.channel)}</div>
                             <div className="text-[10px] text-brand-black/50 truncate max-w-[120px]">{opp.buy.source}</div>
                           </td>
-                          {/* Buy Price */}
                           <td className="px-3 py-2.5 text-right">
                             <div className="font-semibold font-mono-numeric text-brand-black">
                               ₹{opp.buy.allIn.toLocaleString("en-IN")}
@@ -1801,19 +2407,15 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                               </div>
                             )}
                           </td>
-                          {/* Sell To */}
                           <td className="px-3 py-2.5">
                             <div className="text-xs font-semibold text-brand-black">{channelLabel(opp.sell.channel)}</div>
                             <div className="text-[10px] text-brand-black/50 truncate max-w-[120px]">{opp.sell.source}</div>
                             {opp.sellReliability === "consignment" && (
-                              <div className="mt-0.5">
-                                <span className="inline-block px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200/60" style={{ borderRadius: '3px' }}>
-                                  Consignment
-                                </span>
-                              </div>
+                              <span className="inline-block mt-0.5 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200/60" style={{ borderRadius: '3px' }}>
+                                Consignment
+                              </span>
                             )}
                           </td>
-                          {/* Sell Net */}
                           <td className="px-3 py-2.5 text-right">
                             <div className="font-semibold font-mono-numeric text-brand-black">
                               ₹{opp.sell.net.toLocaleString("en-IN")}
@@ -1824,7 +2426,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                               </div>
                             )}
                           </td>
-                          {/* Profit */}
                           <td className="px-3 py-2.5 text-right">
                             <div className="font-bold font-mono-numeric text-brand-black">
                               ₹{opp.netProfit.toLocaleString("en-IN")}
@@ -1833,14 +2434,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                               {roiPct.toFixed(1)}% ROI
                             </div>
                           </td>
-                          {/* Time Horizon */}
-                          <td className="px-3 py-2.5 text-center">
-                            <div className={`text-xs font-semibold ${turnaroundColor(opp.turnaroundDays)}`}>
-                              {turnaroundLabel(opp.turnaroundDays)}
-                            </div>
-                          </td>
-                          {/* Confidence + Risk */}
-                          <td className="px-3 py-2.5 text-center">
+                          <td className="px-3 py-2.5 text-center cursor-help" title={`Confidence: ${opp.confidence}/100`}>
                             <div className={`text-xs font-bold font-mono-numeric ${confidenceColor(opp.confidence)}`}>
                               {opp.confidence}
                             </div>
@@ -1848,10 +2442,25 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                               {opp.risk}
                             </span>
                           </td>
-                          {/* Scale */}
-                          <td className="px-3 py-2.5 text-center">
-                            <div className="text-xs font-mono-numeric text-brand-black/70">{opp.scalable}</div>
-                            <div className="text-[10px] text-brand-black/40">pairs</div>
+                          <td className="px-3 py-2.5 text-right">
+                            {buyAction ? (
+                              <a
+                                href={buyAction.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white transition-colors whitespace-nowrap ${
+                                  buyAction.type === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-brand-black hover:bg-brand-black/80'
+                                }`}
+                                style={{ borderRadius: '6px' }}
+                              >
+                                {buyAction.type === 'whatsapp' ? 'Contact' : 'View'}
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                              </a>
+                            ) : (
+                              <span className="text-xs text-brand-black/30">—</span>
+                            )}
                           </td>
                         </tr>
                       );
@@ -1861,278 +2470,31 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               </div>
             </div>
           )}
+
+          {/* Disclaimer */}
+          <p className="text-[10px] text-brand-black/40 mt-3 pt-2 border-t border-brand-gray/15">
+            Per-platform fees applied. Marketplace sells are consignment — payout timing varies. Confidence penalised for stale data. Always verify before executing.
+          </p>
         </Card>
+        )}
+        </>
       ) : (
-        <Card title="All Arbitrage Opportunities" subtitle="No arbitrage opportunities found for this asset" className="shadow-sm">
-          <div className="py-12 text-center text-brand-black/60">
+        <Card title="Arbitrage" subtitle="No opportunities for this size" className="shadow-sm">
+          <div className="py-8 text-center text-brand-black/60">
             <svg className="w-12 h-12 mx-auto mb-3 text-brand-gray/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
             <p className="text-sm font-semibold text-brand-black/60">No Arbitrage Opportunities</p>
-            <p className="text-xs text-brand-black/40 mt-1">Market is efficient or data is limited</p>
+            <p className="text-xs text-brand-black/40 mt-1 mb-4">Market is efficiently priced or not enough cross-channel data yet</p>
+            <div className="max-w-sm mx-auto text-left bg-brand-background/50 border border-brand-gray/20 p-3 space-y-2" style={{ borderRadius: '8px' }}>
+              <p className="text-xs font-semibold text-brand-black/70">What is arbitrage?</p>
+              <p className="text-[11px] text-brand-black/50 leading-relaxed">
+                Arbitrage opportunities appear when the same sneaker is priced differently across channels. We scan for price gaps of 3%+ and flag profitable buy-sell pairs after accounting for platform fees.
+              </p>
+            </div>
           </div>
         </Card>
       )}
-        </div>
-      )}
-
-      {/* ANALYTICS TAB */}
-      {mainTab === 'analytics' && (
-        <div className="space-y-4">
-        <Card
-          title="Performance Metrics"
-          subtitle="30d/90d changes, volatility, and market efficiency"
-          icon={
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          }
-          className="shadow-sm"
-        >
-        {(() => {
-          // Calculate price range width
-          const whatsappBest = whatsappPrices.buy.length > 0 ? whatsappPrices.buy[0].price : 0;
-          const whatsappMax = whatsappPrices.buy.length > 0 ? Math.max(...whatsappPrices.buy.map(p => p.price)) : 0;
-          const marketplaceBest = marketplacePrices.length > 0 ? marketplacePrices[0].price : 0;
-          const marketplaceMax = marketplacePrices.length > 0 ? marketplacePrices[marketplacePrices.length - 1].price : 0;
-          const internationalBest = internationalPrices.length > 0 
-            ? Math.min(...internationalPrices.map(p => p.price + (p.reshippingCost || 0))) 
-            : 0;
-          const internationalAll = internationalPrices.length > 0 
-            ? internationalPrices.map(p => p.price + (p.reshippingCost || 0)) 
-            : [];
-          const internationalMax = internationalAll.length > 0 ? Math.max(...internationalAll) : 0;
-          
-          const allPrices = [whatsappBest, whatsappMax, marketplaceBest, marketplaceMax, internationalBest, internationalMax].filter(p => p > 0);
-          const marketMin = allPrices.length > 0 ? Math.min(...allPrices) : 0;
-          const marketMax = allPrices.length > 0 ? Math.max(...allPrices) : 0;
-          const priceRangeWidth = marketMax - marketMin;
-          const priceRangePct = marketMin > 0 ? (priceRangeWidth / marketMin) * 100 : 0;
-          
-          // Price stability assessment
-          const getPriceStability = () => {
-            if (priceRangePct === 0) return { level: 'N/A', label: 'No Data', color: 'text-brand-black/40' };
-            if (priceRangePct <= 5) return { level: 'Tight', label: 'Very Stable', color: 'text-green-600' };
-            if (priceRangePct <= 15) return { level: 'Moderate', label: 'Stable', color: 'text-yellow-600' };
-            return { level: 'Wide', label: 'Volatile', color: 'text-red-600' };
-          };
-          
-          const priceStability = getPriceStability();
-          
-          // Market efficiency (how close best prices are to average)
-          const whatsappAvg = whatsappPrices.buy.length > 0 
-            ? whatsappPrices.buy.reduce((sum, p) => sum + p.price, 0) / whatsappPrices.buy.length 
-            : 0;
-          const marketplaceAvg = marketplacePrices.length > 0 
-            ? marketplacePrices.reduce((sum, p) => sum + p.price, 0) / marketplacePrices.length 
-            : 0;
-          
-          const whatsappEfficiency = whatsappBest > 0 && whatsappAvg > 0 
-            ? ((whatsappAvg - whatsappBest) / whatsappAvg) * 100 
-            : 0;
-          const marketplaceEfficiency = marketplaceBest > 0 && marketplaceAvg > 0 
-            ? ((marketplaceAvg - marketplaceBest) / marketplaceAvg) * 100 
-            : 0;
-          
-          const avgEfficiency = (whatsappEfficiency + marketplaceEfficiency) / 2;
-          
-          // Parse change strings to numbers
-          const parseChange = (changeStr: string | undefined): number | null => {
-            if (!changeStr) return null;
-            const match = changeStr.match(/[+-]?[\d.]+/);
-            return match ? parseFloat(match[0]) : null;
-          };
-          
-          const change30d = parseChange(currentData.change30d);
-          const change90d = parseChange(currentData.change90d);
-          
-          return (
-            <div className="space-y-4 pt-4">
-              {/* Primary Metrics Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }}>
-                  <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">30d Change</p>
-                  <p
-                    className={`text-2xl font-mono-numeric font-bold ${
-                      change30d && change30d < 0
-                        ? "text-red-600"
-                        : change30d && change30d > 0
-                        ? "text-green-600"
-                        : "text-brand-black"
-                    }`}
-                  >
-                    {currentData.change30d || "—"}
-                  </p>
-                  {change30d && (
-                    <p className="text-[9px] text-brand-black/50 mt-0.5">
-                      {change30d > 0 ? '↑' : change30d < 0 ? '↓' : '→'} {Math.abs(change30d).toFixed(1)}%
-                    </p>
-                  )}
-                </div>
-                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }}>
-                  <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">90d Change</p>
-                  <p
-                    className={`text-2xl font-mono-numeric font-bold ${
-                      change90d && change90d < 0
-                        ? "text-red-600"
-                        : change90d && change90d > 0
-                        ? "text-green-600"
-                        : "text-brand-black"
-                    }`}
-                  >
-                    {currentData.change90d || "—"}
-                  </p>
-                  {change90d && (
-                    <p className="text-[9px] text-brand-black/50 mt-0.5">
-                      {change90d > 0 ? '↑' : change90d < 0 ? '↓' : '→'} {Math.abs(change90d).toFixed(1)}%
-                    </p>
-                  )}
-                </div>
-                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }}>
-                  <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">Volatility</p>
-                  <p className="text-2xl font-semibold text-brand-black capitalize">{asset.volatility || "—"}</p>
-                  <p className="text-[9px] text-brand-black/50 mt-0.5">
-                    {priceStability.label}
-                  </p>
-                </div>
-              </div>
-              
-              {/* Secondary Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-brand-gray/20">
-                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }}>
-                  <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">Price Range</p>
-                  <p className="text-lg font-mono-numeric font-bold text-brand-black">
-                    ₹{priceRangeWidth.toLocaleString('en-IN')}
-                  </p>
-                  <p className="text-[9px] text-brand-black/50 mt-0.5">
-                    {priceRangePct.toFixed(1)}% spread • {priceStability.level} market
-                  </p>
-                </div>
-                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }}>
-                  <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">Market Efficiency</p>
-                  <p className={`text-lg font-mono-numeric font-bold ${
-                    avgEfficiency <= 5 ? 'text-green-600' : avgEfficiency <= 10 ? 'text-yellow-600' : 'text-red-600'
-                  }`}>
-                    {avgEfficiency > 0 ? avgEfficiency.toFixed(1) : '—'}%
-                  </p>
-                  <p className="text-[9px] text-brand-black/50 mt-0.5">
-                    {avgEfficiency <= 5 ? 'Highly efficient' : avgEfficiency <= 10 ? 'Moderately efficient' : 'Inefficient'} pricing
-                  </p>
-                </div>
-                <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }}>
-                  <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">Price Stability</p>
-                  <p className={`text-lg font-semibold ${priceStability.color}`}>
-                    {priceStability.level}
-                  </p>
-                  <p className="text-[9px] text-brand-black/50 mt-0.5">
-                    {priceRangePct > 0 ? `${priceRangePct.toFixed(1)}%` : '—'} price spread
-                  </p>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
-      </Card>
-        </div>
-      )}
-
-      {/* INSIGHT TAB */}
-      {mainTab === 'insight' && currentData.insight && (
-        <div className="space-y-4">
-          <Card
-            className={`shadow-sm ${
-              currentData.insight.recommendation === 'buy' 
-                ? 'bg-gradient-to-br from-green-50/50 to-green-100/30 border-green-200' 
-                : currentData.insight.recommendation === 'sell'
-                ? 'bg-gradient-to-br from-red-50/50 to-red-100/30 border-red-200'
-                : 'bg-gradient-to-br from-blue-50/50 to-blue-100/30 border-blue-200'
-            }`}
-          >
-            {/* Signal Header with Recommendation Badge */}
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  <span className="text-sm font-bold text-brand-black/70 uppercase tracking-wide">Market Insight</span>
-                  {selectedSize && (
-                    <span className="text-xs text-brand-black/50">({selectedSize})</span>
-                  )}
-                </div>
-              </div>
-              <div className={`px-4 py-2 font-bold text-lg uppercase tracking-wide ${
-                currentData.insight.recommendation === 'buy' 
-                  ? 'bg-green-600 text-white' 
-                  : currentData.insight.recommendation === 'sell'
-                  ? 'bg-red-600 text-white'
-                  : 'bg-blue-600 text-white'
-              }`} style={{ borderRadius: '8px' }}>
-                {currentData.insight.recommendation.toUpperCase()}
-              </div>
-            </div>
-            
-            {/* Confidence Bar */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between text-xs font-semibold mb-2">
-                <span className="text-brand-black/70">Confidence</span>
-                <span className="font-mono text-brand-black">{currentData.insight.confidence}%</span>
-              </div>
-              <div className="h-2 bg-brand-gray/20 overflow-hidden" style={{ borderRadius: '4px' }}>
-                <div 
-                  className={`h-full transition-all ${
-                    currentData.insight.recommendation === 'buy' 
-                      ? 'bg-green-600' 
-                      : currentData.insight.recommendation === 'sell'
-                      ? 'bg-red-600'
-                      : 'bg-blue-600'
-                  }`}
-                  style={{ width: `${currentData.insight.confidence}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Reasoning */}
-            <div className="mb-3">
-              <p className="text-sm text-brand-black leading-relaxed">{currentData.insight.reasoning}</p>
-              {currentData.insight.expectedMovement && (
-                <p className="text-sm text-brand-black/70 italic mt-2">
-                  <span className="font-semibold">Expected: </span>{currentData.insight.expectedMovement}
-                </p>
-              )}
-            </div>
-            
-            {/* Metadata */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-brand-black/60 pt-3 border-t border-brand-gray/20">
-              {currentData.dataPoints && (
-                <div className="flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                  </svg>
-                  <span>{currentData.dataPoints} data points</span>
-                </div>
-              )}
-              
-              {currentData.lastUpdated && (
-                <div className="flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Updated {formatLastSeen(currentData.lastUpdated) || 'recently'}</span>
-                </div>
-              )}
-            </div>
-            
-            {/* Disclaimer */}
-            <div className="mt-3 flex items-start gap-2 text-xs text-brand-black/50">
-              <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="leading-relaxed">
-                Algorithmic recommendation based on current data. Not financial advice. Always conduct your own research.
-              </p>
-            </div>
-          </Card>
         </div>
       )}
 
@@ -2225,7 +2587,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                     setShowBuyModal(false);
                                     setShowConnectionModal(true);
                                   } else {
-                                    alert('Please sign in to request introductions');
+                                    toast.warning('Please sign in to request introductions');
                                   }
                                 }}
                                 className="mt-2 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold uppercase tracking-wide hover:bg-green-700 transition-all whitespace-nowrap"
@@ -2249,7 +2611,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   <p className="text-xs text-brand-black/60 mb-4">Prices from reseller networks</p>
                   
                   <div className="space-y-2">
-                    {whatsappPrices.buy.slice(0, 3).map((price, idx) => (
+                    {(buyModalExpandWhatsapp ? whatsappPrices.buy : whatsappPrices.buy.slice(0, 3)).map((price, idx) => (
                       <div key={idx} className="flex items-center justify-between p-3 bg-brand-background border border-brand-gray/20">
                         <div className="flex-1">
                           <p className="text-sm font-semibold text-brand-black">
@@ -2275,7 +2637,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                           ) : (
                             <button
                               onClick={() => {
-                                alert(`Contact ${price.sellerName || 'seller'} via ${price.source || 'WhatsApp group'}`);
+                                toast.info(`Contact ${price.sellerName || 'seller'} via ${price.source || 'WhatsApp group'}`);
                               }}
                               className="text-xs text-blue-600 hover:underline bg-transparent border-none cursor-pointer"
                             >
@@ -2286,6 +2648,15 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       </div>
                     ))}
                   </div>
+                  {whatsappPrices.buy.length > 3 && (
+                    <button
+                      onClick={() => setBuyModalExpandWhatsapp(!buyModalExpandWhatsapp)}
+                      className="mt-2 w-full py-2 text-xs font-semibold text-brand-black/70 hover:text-brand-black border border-brand-gray/20 hover:border-brand-black/30 transition-colors bg-white"
+                      style={{ borderRadius: '6px' }}
+                    >
+                      {buyModalExpandWhatsapp ? 'Show less' : `Show all ${whatsappPrices.buy.length} sellers`}
+                    </button>
+                  )}
                   <p className="text-xs text-brand-black/40 mt-3">Contact sellers via their WhatsApp groups</p>
                 </div>
               )}
@@ -2297,7 +2668,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   <p className="text-xs text-brand-black/60 mb-4">Available on resale platforms</p>
                   
                   <div className="space-y-2">
-                    {marketplacePrices.slice(0, 3).map((price, idx) => (
+                    {(buyModalExpandMarketplace ? marketplacePrices : marketplacePrices.slice(0, 3)).map((price, idx) => (
                       <div key={idx} className="flex items-center justify-between p-3 bg-brand-background border border-brand-gray/20">
                         <div className="flex-1">
                           <p className="text-sm font-semibold text-brand-black">
@@ -2323,6 +2694,15 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       </div>
                     ))}
                   </div>
+                  {marketplacePrices.length > 3 && (
+                    <button
+                      onClick={() => setBuyModalExpandMarketplace(!buyModalExpandMarketplace)}
+                      className="mt-2 w-full py-2 text-xs font-semibold text-brand-black/70 hover:text-brand-black border border-brand-gray/20 hover:border-brand-black/30 transition-colors bg-white"
+                      style={{ borderRadius: '6px' }}
+                    >
+                      {buyModalExpandMarketplace ? 'Show less' : `Show all ${marketplacePrices.length} listings`}
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -2330,27 +2710,26 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               {internationalPrices.length > 0 && (
                 <div className="border border-brand-gray/30 p-4">
                   <h3 className="text-sm font-bold uppercase tracking-wide text-brand-black mb-3">International (StockX, GOAT)</h3>
-                  <p className="text-xs text-brand-black/60 mb-4">Includes reshipping costs</p>
+                  <p className="text-xs text-brand-black/60 mb-4">Includes platform fees (processing + shipping)</p>
                   
                   <div className="space-y-2">
-                    {internationalPrices.slice(0, 2).map((price, idx) => {
-                      const basePrice = price.price - (price.reshippingCost || 3000);
-                      const totalLanded = price.price;
-                      
+                    {(buyModalExpandIntl ? internationalPrices : internationalPrices.slice(0, 2)).map((price, idx) => {
                       return (
                         <div key={idx} className="flex items-center justify-between p-3 bg-brand-background border border-brand-gray/20 group relative">
                           <div className="flex-1">
                             <p className="text-sm font-semibold text-brand-black">
                               {price.source || 'International'}
                             </p>
-                            <p className="text-xs text-brand-black/60">
-                              + ₹{(price.reshippingCost || 3000).toLocaleString('en-IN')} shipping
-                            </p>
+                            {price.priceUsd != null && (
+                              <p className="text-xs text-brand-black/60">
+                                ${price.priceUsd} USD + fees
+                              </p>
+                            )}
                           </div>
                           <div className="text-right flex items-center gap-2">
                             <div>
                               <p className="text-lg font-mono-numeric font-bold text-brand-black">
-                                ₹{totalLanded.toLocaleString('en-IN')}
+                                ₹{price.price.toLocaleString('en-IN')}
                               </p>
                               {price.url && (
                                 <a 
@@ -2363,40 +2742,20 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                 </a>
                               )}
                             </div>
-                            {/* Cost Breakdown Tooltip */}
-                            <div className="relative group/tooltip">
-                              <button className="w-5 h-5 flex items-center justify-center text-brand-black/40 hover:text-brand-black transition-colors">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                              </button>
-                              {/* Tooltip content */}
-                              <div className="hidden group-hover/tooltip:block absolute right-0 top-6 z-20 w-56 p-3 bg-brand-black text-white text-xs border border-brand-gray shadow-lg">
-                                <div className="space-y-1.5">
-                                  <div className="font-semibold uppercase tracking-wide text-white/70 text-[10px]">Landed Cost Breakdown</div>
-                                  <div className="flex justify-between">
-                                    <span>Base Price:</span>
-                                    <span className="font-mono-numeric">₹{basePrice.toLocaleString('en-IN')}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Reshipping:</span>
-                                    <span className="font-mono-numeric">₹{(price.reshippingCost || 3000).toLocaleString('en-IN')}</span>
-                                  </div>
-                                  <div className="border-t border-white/20 pt-1.5 mt-1.5 flex justify-between font-bold">
-                                    <span>Total Landed:</span>
-                                    <span className="font-mono-numeric">₹{totalLanded.toLocaleString('en-IN')}</span>
-                                  </div>
-                                  <div className="mt-2 text-[10px] text-white/60 border-t border-white/20 pt-2">
-                                    <span className="text-yellow-400">⚠</span> Customs duties not included
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
                           </div>
                         </div>
                       );
                     })}
                   </div>
+                  {internationalPrices.length > 2 && (
+                    <button
+                      onClick={() => setBuyModalExpandIntl(!buyModalExpandIntl)}
+                      className="mt-2 w-full py-2 text-xs font-semibold text-brand-black/70 hover:text-brand-black border border-brand-gray/20 hover:border-brand-black/30 transition-colors bg-white"
+                      style={{ borderRadius: '6px' }}
+                    >
+                      {buyModalExpandIntl ? 'Show less' : `Show all ${internationalPrices.length} listings`}
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -2423,10 +2782,14 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
           onClose={() => setShowSellModal(false)}
           onSuccess={() => {
             setShowSellModal(false);
-            loadTradeListings(); // Refresh listings
+            loadTradeListings();
           }}
+          toast={toast}
         />
       )}
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </section>
   );
 };
@@ -2440,6 +2803,7 @@ interface SellModalContentProps {
   bestPrice?: number;
   onClose: () => void;
   onSuccess: () => void;
+  toast: { success: (msg: string) => void; error: (msg: string) => void; info: (msg: string) => void; warning: (msg: string) => void };
 }
 
 const SellModalContent: React.FC<SellModalContentProps> = ({
@@ -2449,7 +2813,8 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
   portfolioPositions,
   bestPrice,
   onClose,
-  onSuccess
+  onSuccess,
+  toast,
 }) => {
   // Check if user owns this asset in their portfolio
   const userPosition = portfolioPositions.find(
@@ -2466,12 +2831,12 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
 
   const handleSubmit = async () => {
     if (!currentUser) {
-      alert('Please sign in to list items');
+      toast.warning('Please sign in to list items');
       return;
     }
 
     if (!askingPrice || parseFloat(askingPrice) <= 0) {
-      alert('Please enter a valid price');
+      toast.warning('Please enter a valid price');
       return;
     }
 
@@ -2496,14 +2861,14 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
       );
 
       if (result.success) {
-        alert('✅ Listing created! Buyers can now find your item.');
+        toast.success('Listing created! Buyers can now find your item.');
         onSuccess();
       } else {
-        alert('❌ Failed to create listing: ' + result.error);
+        toast.error('Failed to create listing: ' + result.error);
         setIsSubmitting(false);
       }
     } catch (error) {
-      alert('❌ Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error('Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
       setIsSubmitting(false);
     }
   };
@@ -2605,7 +2970,7 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
             <label className="block text-xs font-semibold uppercase tracking-wide text-brand-black mb-2">
               Condition *
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {(['new', 'used'] as const).map((cond) => (
                 <button
                   key={cond}

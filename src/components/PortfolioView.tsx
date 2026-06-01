@@ -175,6 +175,13 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
     [assets, positionByAssetId]
   );
 
+  // Auto-switch to sold tab when no active items remain
+  useEffect(() => {
+    if (portfolioAssets.length === 0 && soldPositions.length > 0 && activeTab === "active") {
+      setActiveTab("sold");
+    }
+  }, [portfolioAssets.length, soldPositions.length, activeTab]);
+
   const markAsSold = (assetId: number, soldQuantity: number, soldPrice: number) => {
     const now = new Date().toISOString();
     const existingIndex = positions.findIndex(pos => pos.assetId === assetId && !pos.sold);
@@ -395,7 +402,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
       </div>
 
       {/* Summary Strip */}
-      {portfolioAssets.length > 0 && (
+      {(portfolioAssets.length > 0 || soldPositions.length > 0) && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
           <div className="bg-white border border-brand-gray/20 p-3 shadow-soft">
             <p className="text-[10px] text-brand-black/50 uppercase tracking-wide mb-0.5">Items</p>
@@ -618,8 +625,8 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
         </div>
       )}
 
-      {/* Empty State */}
-      {portfolioAssets.length === 0 && !showAddPanel && (
+      {/* Empty State — only for truly empty portfolios (no active AND no sold) */}
+      {portfolioAssets.length === 0 && soldPositions.length === 0 && !showAddPanel && (
         <div className="flex-1 flex flex-col items-center justify-center text-center py-16 px-4">
           <div className="w-16 h-16 mb-5 border-2 border-brand-gray/30 flex items-center justify-center bg-white">
             <svg className="w-7 h-7 text-brand-black/25" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

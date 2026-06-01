@@ -57,6 +57,7 @@ const KNOWN_DISPLAY_NAMES: Record<string, string> = {
   hypefly: "Hypefly",
   dawntown: "Dawntown",
   "10hillsstudio": "10 Hills Studio",
+  hustleculture: "Hustle Culture",
   findyourkicks: "Find Your Kicks",
   instagram: "Instagram Seller",
   facebook: "Facebook Marketplace",
@@ -210,7 +211,7 @@ export async function isShopifyStore(baseUrl: string): Promise<boolean> {
     const response = await fetch(`${baseUrl}/products.json?limit=1`, {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
         Accept: "application/json",
       },
     });

@@ -18,7 +18,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchHypeflyProduct = fetchHypeflyProduct;
 const DEFAULT_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
     Accept: "text/html,application/xhtml+xml",
     "Accept-Language": "en-IN,en;q=0.9",
 };

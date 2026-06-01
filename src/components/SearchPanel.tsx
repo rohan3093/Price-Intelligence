@@ -481,12 +481,16 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                       : "bg-white border border-brand-gray/30 text-brand-black/40 cursor-not-allowed"
                   }`}
                   style={{ borderRadius: '20px' }}
+                  title={!cat.available ? `${cat.name} tracking is coming soon — stay tuned!` : undefined}
                 >
                   {cat.name}
                   {!cat.available && <span className="ml-1.5 text-[9px]">🔒</span>}
                 </button>
               ))}
             </div>
+            <p className="text-[10px] text-brand-black/40 mt-1.5">
+              🔒 categories are coming soon. More asset classes will be available in future updates.
+            </p>
           </div>
         </div>
       )}

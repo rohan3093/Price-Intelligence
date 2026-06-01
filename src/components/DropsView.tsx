@@ -376,7 +376,7 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
   };
 
   return (
-    <main className="flex-1 flex flex-col bg-brand-background px-2 py-2 md:px-3 md:py-3 pb-20 md:pb-4 w-full max-w-8xl mx-auto">
+    <main className="flex-1 min-h-0 flex flex-col bg-brand-background px-2 py-2 md:px-3 md:py-3 pb-20 md:pb-4 w-full max-w-8xl mx-auto overflow-y-auto">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-start justify-between gap-4">
@@ -448,13 +448,34 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
           isRetrying={isRetrying}
         />
       ) : filteredDrops.length === 0 ? (
-        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm" style={{ borderRadius: '12px' }}>
-          <p className="text-sm font-medium text-brand-black mb-1.5 leading-tight">
-            No upcoming drops
-          </p>
-          <p className="text-xs text-brand-black/70 leading-tight">
-            Check back soon for new releases
-          </p>
+        <div className="border border-brand-gray/20 p-8 bg-white shadow-sm" style={{ borderRadius: '12px' }}>
+          <div className="text-center mb-6">
+            <svg className="w-12 h-12 mx-auto mb-3 text-brand-black/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p className="text-sm font-medium text-brand-black mb-1.5 leading-tight">
+              No upcoming drops right now
+            </p>
+            <p className="text-xs text-brand-black/60 leading-tight max-w-sm mx-auto">
+              We track India-specific sneaker releases from Nike SNKRS, Adidas Confirmed, and other retailers. New drops are added as they're announced.
+            </p>
+          </div>
+          {/* Placeholder calendar grid */}
+          <div className="grid grid-cols-7 gap-1 max-w-xs mx-auto">
+            {["S","M","T","W","T","F","S"].map((day, i) => (
+              <div key={i} className="text-[9px] text-center text-brand-black/40 font-semibold uppercase pb-1">{day}</div>
+            ))}
+            {Array.from({ length: 28 }, (_, i) => (
+              <div
+                key={i}
+                className="aspect-square flex items-center justify-center text-[10px] text-brand-black/30 border border-brand-gray/10 bg-brand-background/30"
+                style={{ borderRadius: '4px' }}
+              >
+                {i + 1}
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-brand-black/40 text-center mt-3">Drops will appear on the calendar as they are announced</p>
         </div>
       ) : (
         <div className="space-y-3">

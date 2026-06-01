@@ -47,28 +47,30 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
         onClick={(e) => e.stopPropagation()}
         style={{ borderRadius: '0px' }}
       >
-        {/* Mobile: Drag Handle */}
-        <div className="md:hidden flex flex-col items-center pt-3 pb-2">
-          <div className="w-12 h-1 bg-brand-gray"></div>
-        </div>
-
-        {/* Header */}
-        <div className="sticky top-0 z-10 flex justify-between items-center px-4 md:px-6 py-4 bg-brand-white border-b border-brand-gray shadow-soft">
-          <div className="text-sm text-brand-black font-semibold">
-            {asset.brand} · {asset.sku}
+        {/* Top Bar — combined drag handle + brand/SKU + close. flex-shrink-0 keeps it always visible regardless of scroll. */}
+        <div className="flex-shrink-0 bg-brand-white border-b border-brand-gray relative z-10">
+          {/* Mobile: Drag Handle */}
+          <div className="md:hidden flex justify-center pt-2 pb-1">
+            <div className="w-10 h-1 bg-brand-gray/60" style={{ borderRadius: '999px' }}></div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-brand-black hover:text-brand-white hover:bg-brand-black border-2 border-brand-gray text-xl px-3 py-2 min-w-[44px] min-h-[44px] flex items-center justify-center transition-all duration-200 active:scale-95"
-            aria-label="Close"
-            style={{ borderRadius: '0px' }}
-          >
-            ✕
-          </button>
+          {/* Header content */}
+          <div className="flex justify-between items-center gap-3 px-3 md:px-6 pb-2 pt-1 md:py-4">
+            <div className="text-xs md:text-sm text-brand-black font-semibold min-w-0 truncate">
+              {asset.brand} · {asset.sku}
+            </div>
+            <button
+              onClick={onClose}
+              className="flex-shrink-0 text-brand-black hover:text-brand-white hover:bg-brand-black border-2 border-brand-gray text-xl min-w-[40px] min-h-[40px] md:min-w-[44px] md:min-h-[44px] flex items-center justify-center transition-all duration-200 active:scale-95"
+              aria-label="Close"
+              style={{ borderRadius: '0px' }}
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-brand-background">
+        <div className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-8 bg-brand-background">
           <AssetDetailPanel
             asset={asset}
             watchlisted={watchlisted}
