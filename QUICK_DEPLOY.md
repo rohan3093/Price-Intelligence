@@ -21,7 +21,7 @@ firebase init hosting
 1. **"Use an existing project"** → Select `intelligence-exchange-8281f` (use arrow keys, press Enter)
 2. **"What do you want to use as your public directory?"** → Type: `dist` (press Enter)
 3. **"Configure as a single-page app?"** → Type: `Yes` (press Enter)
-4. **"Set up automatic builds with GitHub?"** → Type: `No` (press Enter)
+4. **"Set up automatic builds with Hub?"** → Type: `No` (press Enter)
 5. **"File dist/index.html already exists. Overwrite?"** → Type: `No` (press Enter)
 
 ### Step 3: Build Your App

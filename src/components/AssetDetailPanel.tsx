@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Asset, SizeVariant, PricePoint, PortfolioPosition, TradeListing } from "../types";
+import { Asset, SizeVariant, PricePoint, PortfolioPosition, TradeListing, MarketChannel } from "../types";
 import { TradingChart } from "./TradingChart";
 import { OrderBook } from "./OrderBook";
 import { ConnectionRequestModal } from "./ConnectionRequestModal";
@@ -12,14 +12,21 @@ import {
   ArbitrageOpportunity,
   DEFAULT_CONFIG,
   channelLabel,
-  strategyLabel,
-  strategyIcon,
-  riskColor,
-  riskBgColor,
-  confidenceColor,
   turnaroundColor,
   turnaroundLabel,
 } from "../utils/arbitrageEngine";
+
+// ─── Discrepancy display helpers (channel-pair language, no strategy/risk pills) ───
+const ANOMALOUS_NET_PCT_THRESHOLD = 5.0; // 500% spread is data noise, not signal.
+
+const friendlyChannel = (ch: MarketChannel): string => {
+  if (ch === "whatsapp") return "P2P";
+  if (ch === "marketplace") return "Platform";
+  return "International";
+};
+
+const channelPairLabel = (opp: ArbitrageOpportunity): string =>
+  `${friendlyChannel(opp.buy.channel)} → ${friendlyChannel(opp.sell.channel)}`;
 
 interface AssetDetailPanelProps {
   asset: Asset | undefined;
@@ -311,18 +318,10 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
     <div className="border border-brand-gray/20 bg-white p-4" style={{ borderRadius: '12px' }}>
       {/* Header */}
       <div className="flex items-center justify-between mb-3 pb-2 border-b border-brand-gray/15">
-        <div className="flex items-center gap-1.5">
-          <span>{strategyIcon(opp.strategy)}</span>
-          <span className="text-xs font-semibold uppercase tracking-wider text-brand-black/60">{strategyLabel(opp.strategy)}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase ${riskBgColor(opp.risk)} ${riskColor(opp.risk)}`} style={{ borderRadius: '4px' }}>
-            {opp.risk}
-          </span>
-          <span className={`text-xs font-bold font-mono-numeric ${confidenceColor(opp.confidence)}`}>
-            {opp.confidence}%
-          </span>
-        </div>
+        <span className="text-xs text-brand-black/50">{channelPairLabel(opp)}</span>
+        <span className="text-xs text-brand-black/40">
+          Confidence: {opp.confidence}%
+        </span>
       </div>
 
       {/* Time Horizon */}
@@ -332,12 +331,12 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
         </span>
       </div>
 
-      {/* Buy → Sell Flow */}
+      {/* Lower → Higher Price Flow */}
       <div className="space-y-2 mb-3">
-        {/* Buy */}
+        {/* Lower Price */}
         <div className="flex items-baseline justify-between bg-brand-background/30 border border-brand-gray/15 p-2.5" style={{ borderRadius: '8px' }}>
           <div>
-            <div className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5">Buy from</div>
+            <div className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5">Lower Price</div>
             <div className="text-xs font-semibold text-brand-black">{channelLabel(opp.buy.channel)}</div>
             <div className="text-[10px] text-brand-black/50 truncate max-w-[140px]">{opp.buy.source}</div>
           </div>
@@ -355,10 +354,10 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
           </svg>
         </div>
 
-        {/* Sell */}
+        {/* Higher Price */}
         <div className="flex items-baseline justify-between bg-brand-background/30 border border-brand-gray/15 p-2.5" style={{ borderRadius: '8px' }}>
           <div>
-            <div className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5">Sell to</div>
+            <div className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5">Higher Price</div>
             <div className="text-xs font-semibold text-brand-black">{channelLabel(opp.sell.channel)}</div>
             <div className="text-[10px] text-brand-black/50 truncate max-w-[140px]">{opp.sell.source}</div>
             {opp.sellReliability === "consignment" && (
@@ -376,10 +375,10 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
         </div>
       </div>
 
-      {/* Profit */}
+      {/* Spread */}
       <div className="bg-brand-black text-white p-3 flex items-center justify-between" style={{ borderRadius: '8px' }}>
         <div>
-          <div className="text-[10px] uppercase font-semibold tracking-wider opacity-70">Net Profit</div>
+          <div className="text-[10px] uppercase font-semibold tracking-wider opacity-70">Spread</div>
           <div className="text-xl font-bold font-mono-numeric">₹{opp.netProfit.toLocaleString('en-IN')}</div>
         </div>
         <div className="text-right">
@@ -1099,16 +1098,21 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   }`}>
                     {channels.map((ch) => {
                       const isBest = overallBest !== undefined && ch.price === overallBest;
-                      const shortLabel =
-                        ch.label === "Marketplace" ? "Market"
+                      const fullDisplayLabel =
+                        ch.label === "WhatsApp" ? "P2P Channel"
+                        : ch.label === "Marketplace" ? "Platform"
+                        : ch.label; // International stays as-is
+                      const shortDisplayLabel =
+                        ch.label === "WhatsApp" ? "P2P"
+                        : ch.label === "Marketplace" ? "Platform"
                         : ch.label === "International" ? "Intl"
-                        : ch.label; // WhatsApp short enough already
+                        : ch.label;
                       const tooltip =
                         ch.label === "Marketplace"
-                          ? "Best price from Indian resale platforms (e.g. Culture Circle, HypeFly). Shipped domestically."
+                          ? "Best price across Indian resale platforms (e.g. Culture Circle, HypeFly). Shipped domestically."
                           : ch.label === "International"
                           ? "Best landed price from global platforms (e.g. StockX, GOAT). Includes platform fees."
-                          : "Best price from WhatsApp trade groups. Direct seller-to-buyer.";
+                          : "Best price across peer-to-peer trade groups. Direct seller-to-buyer.";
                       return (
                         <div
                           key={ch.label}
@@ -1117,8 +1121,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                           title={tooltip}
                         >
                           <p className="text-[9px] sm:text-[10px] text-brand-black/50 uppercase tracking-wider mb-0.5 leading-tight flex items-center justify-center gap-1">
-                            <span className="sm:hidden">{shortLabel}</span>
-                            <span className="hidden sm:inline">{ch.label}</span>
+                            <span className="sm:hidden">{shortDisplayLabel}</span>
+                            <span className="hidden sm:inline">{fullDisplayLabel}</span>
                             <span className="hidden sm:inline cursor-help text-brand-black/30 hover:text-brand-black/60 transition-colors flex-shrink-0">ⓘ</span>
                           </p>
                           <p className={`text-[13px] sm:text-sm font-mono-numeric font-bold leading-tight truncate ${isBest ? "text-green-600" : "text-brand-black"}`}>
@@ -1293,37 +1297,40 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-brand-gray/20">
               <button
                 onClick={() => { setShowBuyModal(true); setBuyModalExpandWhatsapp(false); setBuyModalExpandMarketplace(false); setBuyModalExpandIntl(false); }}
-                className="flex-1 min-w-[120px] px-4 py-2 bg-brand-black text-white text-center hover:bg-brand-black/90 transition-all duration-200 active:scale-95"
+                className="flex-1 min-w-[120px] px-4 py-3 border-2 border-brand-black text-brand-black bg-transparent text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
                 style={{ borderRadius: '8px' }}
-                title="Send a buy request to connect with sellers"
+                title="Connect to a verified source for this asset"
               >
-                <span className="text-sm font-bold uppercase tracking-wide block">Buy</span>
-                <span className="text-[9px] font-normal opacity-70 block -mt-0.5">Request to connect</span>
+                <span className="text-sm font-bold uppercase tracking-wide block">Connect to Source</span>
               </button>
               <button
                 onClick={() => setShowSellModal(true)}
-                className="flex-1 min-w-[120px] px-4 py-2 border-2 border-brand-black text-brand-black text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
+                className="flex-1 min-w-[120px] px-4 py-3 border-2 border-brand-black text-brand-black bg-transparent text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
                 style={{ borderRadius: '8px' }}
-                title="List your pair for other traders to find"
+                title="Post your intent to sell this asset"
               >
-                <span className="text-sm font-bold uppercase tracking-wide block">Sell</span>
-                <span className="text-[9px] font-normal opacity-50 block -mt-0.5">List your pair</span>
+                <span className="text-sm font-bold uppercase tracking-wide block">Post Intent to Sell</span>
               </button>
               <button
                 onClick={onToggleWatchlist}
-                className={`px-4 py-2.5 border-2 text-sm font-semibold uppercase tracking-wide transition-all duration-200 active:scale-95 flex items-center gap-2 ${
-                  watchlisted
-                    ? "border-yellow-600 bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
-                    : "border-brand-gray text-brand-black hover:bg-brand-gray/10"
-                }`}
-                style={{ borderRadius: '8px' }}
+                type="button"
+                className="text-xs text-brand-black/60 hover:text-brand-black underline underline-offset-2 transition-colors inline-flex items-center gap-1.5"
               >
-                {watchlisted ? "★ Watching" : "☆ Watch"}
-                <span
-                  className="text-xs opacity-50 cursor-help"
-                  title="Price alerts coming soon — get notified when this asset hits your target price"
-                  onClick={(e) => { e.stopPropagation(); toast.info('Price alerts coming soon!'); }}
-                >🔔</span>
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill={watchlisted ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  viewBox="0 0 24 24"
+                  aria-hidden
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
+                  />
+                </svg>
+                {watchlisted ? "Watching" : "Add to Watchlist"}
               </button>
             </div>
           </div>
@@ -1376,7 +1383,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             }`}
             style={{ borderRadius: '12px' }}
           >
-            Arbitrage {arbitrageOpps.length > 0 && (
+            Discrepancies {arbitrageOpps.length > 0 && (
               <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'arbitrage' ? 'bg-white/20' : 'bg-brand-black/10'}`} style={{ borderRadius: '6px' }}>
                 {arbitrageOpps.length}
               </span>
@@ -2187,11 +2194,16 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       )}
 
       {/* ARBITRAGE TAB */}
-      {mainTab === 'arbitrage' && (
+      {mainTab === 'arbitrage' && (() => {
+        // Data quality filter: spreads above ANOMALOUS_NET_PCT_THRESHOLD are noise, not signal.
+        const cleanArbitrageOpps = arbitrageOpps.filter(o => o.netPct <= ANOMALOUS_NET_PCT_THRESHOLD);
+        const anomalousArbitrageCount = arbitrageOpps.length - cleanArbitrageOpps.length;
+        const showBestSizeArb = !!bestSizeArb && bestSizeArb.opp.netPct <= ANOMALOUS_NET_PCT_THRESHOLD;
+        return (
         <div className="space-y-4">
 
-      {/* Best Size Banner — shows when another size has a better opportunity */}
-      {bestSizeArb && (
+      {/* Best Size Banner — shows when another size has a larger spread */}
+      {showBestSizeArb && bestSizeArb && (
         <button
           onClick={() => setSelectedSize(bestSizeArb.size)}
           className="w-full flex items-center gap-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 p-3 text-left hover:border-green-500 transition-colors"
@@ -2203,9 +2215,9 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-green-800 uppercase tracking-wide">Better opportunity in {bestSizeArb.size}</p>
+            <p className="text-xs font-bold text-green-800 uppercase tracking-wide">Larger spread in {bestSizeArb.size}</p>
             <p className="text-sm text-green-700 mt-0.5">
-              ₹{bestSizeArb.opp.netProfit.toLocaleString('en-IN')} profit ({(bestSizeArb.opp.netPct * 100).toFixed(1)}% ROI) — tap to switch
+              ₹{bestSizeArb.opp.netProfit.toLocaleString('en-IN')} ({(bestSizeArb.opp.netPct * 100).toFixed(1)}%) — tap to switch
             </p>
           </div>
           <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2214,11 +2226,17 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
         </button>
       )}
 
-      {arbitrageOpps.length > 0 ? (
+      {anomalousArbitrageCount > 0 && (
+        <p className="text-xs text-brand-black/40 px-1">
+          {anomalousArbitrageCount === 1 ? 'Anomalous spread' : `${anomalousArbitrageCount} anomalous spreads`} — data under review
+        </p>
+      )}
+
+      {cleanArbitrageOpps.length > 0 ? (
         <>
-        {/* Top Pick — highlight the single best opportunity */}
+        {/* Largest Spread — highlight the single largest discrepancy */}
         {(() => {
-          const top = arbitrageOpps[0];
+          const top = cleanArbitrageOpps[0];
           const topRoi = top.netPct * 100;
           const buyAction = top.buy.sellerContact
             ? { type: 'whatsapp' as const, href: `https://wa.me/${top.buy.sellerContact.replace(/[^0-9]/g, '')}` }
@@ -2228,51 +2246,46 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
           return (
             <Card className="shadow-sm border-2 border-brand-black" noPadding>
               <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-brand-black text-white flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-sm font-bold uppercase tracking-wide whitespace-nowrap">Top Pick</span>
-                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-white/20 truncate" style={{ borderRadius: '4px' }}>
-                    {strategyLabel(top.strategy)}
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-sm font-bold uppercase tracking-wide whitespace-nowrap">Largest Spread</span>
+                  <span className="text-xs text-white/50 whitespace-nowrap truncate">
+                    {channelPairLabel(top)}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                  <span className={`text-[11px] sm:text-xs font-bold font-mono-numeric whitespace-nowrap ${top.confidence >= 70 ? 'text-green-400' : top.confidence >= 40 ? 'text-yellow-400' : 'text-red-400'}`}>
-                    {top.confidence}% conf
-                  </span>
-                  <span className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase whitespace-nowrap ${
-                    top.risk === 'low' ? 'bg-green-500/30 text-green-300' : top.risk === 'medium' ? 'bg-yellow-500/30 text-yellow-300' : 'bg-red-500/30 text-red-300'
-                  }`} style={{ borderRadius: '3px' }}>{top.risk} risk</span>
-                </div>
+                <span className="text-xs text-white/40 whitespace-nowrap">
+                  Confidence: {top.confidence}%
+                </span>
               </div>
               <div className="p-3 sm:p-4">
                 {/* Mobile: stacked Buy → Profit → Sell. Desktop: 3-column grid. */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 sm:items-center">
-                  {/* Buy */}
+                  {/* Lower Price */}
                   <div className="flex sm:block items-center justify-between bg-brand-background/40 sm:bg-transparent border sm:border-0 border-brand-gray/15 p-2.5 sm:p-0 min-w-0" style={{ borderRadius: '8px' }}>
                     <div className="min-w-0">
-                      <p className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5 sm:mb-1">Buy from</p>
+                      <p className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5 sm:mb-1">Lower Price</p>
                       <p className="text-sm font-semibold text-brand-black truncate">{channelLabel(top.buy.channel)}</p>
                       <p className="text-[10px] text-brand-black/50 truncate">{top.buy.source}</p>
                     </div>
                     <p className="text-base font-bold font-mono-numeric text-brand-black mt-0 sm:mt-1 ml-2 sm:ml-0 whitespace-nowrap">₹{top.buy.allIn.toLocaleString('en-IN')}</p>
                   </div>
 
-                  {/* Profit (center on desktop, prominent banner on mobile) */}
+                  {/* Spread (center on desktop, prominent banner on mobile) */}
                   <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:gap-1 bg-green-50 sm:bg-transparent border sm:border-0 border-green-200 p-2.5 sm:p-0" style={{ borderRadius: '8px' }}>
                     <svg className="hidden sm:block w-5 h-5 text-brand-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                     <div className="sm:text-center">
-                      <p className="text-[10px] text-green-700 sm:hidden uppercase font-semibold tracking-wider">Net Profit</p>
+                      <p className="text-[10px] text-green-700 sm:hidden uppercase font-semibold tracking-wider">Spread</p>
                       <p className="text-lg sm:text-xl font-bold font-mono-numeric text-green-600">₹{top.netProfit.toLocaleString('en-IN')}</p>
                     </div>
-                    <p className="text-xs font-semibold text-green-600 whitespace-nowrap">{topRoi.toFixed(1)}% ROI</p>
+                    <p className="text-xs font-semibold text-green-600 whitespace-nowrap">{topRoi.toFixed(1)}%</p>
                     <p className={`hidden sm:block text-[10px] font-semibold ${turnaroundColor(top.turnaroundDays)}`}>{turnaroundLabel(top.turnaroundDays)}</p>
                   </div>
 
-                  {/* Sell */}
+                  {/* Higher Price */}
                   <div className="flex sm:block items-center justify-between bg-brand-background/40 sm:bg-transparent border sm:border-0 border-brand-gray/15 p-2.5 sm:p-0 sm:text-right min-w-0" style={{ borderRadius: '8px' }}>
                     <div className="min-w-0">
-                      <p className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5 sm:mb-1">Sell to</p>
+                      <p className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5 sm:mb-1">Higher Price</p>
                       <p className="text-sm font-semibold text-brand-black truncate">{channelLabel(top.sell.channel)}</p>
                       <p className="text-[10px] text-brand-black/50 truncate">{top.sell.source}</p>
                     </div>
@@ -2311,11 +2324,11 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
           );
         })()}
 
-        {/* Remaining Opportunities */}
-        {arbitrageOpps.length > 1 && (
+        {/* Remaining Discrepancies */}
+        {cleanArbitrageOpps.length > 1 && (
         <Card
-          title={`All Opportunities (${arbitrageOpps.length})`}
-          subtitle="Sorted by profit — top pick highlighted above"
+          title={`All Discrepancies (${cleanArbitrageOpps.length})`}
+          subtitle="Sorted by spread — largest highlighted above"
           icon={
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -2352,7 +2365,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
         >
           {isMobile ? (
             <div className="space-y-3">
-              {arbitrageOpps.slice(1).map((opp, idx) => (
+              {cleanArbitrageOpps.slice(1).map((opp, idx) => (
                 <ArbCard key={idx} opp={opp} />
               ))}
             </div>
@@ -2362,18 +2375,18 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 <table className="min-w-full text-sm border-collapse">
                   <thead className="bg-brand-background/50 border-b-2 border-brand-gray/20">
                     <tr>
-                      <th className="text-left px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Strategy</th>
-                      <th className="text-left px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Buy From</th>
+                      <th className="text-left px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Channels</th>
+                      <th className="text-left px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Lower Price</th>
                       <th className="text-right px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Buy Price</th>
-                      <th className="text-left px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Sell To</th>
+                      <th className="text-left px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Higher Price</th>
                       <th className="text-right px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Sell Net</th>
-                      <th className="text-right px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Profit</th>
-                      <th className="text-center px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Conf / Risk</th>
+                      <th className="text-right px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Spread</th>
+                      <th className="text-center px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Confidence</th>
                       <th className="text-right px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {arbitrageOpps.slice(1).map((opp, idx) => {
+                    {cleanArbitrageOpps.slice(1).map((opp, idx) => {
                       const roiPct = opp.netPct * 100;
                       const isEven = idx % 2 === 0;
                       const buyAction = opp.buy.sellerContact
@@ -2388,9 +2401,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                           className={`border-b border-brand-gray/10 ${isEven ? 'bg-white' : 'bg-brand-gray/5'} hover:bg-brand-background/50 transition-colors`}
                         >
                           <td className="px-3 py-2.5">
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-black/80">
-                              <span>{strategyIcon(opp.strategy)}</span>
-                              <span>{strategyLabel(opp.strategy)}</span>
+                            <span className="text-xs text-brand-black/50 whitespace-nowrap">
+                              {channelPairLabel(opp)}
                             </span>
                           </td>
                           <td className="px-3 py-2.5">
@@ -2434,12 +2446,9 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                               {roiPct.toFixed(1)}% ROI
                             </div>
                           </td>
-                          <td className="px-3 py-2.5 text-center cursor-help" title={`Confidence: ${opp.confidence}/100`}>
-                            <div className={`text-xs font-bold font-mono-numeric ${confidenceColor(opp.confidence)}`}>
-                              {opp.confidence}
-                            </div>
-                            <span className={`inline-block mt-0.5 px-1.5 py-0.5 text-[10px] font-semibold uppercase ${riskBgColor(opp.risk)} ${riskColor(opp.risk)}`} style={{ borderRadius: '3px' }}>
-                              {opp.risk}
+                          <td className="px-3 py-2.5 text-center" title={`Confidence: ${opp.confidence}/100`}>
+                            <span className="text-xs text-brand-black/40 font-mono-numeric">
+                              {opp.confidence}%
                             </span>
                           </td>
                           <td className="px-3 py-2.5 text-right">
@@ -2479,24 +2488,25 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
         )}
         </>
       ) : (
-        <Card title="Arbitrage" subtitle="No opportunities for this size" className="shadow-sm">
+        <Card title="Discrepancies" subtitle="No price discrepancies for this size" className="shadow-sm">
           <div className="py-8 text-center text-brand-black/60">
             <svg className="w-12 h-12 mx-auto mb-3 text-brand-gray/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
-            <p className="text-sm font-semibold text-brand-black/60">No Arbitrage Opportunities</p>
+            <p className="text-sm font-semibold text-brand-black/60">No Price Discrepancies</p>
             <p className="text-xs text-brand-black/40 mt-1 mb-4">Market is efficiently priced or not enough cross-channel data yet</p>
             <div className="max-w-sm mx-auto text-left bg-brand-background/50 border border-brand-gray/20 p-3 space-y-2" style={{ borderRadius: '8px' }}>
-              <p className="text-xs font-semibold text-brand-black/70">What is arbitrage?</p>
+              <p className="text-xs font-semibold text-brand-black/70">What is a price discrepancy?</p>
               <p className="text-[11px] text-brand-black/50 leading-relaxed">
-                Arbitrage opportunities appear when the same sneaker is priced differently across channels. We scan for price gaps of 3%+ and flag profitable buy-sell pairs after accounting for platform fees.
+                Price discrepancies appear when the same sneaker is priced differently across channels. We surface cross-channel gaps of 3%+ and rank them by spread size after accounting for platform fees.
               </p>
             </div>
           </div>
         </Card>
       )}
         </div>
-      )}
+        );
+      })()}
 
       {/* Modals - Outside of tab system */}
 
