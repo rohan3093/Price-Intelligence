@@ -54,6 +54,7 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
   const [assetsLoading, setAssetsLoading] = useState(true);
   const [assetsError, setAssetsError] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [watchlistIds, setWatchlistIds] = useState<number[]>([]);
   const [, setWatchlistLoading] = useState(true);
   const [watchlistInitialized, setWatchlistInitialized] = useState(false);
@@ -77,23 +78,39 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
   const isLoadingRef = useRef(false);
 
   const loadAssets = async (isRetry = false) => {
+    // Stale-while-revalidate: hydrate from cache synchronously so the UI is
+    // interactive in ~50ms, then continue with the network fetch in the background.
+    const cachedAssets = !isRetry ? storage.loadAssets() : null;
+    const hadCache = !!(cachedAssets && cachedAssets.length > 0);
+    if (hadCache) {
+      setAssets(cachedAssets!);
+      setAssetsLoading(false);
+    }
+
     if (isRetry) {
       setIsRetrying(true);
-    } else {
+    } else if (!hadCache) {
       setAssetsLoading(true);
     }
+    setIsRefreshing(true);
     setAssetsError(null);
     try {
       const fetchedAssets = await fetchAllAssets();
       setAssets(fetchedAssets);
       storage.saveAssets(fetchedAssets);
+      // Silent update — only nudge the user if the asset count actually changed.
+      if (hadCache && fetchedAssets.length !== cachedAssets!.length) {
+        toast.success("Market data updated");
+      }
     } catch (error) {
       console.error("Failed to load assets:", error);
       const localAssets = storage.loadAssets();
       if (localAssets && localAssets.length > 0) {
-        setAssets(localAssets);
+        if (!hadCache) {
+          setAssets(localAssets);
+          toast.warning("Couldn't reach server — showing cached data");
+        }
         setAssetsError("Using cached data. Pull to refresh for latest.");
-        toast.warning("Couldn't reach server — showing cached data");
       } else {
         setAssetsError(error instanceof Error ? error.message : "Failed to load assets. Please try again.");
         toast.error("Failed to load market data. Check your connection and retry.");
@@ -101,6 +118,7 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
     } finally {
       setAssetsLoading(false);
       setIsRetrying(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -423,7 +441,11 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
               )}
 
               <div className="flex-shrink-0">
-                <MarketOverview assets={assets} onSelectAsset={(id) => setSelectedId(id)} />
+                <MarketOverview
+                  assets={assets}
+                  onSelectAsset={(id) => setSelectedId(id)}
+                  isRefreshing={isRefreshing}
+                />
               </div>
 
               <div className="hidden md:flex flex-1 min-h-0">

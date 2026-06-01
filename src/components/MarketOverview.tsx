@@ -4,6 +4,8 @@ import { Asset, PricePoint, MarketChannel } from "../types";
 interface MarketOverviewProps {
   assets: Asset[];
   onSelectAsset?: (id: number) => void;
+  /** When true, a subtle spinning indicator appears in the collapsed header. */
+  isRefreshing?: boolean;
 }
 
 interface TopMover {
@@ -338,6 +340,7 @@ const Chevron: React.FC<{ open: boolean }> = ({ open }) => (
 export const MarketOverview: React.FC<MarketOverviewProps> = ({
   assets,
   onSelectAsset,
+  isRefreshing = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const snapshot = useMemo(() => computeSnapshot(assets), [assets]);
@@ -376,6 +379,15 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({
         className="w-full flex items-center justify-between gap-4 px-3 md:px-4 py-2.5 hover:bg-brand-gray/5 transition-colors text-left"
       >
         <div className="flex items-center gap-4 md:gap-6 min-w-0 flex-1">
+          {isRefreshing && (
+            <span
+              className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse flex-shrink-0"
+              role="status"
+              aria-label="Refreshing market data"
+              title="Refreshing…"
+            />
+          )}
+
           <div className="flex items-baseline gap-1.5 flex-shrink-0">
             <span className="text-[10px] uppercase tracking-wide text-brand-black/50">
               Health
