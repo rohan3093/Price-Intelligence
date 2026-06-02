@@ -32,6 +32,10 @@ const DATA_KEYS: Record<Channel, string> = {
   international: "internationalPrice",
 };
 
+// Below this raw observation count we don't draw a chart — a 4-point line through
+// weeks of timestamps misrepresents listing observations as a price trajectory.
+const SPARSE_THRESHOLD = 8;
+
 interface RawPoint {
   timestamp: number;
   price: number;
@@ -85,13 +89,15 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
   const [timeframe, setTimeframe] = useState<Timeframe>("1M");
   const [chartType, setChartType] = useState<"area" | "line">("line");
 
-  const { chartData, activeChannels, totalPoints } = useMemo(() => {
+  const { chartData, activeChannels, totalPoints, channelStats } = useMemo(() => {
     const raw: RawPoint[] = [];
     const now = Date.now();
 
     const addPoints = (points: PricePoint[], channel: Channel) => {
       points.forEach((p) => {
         if (p.price == null || !p.lastSeen) return;
+        // Sanity filter: drop zero/negative and absurdly high prices (likely scrape errors).
+        if (p.price <= 0 || p.price > 10_00_000) return;
 
         let ts: number;
         const ls = p.lastSeen as any;
@@ -193,7 +199,19 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
       })
       .sort((a, b) => a.timestamp - b.timestamp);
 
-    return { chartData: points, activeChannels: found, totalPoints: raw.length };
+    // Per-channel raw stats — used for the sparse fallback view.
+    const channelStats: Record<Channel, { best: number; count: number }> = {
+      whatsapp: { best: 0, count: 0 },
+      marketplace: { best: 0, count: 0 },
+      international: { best: 0, count: 0 },
+    };
+    for (const r of raw) {
+      const cs = channelStats[r.channel];
+      cs.count += 1;
+      cs.best = cs.count === 1 ? r.price : Math.min(cs.best, r.price);
+    }
+
+    return { chartData: points, activeChannels: found, totalPoints: raw.length, channelStats };
   }, [pricePoints, timeframe]);
 
   const stats = useMemo(() => {
@@ -275,6 +293,8 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
   }
 
   const hasEnoughDataForTimeframes = totalPoints >= 10;
+  const isSparse = totalPoints < SPARSE_THRESHOLD;
+  const sparseChannels = CHANNELS.filter((ch) => channelStats[ch].count > 0);
 
   const allVisiblePrices = chartData.flatMap((d) =>
     [d.whatsappPrice, d.marketplacePrice, d.internationalPrice].filter((p): p is number => p !== undefined)
@@ -305,43 +325,45 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
 
   return (
     <div className="space-y-3">
-      {/* Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="inline-flex items-center gap-0.5 sm:gap-1 border border-brand-gray/30 bg-brand-background/50 p-1 flex-wrap" style={{ borderRadius: "8px" }}>
-          {(["1D", "7D", "1M", "3M", "6M", "1Y", "ALL"] as Timeframe[]).map((tf) => (
-            <TimeframeButton key={tf} label={tf} active={timeframe === tf} onClick={() => setTimeframe(tf)} disabled={!hasEnoughDataForTimeframes} />
-          ))}
-        </div>
+      {/* Controls — hidden when data is sparse */}
+      {!isSparse && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="inline-flex items-center gap-0.5 sm:gap-1 border border-brand-gray/30 bg-brand-background/50 p-1 flex-wrap" style={{ borderRadius: "8px" }}>
+            {(["1D", "7D", "1M", "3M", "6M", "1Y", "ALL"] as Timeframe[]).map((tf) => (
+              <TimeframeButton key={tf} label={tf} active={timeframe === tf} onClick={() => setTimeframe(tf)} disabled={!hasEnoughDataForTimeframes} />
+            ))}
+          </div>
 
-        <div className="inline-flex items-center gap-1 border border-brand-gray/30 bg-brand-background/50 p-1" style={{ borderRadius: "8px" }}>
-          <button
-            onClick={() => setChartType("area")}
-            className={`px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 ${
-              chartType === "area" ? "bg-brand-black text-white" : "bg-transparent text-brand-black/60 hover:text-brand-black"
-            }`}
-            style={{ borderRadius: "6px" }}
-            title="Area Chart"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-            </svg>
-            <span className="hidden sm:inline">Area</span>
-          </button>
-          <button
-            onClick={() => setChartType("line")}
-            className={`px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 ${
-              chartType === "line" ? "bg-brand-black text-white" : "bg-transparent text-brand-black/60 hover:text-brand-black"
-            }`}
-            style={{ borderRadius: "6px" }}
-            title="Line Chart"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4" />
-            </svg>
-            <span className="hidden sm:inline">Line</span>
-          </button>
+          <div className="inline-flex items-center gap-1 border border-brand-gray/30 bg-brand-background/50 p-1" style={{ borderRadius: "8px" }}>
+            <button
+              onClick={() => setChartType("area")}
+              className={`px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                chartType === "area" ? "bg-brand-black text-white" : "bg-transparent text-brand-black/60 hover:text-brand-black"
+              }`}
+              style={{ borderRadius: "6px" }}
+              title="Area Chart"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+              </svg>
+              <span className="hidden sm:inline">Area</span>
+            </button>
+            <button
+              onClick={() => setChartType("line")}
+              className={`px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                chartType === "line" ? "bg-brand-black text-white" : "bg-transparent text-brand-black/60 hover:text-brand-black"
+              }`}
+              style={{ borderRadius: "6px" }}
+              title="Line Chart"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4" />
+              </svg>
+              <span className="hidden sm:inline">Line</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Stats Bar — 2-col on mobile, responsive on larger screens to prevent label overlap */}
       <div className={`grid grid-cols-2 ${desktopGridClass} gap-x-3 gap-y-2.5 sm:gap-3 text-sm`}>
@@ -382,8 +404,9 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
         </div>
       </div>
 
-      {/* Sparse data advisory */}
-      {chartData.length < 5 && chartData.length > 0 && (
+      {/* Sparse data advisory — only for non-sparse-but-thin-day-count cases.
+          When isSparse is true, the replacement view below carries its own line. */}
+      {!isSparse && chartData.length < 5 && chartData.length > 0 && (
         <div className="flex items-start gap-2 text-xs text-brand-black/50 bg-brand-background/50 border border-brand-gray/15 p-2.5" style={{ borderRadius: "8px" }}>
           <svg className="w-4 h-4 text-brand-black/30 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -392,8 +415,41 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
         </div>
       )}
 
-      {/* Chart */}
+      {/* Chart (or sparse-data fallback) */}
       <div className="bg-white border border-brand-gray/20 p-2 sm:p-4" style={{ borderRadius: "12px" }}>
+        {isSparse ? (
+          <div className="h-52 flex flex-col items-center justify-center px-2">
+            <div
+              className="grid gap-6 sm:gap-10 w-full max-w-md"
+              style={{
+                gridTemplateColumns: `repeat(${Math.max(sparseChannels.length, 1)}, minmax(0, 1fr))`,
+              }}
+            >
+              {sparseChannels.map((ch) => (
+                <div key={ch} className="text-center min-w-0">
+                  <p
+                    className="text-[10px] uppercase tracking-wider text-brand-black/40 truncate"
+                    title={CHANNEL_META[ch].label}
+                  >
+                    {CHANNEL_META[ch].label}
+                  </p>
+                  <p
+                    className="text-lg font-bold font-mono-numeric mt-1 truncate"
+                    style={{ color: CHANNEL_META[ch].color }}
+                  >
+                    {formatCompactINR(channelStats[ch].best)}
+                  </p>
+                  <p className="text-[10px] text-brand-black/40 mt-0.5">
+                    {channelStats[ch].count} listing{channelStats[ch].count === 1 ? "" : "s"}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-brand-black/30 text-center mt-4">
+              Price history unavailable — {totalPoints} observation{totalPoints === 1 ? "" : "s"} recorded
+            </p>
+          </div>
+        ) : (
         <ResponsiveContainer width="100%" height={chartData.length < 10 ? 200 : 320}>
           {chartType === "area" ? (
             <AreaChart key="area" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
@@ -443,6 +499,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
             </LineChart>
           )}
         </ResponsiveContainer>
+        )}
       </div>
 
       {/* Legend + Footer */}
