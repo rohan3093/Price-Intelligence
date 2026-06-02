@@ -1575,32 +1575,26 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             })()}
           </Card>
 
-          {/* Insight Card — shown inline when data exists */}
+          {/* Analyst Signal — manually curated, not algorithmic. Neutral styling matches the rest of the Overview tab. */}
           {currentData.insight && (
-            <Card
-              className={`shadow-sm ${
-                currentData.insight.recommendation === 'buy'
-                  ? 'bg-gradient-to-br from-green-50/50 to-green-100/30 border-green-200'
-                  : currentData.insight.recommendation === 'sell'
-                  ? 'bg-gradient-to-br from-red-50/50 to-red-100/30 border-red-200'
-                  : 'bg-gradient-to-br from-blue-50/50 to-blue-100/30 border-blue-200'
-              }`}
-            >
+            <Card className="shadow-sm border border-brand-gray/20">
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
-                  <span className="text-sm font-bold text-brand-black/70 uppercase tracking-wide">Market Insight</span>
+                  <span className="text-sm font-bold text-brand-black/70 uppercase tracking-wide">Analyst Signal</span>
                   {selectedSize && <span className="text-xs text-brand-black/50">({selectedSize})</span>}
                 </div>
-                <div className={`px-3 py-1.5 font-bold text-sm uppercase tracking-wide ${
+                <div className={`px-2.5 py-1 text-xs font-bold uppercase tracking-wider border ${
                   currentData.insight.recommendation === 'buy'
-                    ? 'bg-green-600 text-white'
+                    ? 'border-green-600 text-green-700'
                     : currentData.insight.recommendation === 'sell'
-                    ? 'bg-red-600 text-white'
-                    : 'bg-blue-600 text-white'
-                }`} style={{ borderRadius: '8px' }}>
+                    ? 'border-red-500 text-red-600'
+                    : currentData.insight.recommendation === 'hold'
+                    ? 'border-brand-black/30 text-brand-black/60'
+                    : 'border-brand-black/20 text-brand-black/50'
+                }`} style={{ borderRadius: '4px' }}>
                   {currentData.insight.recommendation.toUpperCase()}
                 </div>
               </div>
@@ -1612,14 +1606,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 </div>
                 <div className="h-1.5 bg-brand-gray/20 overflow-hidden" style={{ borderRadius: '4px' }}>
                   <div
-                    className={`h-full transition-all ${
-                      currentData.insight.recommendation === 'buy'
-                        ? 'bg-green-600'
-                        : currentData.insight.recommendation === 'sell'
-                        ? 'bg-red-600'
-                        : 'bg-blue-600'
-                    }`}
-                    style={{ width: `${currentData.insight.confidence}%` }}
+                    className="h-full bg-brand-black/40 transition-all"
+                    style={{ width: `${currentData.insight.confidence}%`, borderRadius: '4px' }}
                   />
                 </div>
               </div>
@@ -1631,8 +1619,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 </p>
               )}
 
-              <p className="text-[10px] text-brand-black/40 mt-3 pt-2 border-t border-brand-gray/20">
-                Algorithmic recommendation based on current data. Not financial advice.
+              <p className="text-[9px] text-brand-black/30 uppercase tracking-wider mt-3">
+                Analyst-curated signal · Updated with each data refresh
               </p>
             </Card>
           )}
@@ -2226,6 +2214,15 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
         const cleanArbitrageOpps = arbitrageOpps.filter(o => o.netPct <= ANOMALOUS_NET_PCT_THRESHOLD);
         const anomalousArbitrageCount = arbitrageOpps.length - cleanArbitrageOpps.length;
         const showBestSizeArb = !!bestSizeArb && bestSizeArb.opp.netPct <= ANOMALOUS_NET_PCT_THRESHOLD;
+        // Confidence floor: never headline a low-certainty signal. Pick the largest spread whose
+        // confidence clears the floor (cleanArbitrageOpps is sorted by spread desc).
+        const FEATURED_CONFIDENCE_FLOOR = 20;
+        const featuredOpp = cleanArbitrageOpps.find(opp => opp.confidence >= FEATURED_CONFIDENCE_FLOOR) ?? null;
+        // The full list still shows everything (including low-confidence signals). Just dedupe the
+        // featured one so it isn't rendered twice.
+        const listOpps = featuredOpp
+          ? cleanArbitrageOpps.filter(o => o !== featuredOpp)
+          : cleanArbitrageOpps;
         return (
         <div className="space-y-4">
 
@@ -2261,9 +2258,9 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
 
       {cleanArbitrageOpps.length > 0 ? (
         <>
-        {/* Largest Spread — highlight the single largest discrepancy */}
-        {(() => {
-          const top = cleanArbitrageOpps[0];
+        {/* Largest Spread — only featured if it clears the confidence floor; otherwise show a fallback. */}
+        {featuredOpp ? (() => {
+          const top = featuredOpp;
           const topRoi = top.netPct * 100;
           const buyAction = top.buy.sellerContact
             ? { type: 'whatsapp' as const, href: `https://wa.me/${top.buy.sellerContact.replace(/[^0-9]/g, '')}` }
@@ -2349,13 +2346,24 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               </div>
             </Card>
           );
-        })()}
+        })() : (
+          <div className="border border-brand-gray/20 p-4 text-center" style={{ borderRadius: '12px' }}>
+            <p className="text-sm font-semibold text-brand-black/60">No high-confidence spread detected</p>
+            <p className="text-[11px] text-brand-black/40 mt-1">
+              {cleanArbitrageOpps.length > 0
+                ? `${cleanArbitrageOpps.length} low-confidence signal${cleanArbitrageOpps.length !== 1 ? 's' : ''} found — see full list below`
+                : 'No price discrepancies found for this size'}
+            </p>
+          </div>
+        )}
 
-        {/* Remaining Discrepancies */}
-        {cleanArbitrageOpps.length > 1 && (
+        {/* Remaining Discrepancies — full list still includes low-confidence signals; users can assess them. */}
+        {listOpps.length > 0 && (
         <Card
           title={`All Discrepancies (${cleanArbitrageOpps.length})`}
-          subtitle="Sorted by spread — largest highlighted above"
+          subtitle={featuredOpp
+            ? 'Sorted by spread — largest highlighted above'
+            : 'Sorted by spread — no signal met confidence threshold for featured display'}
           icon={
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -2392,7 +2400,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
         >
           {isMobile ? (
             <div className="space-y-3">
-              {cleanArbitrageOpps.slice(1).map((opp, idx) => (
+              {listOpps.map((opp, idx) => (
                 <ArbCard key={idx} opp={opp} />
               ))}
             </div>
@@ -2413,7 +2421,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {cleanArbitrageOpps.slice(1).map((opp, idx) => {
+                    {listOpps.map((opp, idx) => {
                       const roiPct = opp.netPct * 100;
                       const isEven = idx % 2 === 0;
                       const buyAction = opp.buy.sellerContact
