@@ -416,104 +416,110 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
       )}
 
       {/* Chart (or sparse-data fallback) */}
-      <div className="bg-white border border-brand-gray/20 p-2 sm:p-4" style={{ borderRadius: "12px" }}>
-        {isSparse ? (
-          <div className="h-52 flex flex-col items-center justify-center px-2">
-            <div
-              className="grid gap-6 sm:gap-10 w-full max-w-md"
-              style={{
-                gridTemplateColumns: `repeat(${Math.max(sparseChannels.length, 1)}, minmax(0, 1fr))`,
-              }}
-            >
-              {sparseChannels.map((ch) => (
+      {isSparse ? (
+        <div className="py-4">
+          <div
+            className="grid gap-4"
+            style={{
+              gridTemplateColumns: `repeat(${Math.max(sparseChannels.length, 1)}, 1fr)`,
+            }}
+          >
+            {sparseChannels.map((ch) => {
+              const count = channelStats[ch].count;
+              return (
                 <div key={ch} className="text-center min-w-0">
                   <p
-                    className="text-[10px] uppercase tracking-wider text-brand-black/40 truncate"
+                    className="text-[10px] uppercase tracking-wider mb-1 truncate"
+                    style={{ color: CHANNEL_META[ch].color, opacity: 0.7 }}
                     title={CHANNEL_META[ch].label}
                   >
                     {CHANNEL_META[ch].label}
                   </p>
                   <p
-                    className="text-lg font-bold font-mono-numeric mt-1 truncate"
+                    className="font-mono-numeric font-bold text-lg truncate"
                     style={{ color: CHANNEL_META[ch].color }}
                   >
-                    {formatCompactINR(channelStats[ch].best)}
+                    {formatCompactINR(stats.latests[ch] ?? 0)}
                   </p>
-                  <p className="text-[10px] text-brand-black/40 mt-0.5">
-                    {channelStats[ch].count} listing{channelStats[ch].count === 1 ? "" : "s"}
+                  <p className="text-[10px] text-brand-black/35 mt-0.5">
+                    {count} listing{count !== 1 ? "s" : ""}
                   </p>
                 </div>
-              ))}
-            </div>
-            <p className="text-[10px] text-brand-black/30 text-center mt-4">
-              Price history unavailable — {totalPoints} observation{totalPoints === 1 ? "" : "s"} recorded
-            </p>
+              );
+            })}
           </div>
-        ) : (
-        <ResponsiveContainer width="100%" height={chartData.length < 10 ? 200 : 320}>
-          {chartType === "area" ? (
-            <AreaChart key="area" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
-              <defs>
-                <linearGradient id="whatsappGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="marketplaceGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="internationalGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-              <XAxis {...sharedAxisProps.xAxis} />
-              <YAxis {...sharedAxisProps.yAxis} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="whatsappPrice" stroke="#10b981" strokeWidth={2}
-                fill="url(#whatsappGrad)" dot={{ r: 3, fill: "#10b981" }}
-                connectNulls isAnimationActive={false} name="WhatsApp" />
-              <Area type="monotone" dataKey="marketplacePrice" stroke="#3b82f6" strokeWidth={2}
-                fill="url(#marketplaceGrad)" dot={{ r: 3, fill: "#3b82f6" }}
-                connectNulls isAnimationActive={false} name="Marketplace" />
-              <Area type="monotone" dataKey="internationalPrice" stroke="#f59e0b" strokeWidth={2}
-                fill="url(#internationalGrad)" dot={{ r: 3, fill: "#f59e0b" }}
-                connectNulls isAnimationActive={false} name="International" />
-            </AreaChart>
-          ) : (
-            <LineChart key="line" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-              <XAxis {...sharedAxisProps.xAxis} />
-              <YAxis {...sharedAxisProps.yAxis} />
-              <Tooltip content={<CustomTooltip />} />
-              <Line type="monotone" dataKey="whatsappPrice" stroke="#10b981" strokeWidth={2}
-                dot={{ r: 3, fill: "#10b981", stroke: "#10b981" }}
-                connectNulls isAnimationActive={false} name="WhatsApp" />
-              <Line type="monotone" dataKey="marketplacePrice" stroke="#3b82f6" strokeWidth={2}
-                dot={{ r: 3, fill: "#3b82f6", stroke: "#3b82f6" }}
-                connectNulls isAnimationActive={false} name="Marketplace" />
-              <Line type="monotone" dataKey="internationalPrice" stroke="#f59e0b" strokeWidth={2}
-                dot={{ r: 3, fill: "#f59e0b", stroke: "#f59e0b" }}
-                connectNulls isAnimationActive={false} name="International" />
-            </LineChart>
-          )}
-        </ResponsiveContainer>
-        )}
-      </div>
-
-      {/* Legend + Footer */}
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:gap-4">
-          {CHANNELS.map((ch) =>
-            activeChannels.has(ch) ? (
-              <div key={ch} className="flex items-center gap-1.5">
-                <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: CHANNEL_META[ch].color }} />
-                <span className="text-[11px] text-brand-black/60 font-medium">{CHANNEL_META[ch].label}</span>
-              </div>
-            ) : null
-          )}
+          <p className="text-[10px] text-brand-black/30 text-center mt-5">
+            Price history unavailable — {totalPoints} observation{totalPoints !== 1 ? "s" : ""} recorded
+          </p>
         </div>
+      ) : (
+        <div className="bg-white border border-brand-gray/20 p-2 sm:p-4" style={{ borderRadius: "12px" }}>
+          <ResponsiveContainer width="100%" height={chartData.length < 10 ? 200 : 320}>
+            {chartType === "area" ? (
+              <AreaChart key="area" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+                <defs>
+                  <linearGradient id="whatsappGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="marketplaceGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="internationalGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+                <XAxis {...sharedAxisProps.xAxis} />
+                <YAxis {...sharedAxisProps.yAxis} />
+                <Tooltip content={<CustomTooltip />} />
+                <Area type="monotone" dataKey="whatsappPrice" stroke="#10b981" strokeWidth={2}
+                  fill="url(#whatsappGrad)" dot={{ r: 3, fill: "#10b981" }}
+                  connectNulls isAnimationActive={false} name="WhatsApp" />
+                <Area type="monotone" dataKey="marketplacePrice" stroke="#3b82f6" strokeWidth={2}
+                  fill="url(#marketplaceGrad)" dot={{ r: 3, fill: "#3b82f6" }}
+                  connectNulls isAnimationActive={false} name="Marketplace" />
+                <Area type="monotone" dataKey="internationalPrice" stroke="#f59e0b" strokeWidth={2}
+                  fill="url(#internationalGrad)" dot={{ r: 3, fill: "#f59e0b" }}
+                  connectNulls isAnimationActive={false} name="International" />
+              </AreaChart>
+            ) : (
+              <LineChart key="line" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+                <XAxis {...sharedAxisProps.xAxis} />
+                <YAxis {...sharedAxisProps.yAxis} />
+                <Tooltip content={<CustomTooltip />} />
+                <Line type="monotone" dataKey="whatsappPrice" stroke="#10b981" strokeWidth={2}
+                  dot={{ r: 3, fill: "#10b981", stroke: "#10b981" }}
+                  connectNulls isAnimationActive={false} name="WhatsApp" />
+                <Line type="monotone" dataKey="marketplacePrice" stroke="#3b82f6" strokeWidth={2}
+                  dot={{ r: 3, fill: "#3b82f6", stroke: "#3b82f6" }}
+                  connectNulls isAnimationActive={false} name="Marketplace" />
+                <Line type="monotone" dataKey="internationalPrice" stroke="#f59e0b" strokeWidth={2}
+                  dot={{ r: 3, fill: "#f59e0b", stroke: "#f59e0b" }}
+                  connectNulls isAnimationActive={false} name="International" />
+              </LineChart>
+            )}
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Legend (hidden when sparse — no chart line for it to describe) + Footer */}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+        {!isSparse && (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:gap-4">
+            {CHANNELS.map((ch) =>
+              activeChannels.has(ch) ? (
+                <div key={ch} className="flex items-center gap-1.5">
+                  <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: CHANNEL_META[ch].color }} />
+                  <span className="text-[11px] text-brand-black/60 font-medium">{CHANNEL_META[ch].label}</span>
+                </div>
+              ) : null
+            )}
+          </div>
+        )}
         <p className="text-[11px] text-brand-black/40">
           {chartData.length < 10 ? (
             <>All {chartData.length} day{chartData.length !== 1 ? "s" : ""} &bull; {totalPoints} price point{totalPoints !== 1 ? "s" : ""}</>
