@@ -1294,43 +1294,40 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             </div>
 
             {/* Action Toolbar */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-brand-gray/20">
-              <button
-                onClick={() => { setShowBuyModal(true); setBuyModalExpandWhatsapp(false); setBuyModalExpandMarketplace(false); setBuyModalExpandIntl(false); }}
-                className="flex-1 min-w-[120px] px-4 py-3 border-2 border-brand-black text-brand-black bg-transparent text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
-                style={{ borderRadius: '8px' }}
-                title="Connect to a verified source for this asset"
-              >
-                <span className="text-sm font-bold uppercase tracking-wide block">Connect to Source</span>
-              </button>
-              <button
-                onClick={() => setShowSellModal(true)}
-                className="flex-1 min-w-[120px] px-4 py-3 border-2 border-brand-black text-brand-black bg-transparent text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
-                style={{ borderRadius: '8px' }}
-                title="Post your intent to sell this asset"
-              >
-                <span className="text-sm font-bold uppercase tracking-wide block">Post Intent to Sell</span>
-              </button>
+            <div className="pt-2 border-t border-brand-gray/20 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => { setShowBuyModal(true); setBuyModalExpandWhatsapp(false); setBuyModalExpandMarketplace(false); setBuyModalExpandIntl(false); }}
+                  className="px-4 py-3 bg-brand-black text-white text-center hover:bg-brand-black/80 transition-all duration-200 active:scale-95"
+                  style={{ borderRadius: '8px' }}
+                  title="See verified sources for this asset"
+                >
+                  <span className="text-[10px] font-normal opacity-70 block leading-tight">
+                    Best Source Price{bestPrice !== undefined ? ` · ₹${bestPrice.toLocaleString('en-IN')}` : ''}
+                  </span>
+                  <span className="text-sm font-bold uppercase tracking-wide block leading-tight mt-0.5">Source</span>
+                </button>
+                <button
+                  onClick={() => setShowSellModal(true)}
+                  className="px-4 py-3 border-2 border-brand-black text-brand-black bg-transparent text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
+                  style={{ borderRadius: '8px' }}
+                  title="Post a listing for this asset"
+                >
+                  <span className="text-[10px] font-normal opacity-50 block leading-tight">Your Ask Price</span>
+                  <span className="text-sm font-bold uppercase tracking-wide block leading-tight mt-0.5">List</span>
+                </button>
+              </div>
               <button
                 onClick={onToggleWatchlist}
                 type="button"
-                className="text-xs text-brand-black/60 hover:text-brand-black underline underline-offset-2 transition-colors inline-flex items-center gap-1.5"
+                className={`w-full px-4 py-2 border-2 text-sm font-semibold uppercase tracking-wide transition-all duration-200 active:scale-95 ${
+                  watchlisted
+                    ? "border-yellow-600 bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
+                    : "border-brand-gray text-brand-black hover:bg-brand-gray/10"
+                }`}
+                style={{ borderRadius: '8px' }}
               >
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill={watchlisted ? "currentColor" : "none"}
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                  viewBox="0 0 24 24"
-                  aria-hidden
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
-                  />
-                </svg>
-                {watchlisted ? "Watching" : "Add to Watchlist"}
+                {watchlisted ? "Watching" : "Watch"}
               </button>
             </div>
           </div>
@@ -2537,7 +2534,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             {/* Header */}
             <div className="sticky top-0 bg-brand-white border-b-2 border-brand-black px-4 md:px-6 py-4 flex items-center justify-between z-10">
               <div>
-                <h2 className="text-base font-bold uppercase tracking-wide text-brand-black">Buy: {asset.name}</h2>
+                <h2 className="text-base font-bold uppercase tracking-wide text-brand-black">Source Options</h2>
                 <p className="text-xs text-brand-black/60 mt-1">Size: {selectedSize}</p>
               </div>
               <button
@@ -2891,7 +2888,7 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
         {/* Header */}
         <div className="sticky top-0 bg-brand-white border-b-2 border-brand-black px-4 md:px-6 py-4 flex items-center justify-between z-10">
           <div>
-            <h2 className="text-base font-bold uppercase tracking-wide text-brand-black">Sell: {asset.name}</h2>
+            <h2 className="text-base font-bold uppercase tracking-wide text-brand-black">Post a Listing</h2>
             <p className="text-xs text-brand-black/60 mt-1">Size: {selectedSize}</p>
           </div>
           <button
