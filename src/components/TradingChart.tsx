@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -55,21 +55,16 @@ const TimeframeButton: React.FC<{
   label: Timeframe;
   active: boolean;
   onClick: () => void;
-  disabled?: boolean;
-}> = ({ label, active, onClick, disabled }) => (
+}> = ({ label, active, onClick }) => (
   <button
     onClick={onClick}
-    disabled={disabled}
     className={`px-2 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold transition-all ${
-      disabled
-        ? "bg-transparent text-brand-black/25 cursor-not-allowed"
-        : active
+      active
         ? "bg-brand-black text-white"
         : "bg-transparent text-brand-black/60 hover:text-brand-black hover:bg-brand-gray/10"
     }`}
     style={{ borderRadius: "6px" }}
-    title={disabled ? "Need 10+ data points to enable timeframe filtering" : `Show ${label} data`}
-    aria-disabled={disabled}
+    title={`Show ${label} data`}
   >
     {label}
   </button>
@@ -89,7 +84,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
   const [timeframe, setTimeframe] = useState<Timeframe>("1M");
   const [chartType, setChartType] = useState<"area" | "line">("line");
 
-  const { chartData, activeChannels, totalPoints, channelStats } = useMemo(() => {
+  const { chartData, activeChannels, totalPoints, channelStats, availableTimeframes } = useMemo(() => {
     const raw: RawPoint[] = [];
     const now = Date.now();
 
@@ -143,6 +138,30 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
     }
 
     raw.sort((a, b) => a.timestamp - b.timestamp);
+
+    // Determine which timeframes have meaningful data (2+ points).
+    // Hides buttons that would otherwise render empty / near-empty views.
+    const TIMEFRAME_MS: Record<Timeframe, number> = {
+      "1D":  1   * 24 * 60 * 60 * 1000,
+      "7D":  7   * 24 * 60 * 60 * 1000,
+      "1M":  30  * 24 * 60 * 60 * 1000,
+      "3M":  90  * 24 * 60 * 60 * 1000,
+      "6M":  180 * 24 * 60 * 60 * 1000,
+      "1Y":  365 * 24 * 60 * 60 * 1000,
+      "ALL": Infinity,
+    };
+    const availableTimeframes: Timeframe[] = (Object.entries(TIMEFRAME_MS) as [Timeframe, number][])
+      .filter(([tf, ms]) => {
+        if (tf === "ALL") return raw.length >= 2;
+        const tfCutoff = now - ms;
+        let count = 0;
+        for (const p of raw) {
+          if (p.timestamp >= tfCutoff) count++;
+          if (count >= 2) return true;
+        }
+        return false;
+      })
+      .map(([tf]) => tf);
 
     // Timeframe filtering (skip if < 10 points)
     let filtered = raw;
@@ -211,8 +230,16 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
       cs.best = cs.count === 1 ? r.price : Math.min(cs.best, r.price);
     }
 
-    return { chartData: points, activeChannels: found, totalPoints: raw.length, channelStats };
+    return { chartData: points, activeChannels: found, totalPoints: raw.length, channelStats, availableTimeframes };
   }, [pricePoints, timeframe]);
+
+  // If the active timeframe has no data (e.g. asset has only old points but timeframe is "1M"),
+  // fall back to "ALL" so the chart never renders blank.
+  useEffect(() => {
+    if (availableTimeframes.length > 0 && !availableTimeframes.includes(timeframe)) {
+      setTimeframe("ALL");
+    }
+  }, [availableTimeframes, timeframe]);
 
   const stats = useMemo(() => {
     const latests: Partial<Record<Channel, number>> = {};
@@ -292,7 +319,6 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
     );
   }
 
-  const hasEnoughDataForTimeframes = totalPoints >= 10;
   const isSparse = totalPoints < SPARSE_THRESHOLD;
   const sparseChannels = CHANNELS.filter((ch) => channelStats[ch].count > 0);
 
@@ -325,12 +351,12 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
 
   return (
     <div className="space-y-3">
-      {/* Controls — hidden when data is sparse */}
-      {!isSparse && (
+      {/* Controls — hidden when data is sparse, or when only "ALL" is available (single-button selector is not a choice) */}
+      {!isSparse && availableTimeframes.length > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="inline-flex items-center gap-0.5 sm:gap-1 border border-brand-gray/30 bg-brand-background/50 p-1 flex-wrap" style={{ borderRadius: "8px" }}>
-            {(["1D", "7D", "1M", "3M", "6M", "1Y", "ALL"] as Timeframe[]).map((tf) => (
-              <TimeframeButton key={tf} label={tf} active={timeframe === tf} onClick={() => setTimeframe(tf)} disabled={!hasEnoughDataForTimeframes} />
+            {availableTimeframes.map((tf) => (
+              <TimeframeButton key={tf} label={tf} active={timeframe === tf} onClick={() => setTimeframe(tf)} />
             ))}
           </div>
 
