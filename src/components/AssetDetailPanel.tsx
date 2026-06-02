@@ -2482,7 +2482,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
 
           {/* Disclaimer */}
           <p className="text-[10px] text-brand-black/40 mt-3 pt-2 border-t border-brand-gray/15">
-            Per-platform fees applied. Marketplace sells are consignment — payout timing varies. Confidence penalised for stale data. Always verify before executing.
+            Per-platform fees applied. Marketplace sells are consignment — payout timing varies. Confidence penalised for stale data. Always verify before executing. Spreads above 500% are suppressed as data anomalies.
           </p>
         </Card>
         )}

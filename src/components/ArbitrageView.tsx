@@ -486,6 +486,7 @@ export const ArbitrageView: React.FC<ArbitrageViewProps> = ({ assets }) => {
           Per-platform fees applied (CDC 9.5%, Mainstreet 8%, etc). International includes platform buyer fees.
           Marketplace sells are consignment/source-on-order — payout timing varies.
           Confidence is penalised for marketplace sell-side and stale data. Always verify before executing.
+          Signals with spreads above 500% are automatically suppressed as likely data anomalies.
         </span>
       </div>
 

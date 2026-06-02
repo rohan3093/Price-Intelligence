@@ -472,6 +472,7 @@ export function computeOpportunities(
       // Apply filters
       if (netProfit < config.minNetRs) continue;
       if (netPct < config.minNetPct) continue;
+      if (netPct > 5.0) continue; // suppress anomalous spreads (>500% ROI = data artefact)
 
       // Sophistication layer
       const strategy = classifyStrategy(buy.channel, sell.channel);
