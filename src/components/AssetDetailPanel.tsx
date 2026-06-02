@@ -296,15 +296,27 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
         )}
       </div>
 
-      {/* Action Button - Full Width, 44px minimum height for touch */}
+      {/* Action — full-width primary for WhatsApp/Sentria contact flows;
+          compact text-link for URL-based marketplace/international listings. */}
       {listing.contactType && listing.contactValue && (
-        <button
-          onClick={handleAction}
-          className="w-full min-h-[40px] px-4 py-2 bg-brand-black text-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-colors active:scale-[0.98]"
-          style={{ borderRadius: '8px' }}
-        >
-          {listing.side === 'Sell' ? 'Sell To' : 'Buy From'} →
-        </button>
+        listing.contactType === 'link' ? (
+          <a
+            href={listing.contactValue}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs font-medium text-brand-black underline underline-offset-2 hover:text-brand-black/70 transition-colors mt-1"
+          >
+            View listing →
+          </a>
+        ) : (
+          <button
+            onClick={handleAction}
+            className="w-full min-h-[40px] px-4 py-2 bg-brand-black text-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-colors active:scale-[0.98]"
+            style={{ borderRadius: '8px' }}
+          >
+            {listing.side === 'Sell' ? 'Sell To' : 'Buy From'} →
+          </button>
+        )
       )}
     </div>
   );
@@ -1317,18 +1329,20 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   <span className="text-sm font-bold uppercase tracking-wide block leading-tight mt-0.5">List</span>
                 </button>
               </div>
-              <button
-                onClick={onToggleWatchlist}
-                type="button"
-                className={`w-full px-4 py-2 border-2 text-sm font-semibold uppercase tracking-wide transition-all duration-200 active:scale-95 ${
-                  watchlisted
-                    ? "border-yellow-600 bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
-                    : "border-brand-gray text-brand-black hover:bg-brand-gray/10"
-                }`}
-                style={{ borderRadius: '8px' }}
-              >
-                {watchlisted ? "Watching" : "Watch"}
-              </button>
+              <div className="flex items-center justify-center mt-2">
+                <button
+                  onClick={onToggleWatchlist}
+                  type="button"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all ${
+                    watchlisted
+                      ? 'text-brand-black'
+                      : 'text-brand-black/50 hover:text-brand-black'
+                  }`}
+                >
+                  <span className="text-sm">{watchlisted ? '★' : '☆'}</span>
+                  <span>{watchlisted ? 'Watching' : 'Watch'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1871,24 +1885,9 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               
               if (daysSinceOldest > 7) {
                 return (
-                  <>
-                    {/* Mobile: tight one-liner */}
-                    <div className="sm:hidden mb-3 flex items-center gap-1.5 text-[11px] text-orange-800 bg-orange-50/70 border border-orange-200/60 px-2.5 py-1.5" style={{ borderRadius: '999px' }}>
-                      <svg className="w-3.5 h-3.5 text-orange-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="truncate">Some listings over {daysSinceOldest}d old · verify with seller</span>
-                    </div>
-                    {/* Desktop: original verbose warning */}
-                    <div className="hidden sm:flex mb-3 items-start gap-2 text-xs text-brand-black/60 bg-orange-50/50 border border-orange-200/50 p-2.5" style={{ borderRadius: '8px' }}>
-                      <svg className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div>
-                        <span className="font-semibold text-brand-black">Data Freshness:</span> Some listings are over {daysSinceOldest} days old. Prices and availability may have changed. Contact sellers to confirm current status.
-                      </div>
-                    </div>
-                  </>
+                  <p className="text-[10px] text-brand-black/40 mt-1 mb-2">
+                    Some listings may be outdated — verify with seller before acting.
+                  </p>
                 );
               }
               return null;
