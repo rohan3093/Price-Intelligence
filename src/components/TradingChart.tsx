@@ -365,44 +365,46 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
         </div>
       )}
 
-      {/* Stats Bar — 2-col on mobile, responsive on larger screens to prevent label overlap */}
-      <div className={`grid grid-cols-2 ${desktopGridClass} gap-x-3 gap-y-2.5 sm:gap-3 text-sm`}>
-        {CHANNELS.map((ch) =>
-          activeChannels.has(ch) && stats.latests[ch] !== undefined ? (
-            <div key={ch} className="min-w-0 text-left sm:text-center">
-              <p
-                className="text-[10px] sm:text-xs uppercase tracking-wide mb-0.5 sm:mb-1 truncate"
-                style={{ color: CHANNEL_META[ch].color, opacity: 0.8 }}
-                title={CHANNEL_META[ch].label}
-              >
-                {CHANNEL_META[ch].label}
-              </p>
-              <p
-                className="font-mono-numeric font-semibold text-[13px] sm:text-sm truncate"
-                style={{ color: CHANNEL_META[ch].color }}
-              >
-                <span className="sm:hidden">{formatCompactINR(stats.latests[ch]!)}</span>
-                <span className="hidden sm:inline">₹{stats.latests[ch]!.toLocaleString("en-IN")}</span>
-              </p>
-            </div>
-          ) : null
-        )}
-        <div className="min-w-0 text-left sm:text-center">
-          <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wide mb-0.5 sm:mb-1 whitespace-nowrap">
-            High / Low
-          </p>
-          <p className="font-mono-numeric font-semibold text-[13px] sm:text-sm text-brand-black whitespace-nowrap">
-            <span className="sm:hidden">{formatCompactINR(stats.high)} / {formatCompactINR(stats.low)}</span>
-            <span className="hidden sm:inline">₹{stats.high.toLocaleString("en-IN")} / ₹{stats.low.toLocaleString("en-IN")}</span>
-          </p>
+      {/* Stats Bar — hidden when sparse (the channel columns below already carry this info) */}
+      {!isSparse && (
+        <div className={`grid grid-cols-2 ${desktopGridClass} gap-x-3 gap-y-2.5 sm:gap-3 text-sm`}>
+          {CHANNELS.map((ch) =>
+            activeChannels.has(ch) && stats.latests[ch] !== undefined ? (
+              <div key={ch} className="min-w-0 text-left sm:text-center">
+                <p
+                  className="text-[10px] sm:text-xs uppercase tracking-wide mb-0.5 sm:mb-1 truncate"
+                  style={{ color: CHANNEL_META[ch].color, opacity: 0.8 }}
+                  title={CHANNEL_META[ch].label}
+                >
+                  {CHANNEL_META[ch].label}
+                </p>
+                <p
+                  className="font-mono-numeric font-semibold text-[13px] sm:text-sm truncate"
+                  style={{ color: CHANNEL_META[ch].color }}
+                >
+                  <span className="sm:hidden">{formatCompactINR(stats.latests[ch]!)}</span>
+                  <span className="hidden sm:inline">₹{stats.latests[ch]!.toLocaleString("en-IN")}</span>
+                </p>
+              </div>
+            ) : null
+          )}
+          <div className="min-w-0 text-left sm:text-center">
+            <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wide mb-0.5 sm:mb-1 whitespace-nowrap">
+              High / Low
+            </p>
+            <p className="font-mono-numeric font-semibold text-[13px] sm:text-sm text-brand-black whitespace-nowrap">
+              <span className="sm:hidden">{formatCompactINR(stats.high)} / {formatCompactINR(stats.low)}</span>
+              <span className="hidden sm:inline">₹{stats.high.toLocaleString("en-IN")} / ₹{stats.low.toLocaleString("en-IN")}</span>
+            </p>
+          </div>
+          <div className="min-w-0 text-left sm:text-center">
+            <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wide mb-0.5 sm:mb-1">Change</p>
+            <p className={`font-mono-numeric font-semibold text-[13px] sm:text-sm ${stats.change >= 0 ? "text-green-600" : "text-red-600"}`}>
+              {stats.change >= 0 ? "+" : ""}{stats.changePct}%
+            </p>
+          </div>
         </div>
-        <div className="min-w-0 text-left sm:text-center">
-          <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wide mb-0.5 sm:mb-1">Change</p>
-          <p className={`font-mono-numeric font-semibold text-[13px] sm:text-sm ${stats.change >= 0 ? "text-green-600" : "text-red-600"}`}>
-            {stats.change >= 0 ? "+" : ""}{stats.changePct}%
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* Sparse data advisory — only for non-sparse-but-thin-day-count cases.
           When isSparse is true, the replacement view below carries its own line. */}

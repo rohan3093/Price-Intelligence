@@ -1495,6 +1495,15 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     <p className={`text-lg font-semibold capitalize ${
                       asset.volatility === 'low' ? 'text-green-600' : asset.volatility === 'high' ? 'text-red-600' : 'text-yellow-600'
                     }`}>{asset.volatility ? `${asset.volatility[0].toUpperCase()}${asset.volatility.slice(1)}` : "—"}</p>
+                    {asset.volatility && (
+                      <p className="text-[9px] text-brand-black/40 mt-0.5 leading-tight">
+                        {asset.volatility === 'low'
+                          ? 'Prices clustering tightly'
+                          : asset.volatility === 'high'
+                          ? 'Wide price swings across channels'
+                          : 'Moderate variation across channels'}
+                      </p>
+                    )}
                   </div>
                   <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }} title={`Lowest price: ₹${marketMin.toLocaleString('en-IN')} — Highest price: ₹${marketMax.toLocaleString('en-IN')}`}>
                     <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">Price Range</p>
@@ -1503,8 +1512,14 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                         <p className="text-lg font-mono-numeric font-bold text-brand-black">
                           ₹{priceRangeWidth.toLocaleString('en-IN')}
                         </p>
-                        <p className="text-[9px] text-brand-black/50 mt-0.5">
-                          {priceRangePct.toFixed(1)}% spread
+                        <p className="text-[9px] text-brand-black/40 mt-0.5 leading-tight">
+                          {priceRangePct <= 5
+                            ? `${priceRangePct.toFixed(0)}% spread · tight market`
+                            : priceRangePct <= 20
+                            ? `${priceRangePct.toFixed(0)}% spread · normal for resale`
+                            : priceRangePct <= 60
+                            ? `${priceRangePct.toFixed(0)}% spread · fragmented pricing`
+                            : `${priceRangePct.toFixed(0)}% spread · highly fragmented`}
                         </p>
                       </>
                     ) : (
@@ -1519,10 +1534,14 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     {avgEfficiency > 0 ? (
                       <>
                         <p className={`text-lg font-mono-numeric font-bold ${
-                          avgEfficiency <= 5 ? 'text-green-600' : avgEfficiency <= 10 ? 'text-yellow-600' : 'text-red-600'
+                          avgEfficiency <= 5 ? 'text-green-600' : 'text-brand-black'
                         }`}>{avgEfficiency.toFixed(1)}%</p>
-                        <p className="text-[9px] text-brand-black/50 mt-0.5">
-                          {avgEfficiency <= 5 ? 'Highly efficient' : avgEfficiency <= 10 ? 'Moderate' : 'Inefficient'}
+                        <p className="text-[9px] text-brand-black/40 mt-0.5 leading-tight">
+                          {avgEfficiency <= 5
+                            ? 'Prices agree across channels'
+                            : avgEfficiency <= 15
+                            ? 'Some spread between best and avg'
+                            : 'Best price well below channel avg'}
                         </p>
                       </>
                     ) : (
@@ -1534,9 +1553,21 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       Stability
                       <span className="cursor-help text-brand-black/30 hover:text-brand-black/60 transition-colors">ⓘ</span>
                     </p>
-                    <p className={`text-lg font-semibold ${priceStability.color}`}>{priceStability.level}</p>
-                    <p className="text-[9px] text-brand-black/50 mt-0.5">
-                      {priceRangePct > 0 ? `${priceRangePct.toFixed(1)}% low–high` : 'No data'}
+                    <p className={`text-lg font-semibold ${
+                      priceRangePct <= 5
+                        ? 'text-green-600'
+                        : priceRangePct <= 15
+                        ? 'text-yellow-600'
+                        : 'text-brand-black'
+                    }`}>{priceStability.level}</p>
+                    <p className="text-[9px] text-brand-black/40 mt-0.5 leading-tight">
+                      {priceRangePct <= 5
+                        ? 'Consistent pricing across channels'
+                        : priceRangePct <= 15
+                        ? 'Some channel variation — normal'
+                        : priceRangePct <= 50
+                        ? 'Meaningful channel gaps — check listings'
+                        : 'Large channel gaps — sourcing opportunity'}
                     </p>
                   </div>
                 </div>

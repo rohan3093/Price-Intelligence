@@ -121,7 +121,7 @@ export const OrderBook: React.FC<OrderBookProps> = ({
 
   // Limit display to top 10 levels on each side for readability
   const displayBids = bids.slice(0, 10);
-  const displayAsks = asks.slice(0, 10).reverse(); // Reverse to show highest price at top
+  const displayAsks = asks.slice(0, 10); // Best ask (lowest price) at top — exchange convention
 
   // Format price
   const formatPrice = (price: number) => `₹${price.toLocaleString('en-IN')}`;
