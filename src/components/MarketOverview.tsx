@@ -376,7 +376,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({
         type="button"
         onClick={() => setIsExpanded((v) => !v)}
         aria-expanded={isExpanded}
-        className="w-full flex items-center justify-between gap-4 px-3 md:px-4 py-2.5 hover:bg-brand-gray/5 transition-colors text-left"
+        className="w-full flex items-center justify-between gap-4 px-3 md:px-4 py-2 min-h-[40px] hover:bg-brand-gray/5 transition-colors text-left"
       >
         <div className="flex items-center gap-4 md:gap-6 min-w-0 flex-1">
           {isRefreshing && (

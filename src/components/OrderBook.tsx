@@ -225,20 +225,20 @@ export const OrderBook: React.FC<OrderBookProps> = ({
             <tr>
               {asks.length > 0 && (
                 <>
-                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60">
+                  <th className="text-left py-2 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60">
                     Sellers (Ask)
                   </th>
-                  <th className={`text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60 ${bids.length > 0 ? 'border-r-2 border-brand-gray/20' : ''}`}>
+                  <th className={`text-center py-2 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60 ${bids.length > 0 ? 'border-r-2 border-brand-gray/20' : ''}`}>
                     Qty
                   </th>
                 </>
               )}
               {bids.length > 0 && (
                 <>
-                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60">
+                  <th className="text-left py-2 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60">
                     Buyers (Bid)
                   </th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60">
+                  <th className="text-center py-2 px-4 text-xs font-semibold uppercase tracking-wider text-brand-black/60">
                     Qty
                   </th>
                 </>
@@ -254,7 +254,7 @@ export const OrderBook: React.FC<OrderBookProps> = ({
                 <tr key={i} className="border-b border-brand-gray/10 hover:bg-brand-background/50 transition-colors">
                   {asks.length > 0 && (
                     <>
-                      <td className="py-3 px-4">
+                      <td className="py-2 px-4">
                         {ask ? (
                           <span className="font-semibold text-brand-black" title={ask.sources.join(', ')}>
                             {formatPrice(ask.price)}
@@ -263,7 +263,7 @@ export const OrderBook: React.FC<OrderBookProps> = ({
                           <span className="text-brand-black/20">—</span>
                         )}
                       </td>
-                      <td className={`py-3 px-4 text-center ${bids.length > 0 ? 'border-r-2 border-brand-gray/20' : ''}`}>
+                      <td className={`py-2 px-4 text-center ${bids.length > 0 ? 'border-r-2 border-brand-gray/20' : ''}`}>
                         {ask ? (
                           <span className="text-brand-black">{ask.quantity}</span>
                         ) : (
@@ -274,7 +274,7 @@ export const OrderBook: React.FC<OrderBookProps> = ({
                   )}
                   {bids.length > 0 && (
                     <>
-                      <td className="py-3 px-4">
+                      <td className="py-2 px-4">
                         {bid ? (
                           <span className="font-semibold text-brand-black" title={bid.sources.join(', ')}>
                             {formatPrice(bid.price)}
@@ -283,7 +283,7 @@ export const OrderBook: React.FC<OrderBookProps> = ({
                           <span className="text-brand-black/20">—</span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-2 px-4 text-center">
                         {bid ? (
                           <span className="text-brand-black">{bid.quantity}</span>
                         ) : (

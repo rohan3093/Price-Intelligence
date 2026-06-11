@@ -108,9 +108,9 @@ body {
     @apply border border-brand-gray rounded-none bg-brand-white;
   }
 
-  /* Better section padding for breathing room */
+  /* Tightened section padding for terminal density */
   .section-padding {
-    @apply p-4 md:p-6;
+    @apply p-3 md:p-4;
   }
   
   /* Compact padding option for data-dense views */
