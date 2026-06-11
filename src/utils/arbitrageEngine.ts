@@ -246,7 +246,7 @@ function getTurnaround(buyChannel: MarketChannel, sellChannel: MarketChannel): {
 function assessRisk(
   strategy: Strategy,
   turnaround: { min: number; max: number },
-  sizeData?: { change30d?: string; volatility?: "low" | "medium" | "high" }
+  sizeData?: { change30d?: string | null; volatility?: "low" | "medium" | "high" }
 ): RiskLevel {
   let riskScore = 0;
 

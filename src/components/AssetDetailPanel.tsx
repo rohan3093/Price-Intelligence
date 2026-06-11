@@ -8,7 +8,7 @@ import { useToast } from "../hooks/useToast";
 import { createConnectionRequest, getAssetListings, createTradeListing } from "../utils/connectionsApi";
 import { User } from "firebase/auth";
 import { getSellFee } from "../utils/arbitrageEngine";
-import { computeMarkMetrics } from "../utils/priceMetrics";
+import { computeMarkMetrics, filterValidQuotes, SHOW_VS_RETAIL_WHEN_NO_HISTORY } from "../utils/priceMetrics";
 
 interface AssetDetailPanelProps {
   asset: Asset | undefined;
@@ -759,9 +759,13 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       allPrices.push(...internationalPrices.map(p => p.price + (p.reshippingCost || 0)));
     }
 
-    // Return the minimum price if any prices exist
-    return allPrices.length > 0 ? Math.min(...allPrices) : undefined;
-  }, [currentData.bestAvailablePrice, whatsappPrices.buy, marketplacePrices, internationalPrices]);
+    // Floor junk quotes (absolute + relative) before taking the minimum so a
+    // single ₹1,718-on-a-₹15k-shoe artefact can't masquerade as the best price.
+    const retail = asset.priceAnchors?.retailIndia;
+    const reference = retail && retail >= 1000 ? retail : undefined;
+    const validated = filterValidQuotes(allPrices, reference);
+    return validated.length > 0 ? Math.min(...validated) : undefined;
+  }, [currentData.bestAvailablePrice, whatsappPrices.buy, marketplacePrices, internationalPrices, asset.priceAnchors?.retailIndia]);
 
   // Exchange mark price + spread for the hero. Ask side = sellable listings
   // (WhatsApp WTS [transactionType 'buy'] + marketplace + international landed);
@@ -773,8 +777,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       ...internationalPrices.map((p) => p.price + (p.reshippingCost || 0)),
     ];
     const bidPrices: number[] = whatsappPrices.sell.map((p) => p.price);
-    return computeMarkMetrics(askPrices, bidPrices);
-  }, [whatsappPrices.buy, whatsappPrices.sell, marketplacePrices, internationalPrices]);
+    return computeMarkMetrics(askPrices, bidPrices, asset.priceAnchors?.retailIndia);
+  }, [whatsappPrices.buy, whatsappPrices.sell, marketplacePrices, internationalPrices, asset.priceAnchors?.retailIndia]);
 
   const anchor = asset.priceAnchors;
 
@@ -841,27 +845,21 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   (sv.legacyPricePoints.endCustomer || []).forEach((p: PricePoint) => prices.push(p.price));
                   (sv.legacyPricePoints.stockxGoat || []).forEach((p: PricePoint) => prices.push(p.price + (p.reshippingCost || 0)));
                 }
-                sizePriceMap.set(sv.size, prices.length > 0 ? Math.min(...prices) : null);
+                // Validate against absolute + relative floor (anchored on this
+                // size's own asks / asset retail) before taking the per-size min.
+                const validated = filterValidQuotes(prices, asset.priceAnchors?.retailIndia);
+                sizePriceMap.set(sv.size, validated.length > 0 ? Math.min(...validated) : null);
               });
-
-              const pricedSizes = Array.from(sizePriceMap.entries()).filter(([, p]) => p !== null) as [string, number][];
-              const cheapestPrice = pricedSizes.length > 0 ? Math.min(...pricedSizes.map(([, p]) => p)) : null;
 
               return (
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-xs font-semibold uppercase text-brand-black/50 tracking-wide">Size</label>
-                    {cheapestPrice !== null && pricedSizes.length > 1 && (
-                      <span className="text-[10px] text-up font-semibold">
-                        Best: {pricedSizes.find(([, p]) => p === cheapestPrice)?.[0]} at ₹{cheapestPrice.toLocaleString('en-IN')}
-                      </span>
-                    )}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {sorted.map(sv => {
                       const best = sizePriceMap.get(sv.size) ?? null;
                       const isSelected = sv.size === selectedSize;
-                      const isCheapest = best !== null && best === cheapestPrice && pricedSizes.length > 1;
                       const hasPrice = best !== null && best !== undefined;
                       return (
                         <button
@@ -870,15 +868,13 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                           className={`px-2.5 py-1.5 text-center transition-all min-w-[60px] ${
                             isSelected
                               ? 'bg-terminal-surface-raised text-terminal-text'
-                              : isCheapest
-                              ? 'bg-up/10 border border-up/40 text-brand-black hover:border-up/40'
                               : 'bg-terminal-surface border border-brand-gray/30 text-brand-black hover:border-terminal-border-strong'
                           }`}
                         >
                           <span className="block text-xs font-semibold leading-tight">{sv.size}</span>
                           {hasPrice ? (
                             <span className={`block text-[10px] font-mono-numeric font-bold mt-0.5 leading-tight tabular-nums ${
-                              isSelected ? 'text-white/80' : isCheapest ? 'text-up' : 'text-brand-black/60'
+                              isSelected ? 'text-white/80' : 'text-brand-black/60'
                             }`}>
                               {(() => {
                                 const v = best!;
@@ -921,15 +917,47 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     </p>
                   </div>
                   {(() => {
-                    const chg = parseFloat((currentData.change30d || '').replace(/[^0-9.\-+]/g, ''));
-                    if (!isFinite(chg) || chg === 0) return null;
-                    const isUp = chg > 0;
+                    // Hero delta MUST share a base with the price: real 30d if a
+                    // genuine historical series exists, else a labelled vs-retail
+                    // computed off MARK PRICE (never the lowest ask). No history
+                    // and no retail (or flag off) -> em dash.
+                    const raw = currentData.change30d;
+                    const hasRealChange = typeof raw === 'string' && raw.includes('%');
+                    if (hasRealChange) {
+                      const chg = parseFloat(raw.replace(/[^0-9.\-+]/g, ''));
+                      if (isFinite(chg)) {
+                        const isUp = chg > 0;
+                        return (
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wider mb-1">30d</p>
+                            <p className={`text-base sm:text-lg font-mono-numeric font-bold leading-tight tabular-nums ${isUp ? 'text-up' : chg < 0 ? 'text-down' : 'text-brand-black'}`}>
+                              {isUp ? '+' : ''}{chg.toFixed(1)}%
+                            </p>
+                          </div>
+                        );
+                      }
+                    }
+                    const retail = anchor?.retailIndia;
+                    if (
+                      SHOW_VS_RETAIL_WHEN_NO_HISTORY &&
+                      retail && retail > 0 &&
+                      markMetrics.markPrice !== undefined
+                    ) {
+                      const vs = ((markMetrics.markPrice - retail) / retail) * 100;
+                      const isUp = vs > 0;
+                      return (
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wider mb-1">vs retail</p>
+                          <p className={`text-base sm:text-lg font-mono-numeric font-bold leading-tight tabular-nums ${isUp ? 'text-up' : vs < 0 ? 'text-down' : 'text-brand-black'}`}>
+                            {isUp ? '+' : ''}{vs.toFixed(1)}%
+                          </p>
+                        </div>
+                      );
+                    }
                     return (
                       <div className="text-right flex-shrink-0">
                         <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wider mb-1">30d</p>
-                        <p className={`text-base sm:text-lg font-mono-numeric font-bold leading-tight tabular-nums ${isUp ? 'text-up' : 'text-down'}`}>
-                          {isUp ? '+' : ''}{chg.toFixed(1)}%
-                        </p>
+                        <p className="text-base sm:text-lg font-mono-numeric font-bold leading-tight tabular-nums text-brand-black/40">—</p>
                       </div>
                     );
                   })()}

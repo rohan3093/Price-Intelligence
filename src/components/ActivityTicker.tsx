@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Asset, SizeVariant } from "../types";
-import { computeMarkMetrics } from "../utils/priceMetrics";
+import { computeMarkMetrics, MarkMetrics } from "../utils/priceMetrics";
 
 interface ActivityTickerProps {
   assets: Asset[];
@@ -11,12 +11,15 @@ interface TickerItem {
   id: number;
   name: string;
   markPrice: number;
-  changePct: number;
+  /** Real 30d move (only when a genuine historical series exists), else null. */
+  realChangePct: number | null;
+  /** Validated cross-channel spread as a fraction of mark, else null. */
+  spreadPct: number | null;
+  /** Epoch ms of last update, for recency ranking. */
+  updatedAt: number;
 }
 
-// Validation guard for 30d moves; beyond this band a value is a data artefact
-// (e.g. −100% to near-zero, +1851% off a bad anchor), not real activity.
-// TEMP — superseded by validation brief.
+// A real 30d move beyond this band is a data artefact, not activity.
 const MAX_PLAUSIBLE_ABS_CHANGE = 100;
 const MAX_TICKER_ITEMS = 24;
 
@@ -25,14 +28,21 @@ function getDefaultSizeVariant(asset: Asset): SizeVariant | undefined {
   return asset.sizes?.find((s) => s.size === target) ?? asset.sizes?.[0];
 }
 
-function parseChangePercent(changeStr: string | undefined): number | null {
-  if (!changeStr) return null;
+/**
+ * Parse a REAL change string. Only values that look like an actual percent
+ * ("+5.2%") count — null / "N/A" / blanks are treated as no real history.
+ */
+function parseRealChange(changeStr: string | null | undefined): number | null {
+  if (!changeStr || !changeStr.includes("%")) return null;
   const match = changeStr.match(/[+-]?[\d.]+/);
-  return match ? parseFloat(match[0]) : null;
+  if (!match) return null;
+  const val = parseFloat(match[0]);
+  if (!isFinite(val) || Math.abs(val) >= MAX_PLAUSIBLE_ABS_CHANGE) return null;
+  return val;
 }
 
-/** Mark price for an asset from its default size, using validated quotes only. */
-function getAssetMark(asset: Asset): number | undefined {
+/** Mark metrics for an asset's default size, using validated quotes only. */
+function getAssetMarkMetrics(asset: Asset): MarkMetrics | undefined {
   const sv = getDefaultSizeVariant(asset);
   if (!sv?.pricePoints) return undefined;
   const wa = sv.pricePoints.whatsapp || [];
@@ -48,30 +58,49 @@ function getAssetMark(asset: Asset): number | undefined {
   const bids: number[] = wa
     .filter((p) => p.transactionType === "sell" || p.transactionType === "both")
     .map((p) => p.price);
-  return computeMarkMetrics(asks, bids).markPrice;
+  return computeMarkMetrics(asks, bids, asset.priceAnchors?.retailIndia);
+}
+
+function getUpdatedAt(asset: Asset): number {
+  const raw = asset.lastUpdated ?? getDefaultSizeVariant(asset)?.lastUpdated;
+  if (!raw) return 0;
+  const t = new Date(raw).getTime();
+  return isFinite(t) ? t : 0;
 }
 
 export const ActivityTicker: React.FC<ActivityTickerProps> = ({ assets, onSelectAsset }) => {
   const items = useMemo<TickerItem[]>(() => {
     const out: TickerItem[] = [];
     assets.forEach((asset) => {
-      const mark = getAssetMark(asset);
-      const change =
-        parseChangePercent(asset.change30d) ??
-        parseChangePercent(getDefaultSizeVariant(asset)?.change30d);
-      // Validated metrics only — both a real mark price and a plausible move.
-      if (
-        mark === undefined ||
-        change === null ||
-        !isFinite(change) ||
-        Math.abs(change) >= MAX_PLAUSIBLE_ABS_CHANGE
-      ) {
-        return;
-      }
-      out.push({ id: asset.id, name: asset.name, markPrice: mark, changePct: change });
+      const mark = getAssetMarkMetrics(asset);
+      if (mark?.markPrice === undefined) return;
+      const realChangePct =
+        parseRealChange(asset.change30d) ??
+        parseRealChange(getDefaultSizeVariant(asset)?.change30d);
+      out.push({
+        id: asset.id,
+        name: asset.name,
+        markPrice: mark.markPrice,
+        realChangePct,
+        spreadPct: mark.spreadPct ?? null,
+        updatedAt: getUpdatedAt(asset),
+      });
     });
-    // Surface activity: largest absolute moves first.
-    out.sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct));
+
+    // Real history is sparse until it accrues, so the ticker's primary signal is
+    // recency + widest validated spread. Genuine price movers surface ahead of
+    // the rest only once a real change30d exists.
+    out.sort((a, b) => {
+      const aReal = a.realChangePct !== null;
+      const bReal = b.realChangePct !== null;
+      if (aReal !== bReal) return aReal ? -1 : 1;
+      if (aReal && bReal) {
+        const d = Math.abs(b.realChangePct!) - Math.abs(a.realChangePct!);
+        if (d !== 0) return d;
+      }
+      if (b.updatedAt !== a.updatedAt) return b.updatedAt - a.updatedAt;
+      return (b.spreadPct ?? 0) - (a.spreadPct ?? 0);
+    });
     return out.slice(0, MAX_TICKER_ITEMS);
   }, [assets]);
 
@@ -93,9 +122,9 @@ export const ActivityTicker: React.FC<ActivityTickerProps> = ({ assets, onSelect
         <div className="sentria-ticker-viewport flex-1 overflow-x-auto">
           <div className="sentria-ticker-track flex items-center whitespace-nowrap">
             {loop.map((item, idx) => {
-              const isUp = item.changePct > 0;
-              const isDown = item.changePct < 0;
-              const tone = isUp ? "text-up" : isDown ? "text-down" : "text-brand-black/70";
+              const change = item.realChangePct;
+              const isUp = change !== null && change > 0;
+              const isDown = change !== null && change < 0;
               return (
                 <button
                   key={`${item.id}-${idx}`}
@@ -109,10 +138,20 @@ export const ActivityTicker: React.FC<ActivityTickerProps> = ({ assets, onSelect
                   <span className="text-xs font-mono-numeric text-brand-black/60 tabular-nums">
                     ₹{Math.round(item.markPrice).toLocaleString("en-IN")}
                   </span>
-                  <span className={`text-xs font-mono-numeric font-bold tabular-nums ${tone}`}>
-                    {isUp ? "+" : ""}
-                    {item.changePct.toFixed(1)}%
-                  </span>
+                  {change !== null ? (
+                    <span
+                      className={`text-xs font-mono-numeric font-bold tabular-nums ${
+                        isUp ? "text-up" : isDown ? "text-down" : "text-brand-black/70"
+                      }`}
+                    >
+                      {isUp ? "+" : ""}
+                      {change.toFixed(1)}%
+                    </span>
+                  ) : item.spreadPct !== null ? (
+                    <span className="text-xs font-mono-numeric text-brand-black/45 tabular-nums">
+                      spr {(item.spreadPct * 100).toFixed(1)}%
+                    </span>
+                  ) : null}
                 </button>
               );
             })}

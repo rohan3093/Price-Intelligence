@@ -306,7 +306,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showSortMenu]);
 
-  const parseChange = (changeStr: string | undefined): number | null => {
+  const parseChange = (changeStr: string | null | undefined): number | null => {
     if (!changeStr) return null;
     const match = changeStr.match(/[+-]?[\d.]+/);
     return match ? parseFloat(changeStr.startsWith("-") ? `-${match[0]}` : match[0]) : null;

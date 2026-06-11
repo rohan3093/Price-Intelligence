@@ -7,13 +7,20 @@
 
 import { Asset, PricePoint, SizeVariant } from "../types";
 
-// TEMP — superseded by validation brief.
-// Floor for plausible INR quotes. Anything at or below this is treated as a
-// data artefact (₹1 / ₹10 scrape noise) and excluded before any min / median /
-// mark / spread math. Mark price and spread must consume validated quotes only.
+// Absolute floor for plausible INR quotes. Anything at or below this is treated
+// as a data artefact (₹1 / ₹10 scrape noise) and excluded before any min /
+// median / mark / spread math. Mark price and spread consume validated quotes only.
 export const MIN_PLAUSIBLE_PRICE = 1000;
 
-/** Keep only finite, positive quotes at or above the plausibility floor. */
+// Reject a quote below this fraction of the asset's reference (retail or median).
+// Catches "₹1,718 on a ₹15k shoe" that the flat ₹1000 floor misses. Low-side only.
+export const RELATIVE_FLOOR_PCT = 0.35;
+
+// When no REAL 30d history exists, show a labelled "vs retail" (off mark) instead
+// of a blank. Set false to show "—" until real history accrues.
+export const SHOW_VS_RETAIL_WHEN_NO_HISTORY = true;
+
+/** Keep only finite, positive quotes at or above the absolute plausibility floor. */
 export function filterPlausiblePrices(prices: number[]): number[] {
   return prices.filter(
     (p) => typeof p === "number" && isFinite(p) && p >= MIN_PLAUSIBLE_PRICE
@@ -28,6 +35,34 @@ function median(values: number[]): number | undefined {
   return sorted.length % 2 !== 0
     ? sorted[mid]
     : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+/**
+ * Derive a reference price for the relative floor: analyst-entered retailIndia
+ * when it is itself plausible, else the median of floor-passing asks. Used only
+ * to reject absurdly-low quotes — never to fabricate a price or a change.
+ */
+export function referencePrice(
+  retailIndia: number | undefined,
+  askPrices: number[]
+): number | undefined {
+  if (retailIndia && retailIndia >= MIN_PLAUSIBLE_PRICE) return retailIndia;
+  return median(filterPlausiblePrices(askPrices));
+}
+
+/**
+ * Validate quotes against both the absolute floor and a relative floor.
+ * Low-side only: high quotes are NEVER capped (international landed cost is
+ * legitimately high). When no reference exists, falls back to the absolute floor.
+ */
+export function filterValidQuotes(
+  prices: number[],
+  reference: number | undefined
+): number[] {
+  const floored = filterPlausiblePrices(prices);
+  if (reference === undefined) return floored;
+  const relFloor = RELATIVE_FLOOR_PCT * reference;
+  return floored.filter((p) => p >= relFloor);
 }
 
 export type MarkPriceMode = "mid" | "ask-median" | "bid-only";
@@ -66,13 +101,16 @@ export interface MarkMetrics {
  *
  * @param askPrices raw ask-side prices (intl should already be landed cost)
  * @param bidPrices raw bid-side prices (WhatsApp WTB)
+ * @param retailIndia analyst-entered retail, used to anchor the relative floor
  */
 export function computeMarkMetrics(
   askPrices: number[],
-  bidPrices: number[]
+  bidPrices: number[],
+  retailIndia?: number
 ): MarkMetrics {
-  const asks = filterPlausiblePrices(askPrices);
-  const bids = filterPlausiblePrices(bidPrices);
+  const reference = referencePrice(retailIndia, askPrices);
+  const asks = filterValidQuotes(askPrices, reference);
+  const bids = filterValidQuotes(bidPrices, reference);
 
   const bestAsk = asks.length > 0 ? Math.min(...asks) : undefined;
   const bestBid = bids.length > 0 ? Math.max(...bids) : undefined;
@@ -111,14 +149,17 @@ export function computeMarkMetrics(
 /**
  * Calculate the best available price from price points
  */
-export function calculateBestAvailablePrice(pricePoints: {
-  whatsapp?: PricePoint[];
-  marketplace?: PricePoint[];
-  international?: PricePoint[];
-  b2b?: PricePoint[];
-  endCustomer?: PricePoint[];
-  stockxGoat?: PricePoint[];
-}): number | undefined {
+export function calculateBestAvailablePrice(
+  pricePoints: {
+    whatsapp?: PricePoint[];
+    marketplace?: PricePoint[];
+    international?: PricePoint[];
+    b2b?: PricePoint[];
+    endCustomer?: PricePoint[];
+    stockxGoat?: PricePoint[];
+  },
+  retailIndia?: number
+): number | undefined {
   const allPrices: number[] = [];
 
   // New channel-based structure
@@ -134,7 +175,8 @@ export function calculateBestAvailablePrice(pricePoints: {
     if (pricePoints.stockxGoat) allPrices.push(...pricePoints.stockxGoat.map(p => p.price));
   }
 
-  const validated = filterPlausiblePrices(allPrices);
+  const reference = referencePrice(retailIndia, allPrices);
+  const validated = filterValidQuotes(allPrices, reference);
   if (validated.length === 0) return undefined;
   return Math.min(...validated);
 }
@@ -211,8 +253,12 @@ export function estimatePriceChange(
 }
 
 /**
- * Calculate change30d and change90d from price anchors
- * Falls back to retail price if historical data is missing
+ * Calculate change30d and change90d from REAL historical anchors only.
+ *
+ * A change is genuine only when an analyst-entered historical30d / historical90d
+ * series exists. There is NO retail fallback: comparing the lowest ask to retail
+ * is a vs-retail discount, not a 30-day move, and mislabelling it as "30d" is the
+ * defect this pass removes. Returns null (not "+0.0%") when no real history exists.
  */
 export function calculatePriceChanges(
   currentPrice: number | undefined,
@@ -222,44 +268,26 @@ export function calculatePriceChanges(
     retailIndia?: number;
     retailGlobal?: number;
   }
-): { change30d: string; change90d: string } {
+): { change30d: string | null; change90d: string | null } {
   if (!currentPrice) {
-    return { change30d: "+0.0%", change90d: "+0.0%" };
+    return { change30d: null, change90d: null };
   }
 
-  // Try to calculate 30d change
-  let change30d = "+0.0%";
-  if (priceAnchors.historical30d) {
-    // Use historical 30d data if available
-    change30d = estimatePriceChange(
-      currentPrice,
-      priceAnchors.historical30d.min,
-      priceAnchors.historical30d.max
-    );
-  } else if (priceAnchors.retailIndia && priceAnchors.retailIndia > 0) {
-    // Fallback: compare to retail India price
-    change30d = calculatePercentageChange(priceAnchors.retailIndia, currentPrice);
-  } else if (priceAnchors.retailGlobal && priceAnchors.retailGlobal > 0) {
-    // Fallback: compare to retail global price
-    change30d = calculatePercentageChange(priceAnchors.retailGlobal, currentPrice);
-  }
+  const change30d = priceAnchors.historical30d
+    ? estimatePriceChange(
+        currentPrice,
+        priceAnchors.historical30d.min,
+        priceAnchors.historical30d.max
+      )
+    : null;
 
-  // Try to calculate 90d change
-  let change90d = "+0.0%";
-  if (priceAnchors.historical90d) {
-    // Use historical 90d data if available
-    change90d = estimatePriceChange(
-      currentPrice,
-      priceAnchors.historical90d.min,
-      priceAnchors.historical90d.max
-    );
-  } else if (priceAnchors.retailIndia && priceAnchors.retailIndia > 0) {
-    // Fallback: compare to retail India price (same as 30d for now)
-    change90d = calculatePercentageChange(priceAnchors.retailIndia, currentPrice);
-  } else if (priceAnchors.retailGlobal && priceAnchors.retailGlobal > 0) {
-    // Fallback: compare to retail global price
-    change90d = calculatePercentageChange(priceAnchors.retailGlobal, currentPrice);
-  }
+  const change90d = priceAnchors.historical90d
+    ? estimatePriceChange(
+        currentPrice,
+        priceAnchors.historical90d.min,
+        priceAnchors.historical90d.max
+      )
+    : null;
 
   return { change30d, change90d };
 }
@@ -327,51 +355,6 @@ export function countDataPoints(pricePoints: {
 }
 
 /**
- * Generate simulated price anchors if none exist
- * Uses current market prices to create realistic historical estimates
- */
-function generatePriceAnchors(
-  currentPrice: number,
-  allPrices: number[]
-): {
-  retailIndia?: number;
-  historical30d?: { min: number; max: number };
-  historical90d?: { min: number; max: number };
-} {
-  if (allPrices.length === 0) return {};
-  
-  const minPrice = Math.min(...allPrices);
-  
-  // Estimate retail as 10-20% below current minimum (sneakers typically resell above retail)
-  const estimatedRetail = Math.round(minPrice * 0.85);
-  
-  // Simulate 30d historical with some variance (±5-15% from current)
-  const variance30d = 0.05 + Math.random() * 0.10; // 5-15%
-  const goingUp = Math.random() > 0.5; // 50% chance prices increased
-  const historical30dMid = goingUp 
-    ? currentPrice * (1 - variance30d) // If going up, historical was lower
-    : currentPrice * (1 + variance30d); // If going down, historical was higher
-  
-  // Simulate 90d historical with more variance (±10-25% from current)
-  const variance90d = 0.10 + Math.random() * 0.15; // 10-25%
-  const historical90dMid = goingUp
-    ? currentPrice * (1 - variance90d)
-    : currentPrice * (1 + variance90d);
-  
-  return {
-    retailIndia: estimatedRetail,
-    historical30d: {
-      min: Math.round(historical30dMid * 0.95),
-      max: Math.round(historical30dMid * 1.05),
-    },
-    historical90d: {
-      min: Math.round(historical90dMid * 0.92),
-      max: Math.round(historical90dMid * 1.08),
-    },
-  };
-}
-
-/**
  * Calculate all metrics for a size variant
  * This auto-populates all the fields needed for market overview
  */
@@ -388,8 +371,8 @@ export function calculateSizeMetrics(
   if (!pricePoints) {
     return {
       bestAvailablePrice: undefined,
-      change30d: "+0.0%",
-      change90d: "+0.0%",
+      change30d: null,
+      change90d: null,
       confidence: 50,
       liquidity: "Very Low",
       volumeLabel: "Scarce",
@@ -400,23 +383,9 @@ export function calculateSizeMetrics(
   const prices = extractPricesByChannel(pricePoints);
   const allPrices = [...prices.whatsapp, ...prices.marketplace, ...prices.international];
   
-  const bestAvailablePrice = calculateBestAvailablePrice(pricePoints);
+  const bestAvailablePrice = calculateBestAvailablePrice(pricePoints, priceAnchors.retailIndia);
   const dataPoints = countDataPoints(pricePoints);
   const totalListings = dataPoints;
-  
-  // If no price anchors exist but we have current prices, generate estimates
-  let effectivePriceAnchors = priceAnchors;
-  if (
-    bestAvailablePrice &&
-    !priceAnchors.historical30d &&
-    !priceAnchors.historical90d &&
-    !priceAnchors.retailIndia &&
-    !priceAnchors.retailGlobal
-  ) {
-    const generated = generatePriceAnchors(bestAvailablePrice, allPrices);
-    effectivePriceAnchors = { ...priceAnchors, ...generated };
-    console.log(`Generated price anchors for size ${size.size}:`, generated);
-  }
 
   // Calculate b2bMarketPrice (whatsapp channel)
   const b2bMarketPrice = prices.whatsapp.length > 0 
@@ -438,8 +407,8 @@ export function calculateSizeMetrics(
     ? calculatePriceRange(allPrices)
     : size.fairRange || "";
 
-  // Calculate price changes using effective anchors (may include generated ones)
-  const { change30d, change90d } = calculatePriceChanges(bestAvailablePrice, effectivePriceAnchors);
+  // Calculate price changes from REAL historical anchors only (null when absent).
+  const { change30d, change90d } = calculatePriceChanges(bestAvailablePrice, priceAnchors);
 
   return {
     bestAvailablePrice,
@@ -465,8 +434,8 @@ export function calculateAssetLevelMetrics(asset: Asset): Partial<Asset> {
   if (!asset.sizes || asset.sizes.length === 0) {
     return {
       bestAvailablePrice: undefined,
-      change30d: "+0.0%",
-      change90d: "+0.0%",
+      change30d: null,
+      change90d: null,
       confidence: 50,
       liquidity: "Very Low",
       volumeLabel: "Scarce",

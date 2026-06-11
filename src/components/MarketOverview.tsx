@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Asset, PricePoint, MarketChannel } from "../types";
+import { filterValidQuotes, referencePrice } from "../utils/priceMetrics";
 
 interface MarketOverviewProps {
   assets: Asset[];
@@ -47,7 +48,7 @@ const HIGH_SIGNAL_THRESHOLD = 5;
 // TEMP — superseded by validation brief.
 const MAX_PLAUSIBLE_ABS_CHANGE = 100;
 
-function parseChangePercent(changeStr: string | undefined): number | null {
+function parseChangePercent(changeStr: string | null | undefined): number | null {
   if (!changeStr) return null;
   const match = changeStr.match(/[+-]?[\d.]+/);
   return match ? parseFloat(match[0]) : null;
@@ -199,6 +200,18 @@ function computeSnapshot(assets: Asset[]): MarketSnapshot {
     const buckets = gatherPricePoints(asset);
     if (buckets.length === 0) return;
 
+    // Per-asset relative floor: retail when plausible, else median of floor-passing
+    // prices. Junk-low quotes (e.g. ₹1,718 on a ₹15k shoe) are excluded so they
+    // can't inflate the cross-channel spread (kills the ~58% median artefact).
+    const assetPrices: number[] = [];
+    buckets.forEach(({ points }) =>
+      points.forEach((p) => {
+        if (typeof p.price === "number") assetPrices.push(p.price);
+      })
+    );
+    const reference = referencePrice(asset.priceAnchors?.retailIndia, assetPrices);
+    const isValidQuote = (price: number) => filterValidQuotes([price], reference).length > 0;
+
     // Per-tier min price aggregated across sizes (proxy for "best price in this tier for this asset").
     const tierMin: Partial<Record<MarketChannel, number>> = {};
 
@@ -207,7 +220,7 @@ function computeSnapshot(assets: Asset[]): MarketSnapshot {
 
     buckets.forEach(({ tier, size, points }) => {
       points.forEach((p) => {
-        if (typeof p.price !== "number" || !isFinite(p.price) || p.price <= 0) return;
+        if (typeof p.price !== "number" || !isValidQuote(p.price)) return;
         const cnt = p.listingCount || 1;
 
         // Tier-level totals (for most active channel today).

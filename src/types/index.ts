@@ -58,8 +58,8 @@ export interface Asset {
   dataPoints?: number;
   fairRange?: string;
   confidence?: number;
-  change30d?: string;
-  change90d?: string;
+  change30d?: string | null;
+  change90d?: string | null;
   liquidity?: string;
   volumeLabel?: string;
   insight?: MarketInsight;
@@ -154,8 +154,8 @@ export interface SizeVariant {
   // Calculated/derived fields for this size
   fairRange: string;
   confidence: number;
-  change30d: string;
-  change90d: string;
+  change30d: string | null;
+  change90d: string | null;
   liquidity: string;
   volumeLabel: string;
   
