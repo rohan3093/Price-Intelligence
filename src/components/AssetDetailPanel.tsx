@@ -15,6 +15,7 @@ import {
   turnaroundColor,
   turnaroundLabel,
 } from "../utils/arbitrageEngine";
+import { computeMarkMetrics } from "../utils/priceMetrics";
 
 // ─── Discrepancy display helpers (channel-pair language, no strategy/risk pills) ───
 const ANOMALOUS_NET_PCT_THRESHOLD = 5.0; // 500% spread is data noise, not signal.
@@ -923,6 +924,19 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
     return allPrices.length > 0 ? Math.min(...allPrices) : undefined;
   }, [currentData.bestAvailablePrice, whatsappPrices.buy, marketplacePrices, internationalPrices]);
 
+  // Exchange mark price + spread for the hero. Ask side = sellable listings
+  // (WhatsApp WTS [transactionType 'buy'] + marketplace + international landed);
+  // bid side = WhatsApp WTB [transactionType 'sell']. Floor-filtered upstream.
+  const markMetrics = useMemo(() => {
+    const askPrices: number[] = [
+      ...whatsappPrices.buy.map((p) => p.price),
+      ...marketplacePrices.map((p) => p.price),
+      ...internationalPrices.map((p) => p.price + (p.reshippingCost || 0)),
+    ];
+    const bidPrices: number[] = whatsappPrices.sell.map((p) => p.price);
+    return computeMarkMetrics(askPrices, bidPrices);
+  }, [whatsappPrices.buy, whatsappPrices.sell, marketplacePrices, internationalPrices]);
+
   const anchor = asset.priceAnchors;
 
   return (
@@ -1049,28 +1063,90 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
 
             {/* Quick Decision Card - Key Metrics at a Glance */}
             <div className="bg-brand-background border border-brand-gray/30 p-3">
-              <div className="flex items-baseline justify-between gap-3 mb-2">
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-brand-black/50 uppercase tracking-wider mb-1">Best Price</p>
-                  <p className="text-xl sm:text-2xl md:text-3xl font-mono-numeric font-bold text-up leading-tight break-words">
-                    {bestPrice ? `₹${bestPrice.toLocaleString("en-IN")}` : "—"}
-                  </p>
-                </div>
-                {bestPrice && anchor?.retailIndia && (
-                  <div className="text-right flex-shrink-0" title={`Retail: ₹${anchor.retailIndia.toLocaleString("en-IN")}. Best price is ${bestPrice < anchor.retailIndia ? "below" : "above"} retail by ${Math.abs(((bestPrice - anchor.retailIndia) / anchor.retailIndia) * 100).toFixed(0)}%.`}>
-                    <p className="text-xs sm:text-sm text-brand-black/50 uppercase tracking-wider mb-1 flex items-center justify-end gap-1 whitespace-nowrap">
-                      vs Retail
-                      <span className="cursor-help text-brand-black/30 hover:text-brand-black/60 transition-colors">ⓘ</span>
+              {/* Exchange hero — mark price + spread from validated quotes only */}
+              <div className="mb-2">
+                {/* Row 1: Mark price + 30d change */}
+                <div className="flex items-baseline justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-brand-black/50 uppercase tracking-wider mb-1 flex items-center gap-1.5 flex-wrap">
+                      Mark Price
+                      {markMetrics.markMode === 'bid-only' && (
+                        <span className="text-[9px] normal-case tracking-normal text-brand-black/40">indicative · bid-only</span>
+                      )}
+                      {markMetrics.markMode === 'ask-median' && (
+                        <span className="text-[9px] normal-case tracking-normal text-brand-black/40">ask median</span>
+                      )}
                     </p>
-                    <p className="text-base sm:text-lg font-mono-numeric font-bold leading-tight text-brand-black">
-                      {bestPrice < anchor.retailIndia ? "↓ -" : "↑ +"}
-                      {Math.abs(((bestPrice - anchor.retailIndia) / anchor.retailIndia) * 100).toFixed(0)}%
-                    </p>
-                    <p className="text-[9px] text-brand-black/40 mt-0.5">
-                      {bestPrice < anchor.retailIndia ? "Below retail" : "Above retail"}
+                    <p className="text-2xl sm:text-3xl md:text-4xl font-mono-numeric font-bold text-brand-black leading-tight break-words tabular-nums">
+                      {markMetrics.markPrice !== undefined ? `₹${Math.round(markMetrics.markPrice).toLocaleString("en-IN")}` : "—"}
                     </p>
                   </div>
-                )}
+                  {(() => {
+                    const chg = parseFloat((currentData.change30d || '').replace(/[^0-9.\-+]/g, ''));
+                    if (!isFinite(chg) || chg === 0) return null;
+                    const isUp = chg > 0;
+                    return (
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wider mb-1">30d</p>
+                        <p className={`text-base sm:text-lg font-mono-numeric font-bold leading-tight tabular-nums ${isUp ? 'text-up' : 'text-down'}`}>
+                          {isUp ? '+' : ''}{chg.toFixed(1)}%
+                        </p>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Row 2: Bid / Ask / Spread — spread only when both sides exist */}
+                {markMetrics.bestBid !== undefined && markMetrics.bestAsk !== undefined ? (
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <div className="bg-terminal-surface border border-brand-gray/20 p-2">
+                      <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Bid</p>
+                      <p className="text-sm font-mono-numeric font-bold text-brand-black tabular-nums">₹{Math.round(markMetrics.bestBid).toLocaleString("en-IN")}</p>
+                    </div>
+                    <div className="bg-terminal-surface border border-brand-gray/20 p-2">
+                      <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Ask</p>
+                      <p className="text-sm font-mono-numeric font-bold text-brand-black tabular-nums">₹{Math.round(markMetrics.bestAsk).toLocaleString("en-IN")}</p>
+                    </div>
+                    <div className={`border p-2 ${(markMetrics.spreadAbs ?? 0) < 0 ? 'bg-up/10 border-up/40' : 'border-brand-gray/20 bg-terminal-surface'}`}>
+                      <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Spread</p>
+                      {(markMetrics.spreadAbs ?? 0) < 0 ? (
+                        <p className="text-sm font-mono-numeric font-bold text-up tabular-nums" title="Highest bid exceeds lowest ask across channels.">Crossed</p>
+                      ) : (
+                        <p className="text-sm font-mono-numeric font-bold text-brand-black tabular-nums">
+                          ₹{Math.round(markMetrics.spreadAbs ?? 0).toLocaleString("en-IN")}
+                          {markMetrics.spreadPct !== undefined && (
+                            <span className="text-[10px] text-brand-black/50 ml-1">{(markMetrics.spreadPct * 100).toFixed(1)}%</span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (markMetrics.bestBid !== undefined || markMetrics.bestAsk !== undefined) ? (
+                  <div className="mt-3 flex items-start gap-2 text-xs bg-brand-background/50 border border-brand-gray/20 p-2.5">
+                    <span className="text-brand-black/40 leading-none mt-0.5">ⓘ</span>
+                    <p className="text-brand-black/60 leading-snug">
+                      {markMetrics.bestAsk === undefined
+                        ? 'Buyers-only market — only bids posted, so no spread can be quoted.'
+                        : 'Sellers-only market — only asks posted, so no spread can be quoted.'}
+                    </p>
+                  </div>
+                ) : null}
+
+                {/* Row 3: Liquidity + neutral reference lines (lowest ask · retail · freshness) */}
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-brand-black/50">
+                  {currentData.liquidity && currentData.liquidity !== "N/A" && (
+                    <span>Liquidity <span className="text-brand-black/80 font-semibold">{currentData.liquidity}</span></span>
+                  )}
+                  {markMetrics.bestAsk !== undefined && (
+                    <span>Lowest ask <span className="font-mono-numeric text-brand-black/80 font-semibold tabular-nums">₹{Math.round(markMetrics.bestAsk).toLocaleString("en-IN")}</span></span>
+                  )}
+                  {anchor?.retailIndia && (
+                    <span>Retail <span className="font-mono-numeric text-brand-black/80 font-semibold tabular-nums">₹{anchor.retailIndia.toLocaleString("en-IN")}</span></span>
+                  )}
+                  {currentData.lastUpdated && (
+                    <span>Updated <span className="text-brand-black/80">{formatLastSeen(currentData.lastUpdated)}</span></span>
+                  )}
+                </div>
               </div>
 
               {/* Per-Channel Best Prices */}
