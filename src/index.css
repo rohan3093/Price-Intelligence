@@ -21,16 +21,32 @@
 }
 
 :root {
-  /* Refined color palette for better eye comfort */
-  --brand-black: #111111;           /* Softer black */
-  --brand-black-light: #1a1a1a;     /* For hover states */
-  --brand-gray: #e5e7eb;            /* Lighter borders */
-  --brand-gray-dark: #6b7280;       /* Secondary text */
-  --brand-gray-medium: #9ca3af;     /* Tertiary text */
-  --brand-gray-light: #f3f4f6;      /* Subtle backgrounds */
-  --brand-white: #ffffff;
-  --brand-background: #fafafa;      /* Page background */
-  --brand-yellow: #f7f126;
+  /* ============================================
+     TERMINAL palette (institutional dark theme)
+     ============================================ */
+  --terminal-bg: #0A0E14;            /* page background */
+  --terminal-surface: #11161F;       /* panels, cards, header */
+  --terminal-surface-raised: #161C27;/* hover, selected rows */
+  --terminal-border: #222A37;        /* hairline borders */
+  --terminal-border-strong: #2E3847;
+  --terminal-text: #E6EAF0;          /* primary text */
+  --terminal-text-dim: #8A95A6;      /* secondary text */
+  --terminal-text-faint: #5A6575;    /* labels, tertiary */
+  --up: #1FC77B;
+  --down: #F0556B;
+  --accent: #F7F126;                 /* brand-yellow; use SPARINGLY */
+
+  /* Legacy brand-* tokens remapped onto the terminal palette so existing
+     class usage inherits the new theme automatically. */
+  --brand-black: var(--terminal-text);          /* was a near-black; now light text */
+  --brand-black-light: var(--terminal-surface-raised);
+  --brand-gray: var(--terminal-border);
+  --brand-gray-dark: var(--terminal-text-dim);
+  --brand-gray-medium: var(--terminal-text-faint);
+  --brand-gray-light: var(--terminal-surface-raised);
+  --brand-white: var(--terminal-surface);
+  --brand-background: var(--terminal-bg);
+  --brand-yellow: var(--accent);
   --base-font-size: 16px;
 }
 
@@ -40,8 +56,8 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--brand-background, #fafafa);  /* Subtle off-white */
-  color: var(--brand-black, #111111);
+  background-color: var(--terminal-bg, #0A0E14);
+  color: var(--terminal-text, #E6EAF0);
   line-height: 1.6;                      /* Better line spacing */
   font-size: var(--base-font-size, 16px);
   font-weight: 500;                      /* Slightly heavier for readability */

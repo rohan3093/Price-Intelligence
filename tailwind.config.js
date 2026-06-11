@@ -27,16 +27,32 @@ export default {
     },
     extend: {
       colors: {
+        // Terminal palette (institutional dark theme)
+        terminal: {
+          bg: 'var(--terminal-bg, #0A0E14)',
+          surface: 'var(--terminal-surface, #11161F)',
+          'surface-raised': 'var(--terminal-surface-raised, #161C27)',
+          border: 'var(--terminal-border, #222A37)',
+          'border-strong': 'var(--terminal-border-strong, #2E3847)',
+          text: 'var(--terminal-text, #E6EAF0)',
+          'text-dim': 'var(--terminal-text-dim, #8A95A6)',
+          'text-faint': 'var(--terminal-text-faint, #5A6575)',
+        },
+        up: 'var(--up, #1FC77B)',
+        down: 'var(--down, #F0556B)',
+        accent: 'var(--accent, #F7F126)',
+        // Legacy brand-* tokens remapped onto the terminal palette so existing
+        // class usage inherits the dark theme automatically.
         brand: {
-          black: 'var(--brand-black, #111111)',      // Softer black for less eye strain
-          'black-light': '#1a1a1a',                  // For hover states
-          gray: 'var(--brand-gray, #e5e7eb)',        // Lighter gray for softer borders
-          'gray-dark': '#6b7280',                    // For secondary text
-          'gray-medium': '#9ca3af',                  // For tertiary text
-          'gray-light': '#f3f4f6',                   // For subtle backgrounds
-          white: 'var(--brand-white, #ffffff)',
-          background: '#fafafa',                     // Subtle off-white for page background
-          yellow: 'var(--brand-yellow, #f7f126)',
+          black: 'var(--terminal-text, #E6EAF0)',            // was near-black; now light text
+          'black-light': 'var(--terminal-surface-raised, #161C27)',
+          gray: 'var(--terminal-border, #222A37)',
+          'gray-dark': 'var(--terminal-text-dim, #8A95A6)',
+          'gray-medium': 'var(--terminal-text-faint, #5A6575)',
+          'gray-light': 'var(--terminal-surface-raised, #161C27)',
+          white: 'var(--terminal-surface, #11161F)',
+          background: 'var(--terminal-bg, #0A0E14)',
+          yellow: 'var(--accent, #F7F126)',
         },
       },
       fontFamily: {
@@ -62,11 +78,13 @@ export default {
         '22': '5.5rem',
       },
       boxShadow: {
-        // Subtle shadows for depth
-        'soft': '0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
-        'card': '0 2px 8px 0 rgba(0, 0, 0, 0.06)',
-        'dropdown': '0 4px 12px 0 rgba(0, 0, 0, 0.08)',
-        'modal': '0 8px 24px 0 rgba(0, 0, 0, 0.12)',
+        // Terminals are flat: card-level elevation is replaced by 1px borders.
+        // 'soft'/'card' are neutralised so any lingering usage stays flat.
+        'soft': 'none',
+        'card': 'none',
+        // Overlays keep a real (dark) shadow for layering on the dark surface.
+        'dropdown': '0 4px 16px 0 rgba(0, 0, 0, 0.55)',
+        'modal': '0 12px 40px 0 rgba(0, 0, 0, 0.65)',
       },
       maxWidth: {
         '8xl': '90rem', // 1440px - wider for better screen utilization
