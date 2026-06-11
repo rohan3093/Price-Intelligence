@@ -1357,9 +1357,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             }`}
           >
             Overview
-            {currentData.insight && (
-              <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-blue-500 align-middle" title="Insight available"></span>
-            )}
           </button>
           <button
             onClick={() => setMainTab('listings')}
@@ -1564,55 +1561,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             })()}
           </Card>
 
-          {/* Analyst Signal — manually curated, not algorithmic. Neutral styling matches the rest of the Overview tab. */}
-          {currentData.insight && (
-            <Card className="border border-brand-gray/20">
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  <span className="text-sm font-bold text-brand-black/70 uppercase tracking-wide">Analyst Signal</span>
-                  {selectedSize && <span className="text-xs text-brand-black/50">({selectedSize})</span>}
-                </div>
-                <div className={`px-2.5 py-1 text-xs font-bold uppercase tracking-wider border ${
-                  currentData.insight.recommendation === 'buy'
-                    ? 'border-up/40 text-up'
-                    : currentData.insight.recommendation === 'sell'
-                    ? 'border-down/40 text-down'
-                    : currentData.insight.recommendation === 'hold'
-                    ? 'border-terminal-border-strong text-brand-black/60'
-                    : 'border-terminal-border-strong text-brand-black/50'
-                }`}>
-                  {currentData.insight.recommendation.toUpperCase()}
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
-                  <span className="text-brand-black/70">Confidence</span>
-                  <span className="font-mono text-brand-black">{currentData.insight.confidence}%</span>
-                </div>
-                <div className="h-1.5 bg-brand-gray/20 overflow-hidden">
-                  <div
-                    className="h-full bg-terminal-text-dim transition-all"
-                    style={{ width: `${currentData.insight.confidence}%` }}
-                  />
-                </div>
-              </div>
-
-              <p className="text-sm text-brand-black leading-relaxed">{currentData.insight.reasoning}</p>
-              {currentData.insight.expectedMovement && (
-                <p className="text-sm text-brand-black/70 italic mt-2">
-                  <span className="font-semibold">Expected: </span>{currentData.insight.expectedMovement}
-                </p>
-              )}
-
-              <p className="text-[9px] text-brand-black/30 uppercase tracking-wider mt-3">
-                Analyst-curated signal · Updated with each data refresh
-              </p>
-            </Card>
-          )}
         </div>
       )}
 

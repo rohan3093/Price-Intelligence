@@ -82,20 +82,6 @@ function calculateBestPrice(asset: Asset): number | undefined {
 }
 
 /**
- * Check if asset is a "best deal" (price is significantly below retail)
- */
-function isBestDeal(asset: Asset): boolean {
-  const bestPrice = calculateBestPrice(asset);
-  const retailPrice = asset.priceAnchors?.retailIndia;
-  
-  if (!bestPrice || !retailPrice) return false;
-  
-  // Consider it a "best deal" if price is at least 10% below retail
-  const discount = ((retailPrice - bestPrice) / retailPrice) * 100;
-  return discount >= 10;
-}
-
-/**
  * Formats size range from asset sizes array
  * Returns format like "UK 6 - UK 10" or single size if only one exists
  */
@@ -231,15 +217,6 @@ const AssetRow: React.FC<AssetRowProps> = React.memo(({
                         {searchQuery ? highlightText(asset.name, searchQuery) : asset.name}
                       </p>
                     </div>
-                    {isBestDeal(asset) && (
-                      <span className={`flex-shrink-0 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide leading-none mt-0.5 ${
-                        isSelected 
-                          ? "bg-up text-terminal-bg" 
-                          : "bg-up/10 text-up border border-up/30"
-                      }`}>
-                        DEAL
-                      </span>
-                    )}
                     {onToggleWatchlist && (
                       <button
                         onClick={(e) => {
