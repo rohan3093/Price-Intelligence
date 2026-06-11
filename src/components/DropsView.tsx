@@ -429,7 +429,7 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
 
       {/* Drops List */}
       {loading ? (
-        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm">
+        <div className="border border-brand-gray/20 p-8 text-center bg-white">
           <div className="flex items-center justify-center gap-2">
             <svg className="w-4 h-4 animate-spin text-brand-black/60" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -445,7 +445,7 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
           isRetrying={isRetrying}
         />
       ) : filteredDrops.length === 0 ? (
-        <div className="border border-brand-gray/20 p-8 bg-white shadow-sm">
+        <div className="border border-brand-gray/20 p-8 bg-white">
           <div className="text-center mb-6">
             <svg className="w-12 h-12 mx-auto mb-3 text-brand-black/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -481,7 +481,7 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
             return (
               <div
                 key={drop.id}
-                className="border border-brand-gray/20 p-4 bg-white hover:shadow-md shadow-sm transition"
+                className="border border-brand-gray/20 p-4 bg-white transition"
               >
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
                   {/* Drop Image & Info */}

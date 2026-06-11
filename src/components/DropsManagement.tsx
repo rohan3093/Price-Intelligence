@@ -233,7 +233,7 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-brand-white p-4 border border-brand-gray/20" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="bg-brand-white p-4 border border-brand-gray/20">
           <p className="text-xs text-brand-black/50 font-medium mb-1">
             Pending Review
           </p>
@@ -241,7 +241,7 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
             {pendingDrops.length}
           </p>
         </div>
-        <div className="bg-brand-white p-4 border border-brand-gray/20" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="bg-brand-white p-4 border border-brand-gray/20">
           <p className="text-xs text-brand-black/50 font-medium mb-1">
             Upcoming
           </p>
@@ -249,7 +249,7 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
             {upcomingDrops.length}
           </p>
         </div>
-        <div className="bg-brand-white p-4 border border-brand-gray/20" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="bg-brand-white p-4 border border-brand-gray/20">
           <p className="text-xs text-brand-black/50 font-medium mb-1">
             Total
           </p>
@@ -302,7 +302,6 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
                   ? "border-brand-black/20 bg-brand-black/[0.02]"
                   : "border-brand-gray/20"
               }`}
-              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
             >
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                 {/* Drop Info */}
@@ -485,7 +484,7 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-brand-white border border-brand-gray/20 max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+      <div className="bg-brand-white border border-brand-gray/20 max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ boxShadow: '0 12px 40px 0 rgba(0, 0, 0, 0.65)' }}>
         <div className="p-5 border-b border-brand-gray/15">
           <h3 className="text-base font-semibold text-brand-black">
             {drop ? "Edit Drop" : "Add New Drop"}

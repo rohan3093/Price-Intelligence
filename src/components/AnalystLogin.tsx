@@ -51,7 +51,7 @@ export const AnalystLogin: React.FC<AnalystLoginProps> = ({ onLogin, onClose }) 
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-md bg-brand-white border border-brand-gray/20 rounded-none shadow-2xl">
+      <div className="relative w-full max-w-md bg-brand-white border border-brand-gray/20 rounded-none shadow-modal">
         <div className="p-6 md:p-8">
           {onClose && (
             <button

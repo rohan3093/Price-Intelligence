@@ -96,7 +96,7 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
   if (emailSent) {
     return (
       <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="relative w-full max-w-md bg-brand-white border border-brand-gray/20 shadow-2xl">
+        <div className="relative w-full max-w-md bg-brand-white border border-brand-gray/20 shadow-modal">
           <div className="p-6 md:p-8">
             <button
               onClick={onClose}
@@ -150,7 +150,7 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-md bg-brand-white border border-brand-gray/20 shadow-2xl">
+      <div className="relative w-full max-w-md bg-brand-white border border-brand-gray/20 shadow-modal">
         <div className="p-6 md:p-8">
           <button
             onClick={onClose}

@@ -58,7 +58,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({
   noPadding = false,
 }, ref) => {
   return (
-    <div ref={ref} className={`bg-white border border-brand-gray/20 shadow-sm ${className}`}>
+    <div ref={ref} className={`bg-white border border-brand-gray/20 ${className}`}>
       {title && (
         <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-brand-gray/10">
           {/* Header: stack title + action vertically on mobile, side-by-side on sm+ */}
@@ -104,7 +104,7 @@ const MetricSkeleton: React.FC = () => (
 );
 
 const CardSkeleton: React.FC = () => (
-  <div className="p-4 bg-brand-white border border-brand-gray/20 shadow-sm">
+  <div className="p-4 bg-brand-white border border-brand-gray/20">
     <div className="space-y-3">
       <div className="h-4 w-32 bg-brand-gray/20 relative overflow-hidden">
         <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
@@ -243,7 +243,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
 
   return (
     <div
-      className={`bg-white border border-brand-gray/20 border-l-4 ${getChannelAccent(listing.channel)} p-3 mb-2.5 shadow-sm`}
+      className={`bg-white border border-brand-gray/20 border-l-4 ${getChannelAccent(listing.channel)} p-3 mb-2.5`}
     >
       {/* Header: Channel dot + label, optional side badge, price (right) */}
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -1016,7 +1016,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                           onClick={() => setSelectedSize(sv.size)}
                           className={`px-2.5 py-1.5 text-center transition-all min-w-[60px] ${
                             isSelected
-                              ? 'bg-brand-black text-white shadow-sm'
+                              ? 'bg-brand-black text-white'
                               : isCheapest
                               ? 'bg-green-50 border border-green-300 text-brand-black hover:border-green-500'
                               : 'bg-white border border-brand-gray/30 text-brand-black hover:border-brand-black'
@@ -1408,7 +1408,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             }
-            className="shadow-sm"
+           
           >
             <TradingChart
               pricePoints={(() => {
@@ -1433,7 +1433,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             }
-            className="shadow-sm"
+           
           >
             {(() => {
               const whatsappBest = whatsappPrices.buy.length > 0 ? whatsappPrices.buy[0].price : 0;
@@ -1566,7 +1566,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
 
           {/* Analyst Signal — manually curated, not algorithmic. Neutral styling matches the rest of the Overview tab. */}
           {currentData.insight && (
-            <Card className="shadow-sm border border-brand-gray/20">
+            <Card className="border border-brand-gray/20">
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1655,7 +1655,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           }
-          className="shadow-sm"
+         
         >
           <OrderBook
             whatsappBuyPrices={whatsappPrices.buy}
@@ -1673,7 +1673,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           }
-          className="shadow-sm"
+         
         >
             {/* MOBILE: Compact toolbar. DESKTOP: Original spacious layout. */}
             {/* Mobile toolbar (hidden on sm+) */}
@@ -1966,7 +1966,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                         return (
                           <div key={idx} className="relative">
                             {isBestDeal && (
-                              <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-yellow-400 text-brand-black px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-sm">
+                              <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-yellow-400 text-brand-black px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide">
                                 <span>⭐</span>
                                 <span>Best</span>
                               </div>
@@ -2173,7 +2173,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             </div>
         </Card>
       ) : (
-        <Card title="All Listings" subtitle="No listings found for this asset" className="shadow-sm">
+        <Card title="All Listings" subtitle="No listings found for this asset">
           <div className="py-12 text-center text-brand-black/60">
             <svg className="w-12 h-12 mx-auto mb-3 text-brand-gray/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -2245,7 +2245,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             ? { type: 'link' as const, href: top.buy.url }
             : null;
           return (
-            <Card className="shadow-sm border-2 border-brand-black" noPadding>
+            <Card className="border-2 border-brand-black" noPadding>
               <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-brand-black text-white flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="text-sm font-bold uppercase tracking-wide whitespace-nowrap">Largest Spread</span>
@@ -2345,7 +2345,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
             </svg>
           }
-          className="shadow-sm"
+         
           headerAction={
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <div className="flex items-center gap-2">
@@ -2496,7 +2496,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
         )}
         </>
       ) : (
-        <Card title="Discrepancies" subtitle="No price discrepancies for this size" className="shadow-sm">
+        <Card title="Discrepancies" subtitle="No price discrepancies for this size">
           <div className="py-8 text-center text-brand-black/60">
             <svg className="w-12 h-12 mx-auto mb-3 text-brand-gray/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />

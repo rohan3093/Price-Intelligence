@@ -10,7 +10,7 @@ export const AlertsSheet: React.FC<AlertsSheetProps> = ({ open, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-30 flex items-end md:items-center justify-center bg-black/60">
-      <div className="w-full md:max-w-md md:rounded-none md:border md:border-brand-gray/20 bg-brand-white p-4 md:p-5 shadow-xl rounded-none">
+      <div className="w-full md:max-w-md md:rounded-none md:border md:border-brand-gray/20 bg-brand-white p-4 md:p-5 shadow-modal rounded-none">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-body font-normal text-brand-black">
             Configure alerts

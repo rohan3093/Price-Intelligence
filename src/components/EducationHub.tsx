@@ -25,7 +25,7 @@ export const EducationHub: React.FC = () => {
           </button>
         </div>
         <article
-          className="border border-brand-gray/20 p-4 md:p-6 bg-white shadow-sm"
+          className="border border-brand-gray/20 p-4 md:p-6 bg-white"
         >
           <div className="flex items-center gap-2 mb-3 pb-3 border-b border-brand-gray/20">
             <span
@@ -181,7 +181,7 @@ export const EducationHub: React.FC = () => {
           <button
             key={guide.id}
             onClick={() => setSelectedGuide(guide)}
-            className="border border-brand-gray/20 p-4 bg-white hover:border-brand-black hover:shadow-md shadow-sm text-left transition-all"
+            className="border border-brand-gray/20 p-4 bg-white hover:border-brand-black text-left transition-all"
           >
             <div className="flex items-start justify-between mb-2">
               <span

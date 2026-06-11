@@ -167,7 +167,7 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
         {/* Asset List */}
         <div className="lg:col-span-1">
-          <div className="border border-brand-gray/20 bg-white shadow-sm p-4">
+          <div className="border border-brand-gray/20 bg-white p-4">
             <h2 className="text-sm font-semibold text-brand-black mb-4">
               Instruments
             </h2>
@@ -232,8 +232,8 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
                     key={asset.id}
                     className={`border p-3 cursor-pointer transition-all ${
                       isSelected
-                        ? "border-brand-black bg-brand-black text-white shadow-sm"
-                        : "border-brand-gray/20 bg-white hover:border-brand-gray/40 hover:shadow-soft"
+                        ? "border-brand-black bg-brand-black text-white"
+                        : "border-brand-gray/20 bg-white hover:border-brand-gray/40"
                     }`}
                     onClick={() => {
                       setSelectedAsset(asset);
@@ -282,7 +282,7 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
               onUpdatePricePoints={handleUpdatePricePoints}
             />
           ) : (
-            <div className="border border-brand-gray/20 bg-white shadow-sm p-12 text-center">
+            <div className="border border-brand-gray/20 bg-white p-12 text-center">
               <p className="text-sm font-medium text-brand-black/60 mb-1">No Instrument Selected</p>
               <p className="text-xs text-brand-black/40">Select an instrument to begin market data entry</p>
             </div>
@@ -420,7 +420,7 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
   };
 
   return (
-    <div className="border border-brand-gray/20 bg-white shadow-sm p-5 space-y-5">
+    <div className="border border-brand-gray/20 bg-white p-5 space-y-5">
       {/* Instrument Header */}
       <div className="border-b border-brand-gray/20 pb-4">
         <div className="flex items-start justify-between gap-3">

@@ -514,7 +514,7 @@ const AssetCard: React.FC<{
   const isApproving = actionLoading === `approve-${group.assetId}`;
 
   return (
-    <div className="border border-brand-gray/20 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+    <div className="border border-brand-gray/20 bg-brand-white" style={{ overflow: 'hidden' }}>
       {/* Card header — always visible */}
       <div className="p-4">
         <div className="flex items-start gap-3">
@@ -776,7 +776,7 @@ const ProgressBar: React.FC<{ progress: ScrapeProgress }> = ({ progress }) => {
       : "Finishing…";
 
   return (
-    <div className="border border-brand-gray/20 bg-brand-white p-4 space-y-2.5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+    <div className="border border-brand-gray/20 bg-brand-white p-4 space-y-2.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Spinner size={3} />
@@ -834,7 +834,7 @@ const HistoryPanel: React.FC<{ runs: ScrapeRun[] }> = ({ runs }) => {
   }
 
   return (
-    <div className="border border-brand-gray/20 divide-y divide-brand-gray/10 bg-brand-white overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+    <div className="border border-brand-gray/20 divide-y divide-brand-gray/10 bg-brand-white overflow-hidden">
       <div className="px-4 py-3 bg-brand-gray/5">
         <span className="text-xs font-medium text-brand-black/50">
           Recent Runs

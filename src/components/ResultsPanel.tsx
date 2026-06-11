@@ -192,8 +192,8 @@ const AssetRow: React.FC<AssetRowProps> = React.memo(({
                 }}
         className={`border cursor-pointer transition-all duration-200 flex items-start gap-3 p-3 active:scale-[0.98] focus:outline-none focus:ring-2 ${
                   isSelected 
-                    ? "border-brand-black bg-brand-black text-brand-white shadow-sm" 
-                    : "border-brand-gray/20 bg-white hover:border-brand-gray/40 hover:shadow-sm"
+                    ? "border-brand-black bg-brand-black text-brand-white" 
+                    : "border-brand-gray/20 bg-white hover:border-brand-gray/40"
                 }`}
               >
                 {/* Asset image */}
@@ -434,7 +434,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
   const watchlistSet = useMemo(() => new Set(watchlistIds), [watchlistIds]);
 
   return (
-    <section className="border border-brand-gray/20 p-4 bg-white flex-1 flex flex-col min-h-0 shadow-sm">
+    <section className="border border-brand-gray/20 p-4 bg-white flex-1 flex flex-col min-h-0">
       <div className="flex items-center justify-between mb-3 pb-3 border-b border-brand-gray/20 flex-shrink-0">
         <div className="flex items-center gap-2">
           <h2 className="text-xs font-semibold text-brand-black uppercase tracking-wider">
@@ -465,7 +465,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
             </button>
             {showSortMenu && (
               <div
-                className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-brand-gray/20 shadow-lg z-50 py-1"
+                className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-brand-gray/20 shadow-dropdown z-50 py-1"
               >
                 {(Object.keys(sortLabels) as SortOption[]).map((option) => (
                   <button

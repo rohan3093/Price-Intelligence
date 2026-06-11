@@ -87,7 +87,7 @@ const PriceDiscoveryApp: React.FC = () => {
     <Suspense fallback={<FullScreenLoader />}>
       {magicLinkError && (
         <div className="fixed top-4 right-4 z-[100] max-w-md w-full px-4">
-          <div className="flex items-center gap-3 px-4 py-3 border-2 border-red-500 bg-red-50 text-red-800 shadow-lg">
+          <div className="flex items-center gap-3 px-4 py-3 border-2 border-red-500 bg-red-50 text-red-800 shadow-dropdown">
             <p className="text-sm font-medium flex-1">{magicLinkError}</p>
             <button onClick={() => setMagicLinkError(null)} className="flex-shrink-0 hover:opacity-70">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>

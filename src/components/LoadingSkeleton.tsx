@@ -42,7 +42,7 @@ export const TableRowSkeleton: React.FC = () => {
 
 export const CardSkeleton: React.FC = () => {
   return (
-    <div className="border border-brand-gray p-3.5 bg-brand-white shadow-soft animate-pulse">
+    <div className="border border-brand-gray p-3.5 bg-brand-white animate-pulse">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
         <div className="md:col-span-4 flex items-center gap-3">
           <div className="h-14 w-14 bg-brand-gray-light border border-brand-gray"></div>
@@ -77,7 +77,7 @@ export const CardSkeleton: React.FC = () => {
 
 export const PortfolioTableSkeleton: React.FC = () => {
   return (
-    <div className="border border-brand-gray bg-brand-white overflow-x-auto shadow-soft">
+    <div className="border border-brand-gray bg-brand-white overflow-x-auto">
       <table className="min-w-full">
         <thead className="bg-brand-gray-light border-b border-brand-gray">
           <tr>

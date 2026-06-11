@@ -83,7 +83,7 @@ export const IntentPanel: React.FC<IntentPanelProps> = ({
 
   return (
     <div
-      className="bg-white border border-brand-gray/20 shadow-sm"
+      className="bg-white border border-brand-gray/20"
     >
       {/* Header */}
       <div className="px-5 py-4 border-b border-brand-gray/10">

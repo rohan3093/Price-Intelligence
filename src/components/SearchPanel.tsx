@@ -189,7 +189,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
   const activeFilterCount = (selectedBrand ? 1 : 0) + (priceRange.min !== null || priceRange.max !== null ? 1 : 0);
 
   return (
-    <section className="border border-brand-gray/20 p-4 space-y-4 bg-white shadow-sm">
+    <section className="border border-brand-gray/20 p-4 space-y-4 bg-white">
       {/* Market Stats - more compact */}
       <div className="pb-3 border-b border-brand-gray/20">
         <div className="flex items-baseline gap-2">
@@ -249,7 +249,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           {showSuggestions && suggestions.length > 0 && (
             <div 
               ref={suggestionsRef}
-              className="absolute z-50 w-full mt-2 bg-white border border-brand-gray/20 shadow-lg max-h-60 overflow-hidden"
+              className="absolute z-50 w-full mt-2 bg-white border border-brand-gray/20 shadow-dropdown max-h-60 overflow-hidden"
               role="listbox"
               aria-label="Search suggestions"
             >
@@ -275,7 +275,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           {/* Search History Dropdown */}
           {showHistory && !query.trim() && searchHistory.length > 0 && (
             <div 
-              className="absolute z-50 w-full mt-2 bg-white border border-brand-gray/20 shadow-lg max-h-60 overflow-hidden"
+              className="absolute z-50 w-full mt-2 bg-white border border-brand-gray/20 shadow-dropdown max-h-60 overflow-hidden"
               role="listbox"
               aria-label="Recent searches"
             >

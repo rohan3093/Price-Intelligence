@@ -97,7 +97,7 @@ export const DesignSettings: React.FC = () => {
         </div>
 
         {/* Color Tokens */}
-        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5">
           <h3 className="text-sm font-semibold text-brand-black mb-4">
             Brand Colors
           </h3>
@@ -210,7 +210,7 @@ export const DesignSettings: React.FC = () => {
         </div>
 
         {/* Typography */}
-        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5">
           <h3 className="text-sm font-semibold text-brand-black mb-4">
             Typography
           </h3>
@@ -236,7 +236,7 @@ export const DesignSettings: React.FC = () => {
         </div>
 
         {/* Preview */}
-        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5">
           <h3 className="text-sm font-semibold text-brand-black mb-4">
             Preview
           </h3>

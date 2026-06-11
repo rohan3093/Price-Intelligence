@@ -609,7 +609,7 @@ const MessageDetailModal: React.FC<{
       }}
     >
       <div
-        className="bg-white w-full max-w-lg max-h-[85vh] shadow-2xl border border-brand-gray/20 flex flex-col"
+        className="bg-white w-full max-w-lg max-h-[85vh] shadow-modal border border-brand-gray/20 flex flex-col"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-brand-gray/15 bg-brand-gray/5 flex-shrink-0">
@@ -895,7 +895,7 @@ const ListingRow: React.FC<{
               className="w-full border border-brand-black px-1.5 py-1 text-[10px] focus:outline-none"
             />
             <div
-              className="absolute z-10 w-56 max-h-40 overflow-y-auto bg-white border border-brand-gray/30 shadow-lg"
+              className="absolute z-10 w-56 max-h-40 overflow-y-auto bg-white border border-brand-gray/30 shadow-dropdown"
             >
               {filteredAssets.map((a) => (
                 <button

@@ -137,7 +137,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
       </div>
 
       {/* Content area */}
-      <div className="bg-white border border-brand-gray/20 shadow-sm p-4 md:p-5">
+      <div className="bg-white border border-brand-gray/20 p-4 md:p-5">
         {activeTab === "market-data" ? (
           <DailyPriceUpdates
             assets={assets}
@@ -195,7 +195,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Asset List */}
             <div className="lg:col-span-1">
-              <div className="border border-brand-gray/20 bg-white shadow-sm p-4">
+              <div className="border border-brand-gray/20 bg-white p-4">
               <div className="mb-4 pb-3 border-b border-brand-gray/20">
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -263,8 +263,8 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                     key={asset.id}
                     className={`border p-3 cursor-pointer transition-all ${
                       selectedAsset?.id === asset.id
-                        ? "border-brand-black bg-brand-black text-white shadow-sm"
-                        : "border-brand-gray/20 hover:border-brand-gray/40 hover:shadow-soft bg-white"
+                        ? "border-brand-black bg-brand-black text-white"
+                        : "border-brand-gray/20 hover:border-brand-gray/40 bg-white"
                     }`}
                     onClick={() => {
                       setSelectedAsset(asset);
@@ -324,7 +324,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
               {selectedAsset ? (
                 <AssetDetailsView asset={selectedAsset} />
               ) : (
-                <div className="border border-brand-gray/20 p-8 bg-white text-center shadow-sm">
+                <div className="border border-brand-gray/20 p-8 bg-white text-center">
                   <p className="text-sm font-medium text-brand-black/60 mb-1">
                     No Instrument Selected
                   </p>
@@ -342,7 +342,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
         ) : (
           <div className="space-y-6">
             {/* Data Maintenance Section */}
-            <div className="border border-brand-gray/20 bg-white shadow-sm p-5">
+            <div className="border border-brand-gray/20 bg-white p-5">
               <h3 className="text-sm font-semibold text-brand-black mb-3">
                 Data Maintenance
               </h3>
@@ -954,7 +954,7 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
           return (
           <div
             key={size.size}
-            className="border border-brand-gray/20 p-3 bg-white shadow-soft"
+            className="border border-brand-gray/20 p-3 bg-white"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -1070,7 +1070,7 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
   };
 
   return (
-    <div className="border border-brand-gray/20 p-4 bg-white shadow-sm size-variant-form-container" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+    <div className="border border-brand-gray/20 p-4 bg-white size-variant-form-container" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
       <div className="mb-4 pb-2 border-b border-brand-gray/20">
         <h4 className="text-sm font-semibold text-brand-black mb-1">
           {sizeVariant ? "Edit Size Variant" : "New Size Variant"}
@@ -1146,7 +1146,7 @@ const AssetDetailsView: React.FC<AssetDetailsViewProps> = ({ asset }) => {
     : 'Never';
 
   return (
-    <div className="border border-brand-gray/20 bg-white shadow-sm p-5">
+    <div className="border border-brand-gray/20 bg-white p-5">
       <div className="mb-4 pb-3 border-b border-brand-gray/20">
         <h2 className="text-base font-semibold text-brand-black mb-1">
           {asset.name}
@@ -1801,7 +1801,7 @@ const BackfillMetricsButton: React.FC<BackfillMetricsButtonProps> = ({
 
       {/* Progress Bar */}
       {isProcessing && progress.total > 0 && (
-        <div className="border border-brand-gray/20 bg-white shadow-sm p-4">
+        <div className="border border-brand-gray/20 bg-white p-4">
           <div className="mb-2">
             <div className="w-full bg-brand-gray/20 h-2">
               <div

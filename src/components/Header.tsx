@@ -56,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="border-b border-brand-gray/20 px-3 md:px-4 py-3 flex items-center justify-between bg-white shadow-sm">
+    <header className="border-b border-brand-gray/20 px-3 md:px-4 py-3 flex items-center justify-between bg-white">
       <button
         onClick={() => setView("home")}
         className="flex items-center hover:opacity-80 transition-opacity"
@@ -193,7 +193,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Dropdown Menu */}
               {showUserMenu && (
                 <div 
-                  className="absolute right-0 top-full mt-2 w-56 bg-white border border-brand-gray/20 shadow-lg z-50"
+                  className="absolute right-0 top-full mt-2 w-56 bg-white border border-brand-gray/20 shadow-dropdown z-50"
                 >
                   {/* User Info */}
                   <div className="px-4 py-3 border-b border-brand-gray/20">

@@ -283,7 +283,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
     if (rows.length === 0) return null;
 
     return (
-      <div className="bg-white border-2 border-brand-black px-3 py-2 shadow-lg">
+      <div className="bg-white border-2 border-brand-black px-3 py-2 shadow-dropdown">
         <p className="text-xs text-brand-black/60 mb-1.5">{data.displayDate}</p>
         {rows.map((r) => (
           <div key={r.channel} className="flex items-center gap-2 mb-0.5">

@@ -305,7 +305,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-3">
-      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-brand-white border border-brand-gray/30 shadow-2xl">
+      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-brand-white border border-brand-gray/30 shadow-modal">
         <div className="sticky top-0 z-10 flex justify-between items-center px-3 py-2 bg-brand-white border-b border-brand-gray/30">
           <h2 className="text-base font-heading font-normal text-brand-black uppercase tracking-wide leading-tight">
             Bulk Add Listings

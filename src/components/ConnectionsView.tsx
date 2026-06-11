@@ -75,7 +75,7 @@ export const ConnectionsView: React.FC<ConnectionsViewProps> = ({ currentUser, o
             Manage your connection requests with other traders
           </p>
         </div>
-        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm">
+        <div className="border border-brand-gray/20 p-8 text-center bg-white">
           <svg className="w-12 h-12 mx-auto text-brand-black/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
@@ -141,7 +141,7 @@ export const ConnectionsView: React.FC<ConnectionsViewProps> = ({ currentUser, o
 
       {/* Connections List */}
       {!loading && connections.length === 0 && (
-        <div className="text-center py-12 border border-brand-gray/20 bg-white shadow-sm">
+        <div className="text-center py-12 border border-brand-gray/20 bg-white">
           <p className="text-sm text-brand-black/60">
             {activeTab === 'received' 
               ? "No connection requests received yet"
@@ -229,7 +229,7 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({
   };
 
   return (
-    <div className="border border-brand-gray/20 bg-white p-4 hover:shadow-md shadow-sm transition-shadow">
+    <div className="border border-brand-gray/20 bg-white p-4 transition-shadow">
       {/* Asset Info */}
       <div className="flex gap-4 mb-4">
         <img 
@@ -382,7 +382,7 @@ const CompletionModal: React.FC<CompletionModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       
-      <div className="relative bg-white border border-brand-gray/20 w-full max-w-md shadow-lg">
+      <div className="relative bg-white border border-brand-gray/20 w-full max-w-md shadow-dropdown">
         <div className="border-b border-brand-gray/20 px-4 py-3 flex items-center justify-between">
           <h3 className="text-sm font-semibold uppercase tracking-wide">Complete Transaction</h3>
           <button onClick={onClose} className="text-brand-black hover:text-brand-black/60">

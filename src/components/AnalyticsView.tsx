@@ -151,14 +151,14 @@ export const AnalyticsView: React.FC = () => {
 
         {/* Primary Metrics - VC Care About */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="border border-brand-gray/20 p-5 bg-brand-white">
             <p className="text-xs text-brand-black/50 font-medium mb-1.5">Unique Users</p>
             <p className="text-2xl font-semibold text-brand-black">{metrics.uniqueUsers || 0}</p>
             <p className="text-xs text-brand-black/40 mt-1.5">
               {metrics.newUsers || 0} new, {metrics.returningUsers || 0} returning
             </p>
           </div>
-          <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="border border-brand-gray/20 p-5 bg-brand-white">
             <p className="text-xs text-brand-black/50 font-medium mb-1.5">Avg Session Duration</p>
             <p className="text-2xl font-semibold text-brand-black">
               {formatDuration(metrics.avgSessionDuration || 0)}
@@ -167,7 +167,7 @@ export const AnalyticsView: React.FC = () => {
               {metrics.totalSessions || 0} total sessions
             </p>
           </div>
-          <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="border border-brand-gray/20 p-5 bg-brand-white">
             <p className="text-xs text-brand-black/50 font-medium mb-1.5">Total Time Spent</p>
             <p className="text-2xl font-semibold text-brand-black">
               {formatDuration(metrics.totalTimeSpent || 0)}
@@ -176,7 +176,7 @@ export const AnalyticsView: React.FC = () => {
               Across all users
             </p>
           </div>
-          <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="border border-brand-gray/20 p-5 bg-brand-white">
             <p className="text-xs text-brand-black/50 font-medium mb-1.5">Engagement Rate</p>
             <p className="text-2xl font-semibold text-brand-black">{metrics.engagementRate || 0}%</p>
             <p className="text-xs text-brand-black/40 mt-1.5">
@@ -187,19 +187,19 @@ export const AnalyticsView: React.FC = () => {
 
         {/* Secondary Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white">
             <p className="text-xs text-brand-black/50 font-medium mb-1">Active Users (7d)</p>
             <p className="text-xl font-semibold text-brand-black">{metrics.activeUsers || 0}</p>
           </div>
-          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white">
             <p className="text-xs text-brand-black/50 font-medium mb-1">Avg Events/User</p>
             <p className="text-xl font-semibold text-brand-black">{metrics.avgEventsPerUser || 0}</p>
           </div>
-          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white">
             <p className="text-xs text-brand-black/50 font-medium mb-1">Avg Sessions/User</p>
             <p className="text-xl font-semibold text-brand-black">{metrics.avgSessionsPerUser || 0}</p>
           </div>
-          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white">
             <p className="text-xs text-brand-black/50 font-medium mb-1">Total Events</p>
             <p className="text-xl font-semibold text-brand-black">{metrics.totalEvents || 0}</p>
           </div>
@@ -207,15 +207,15 @@ export const AnalyticsView: React.FC = () => {
 
         {/* Interaction Breakdown */}
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white">
             <p className="text-xs text-brand-black/50 font-medium mb-1">Page Views</p>
             <p className="text-lg font-semibold text-brand-black">{metrics.pageViews || 0}</p>
           </div>
-          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white">
             <p className="text-xs text-brand-black/50 font-medium mb-1">Asset Views</p>
             <p className="text-lg font-semibold text-brand-black">{metrics.assetViews || 0}</p>
           </div>
-          <div className="border border-brand-gray/20 p-4 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div className="border border-brand-gray/20 p-4 bg-brand-white">
             <p className="text-xs text-brand-black/50 font-medium mb-1">Searches</p>
             <p className="text-lg font-semibold text-brand-black">{metrics.searches || 0}</p>
           </div>
@@ -224,7 +224,7 @@ export const AnalyticsView: React.FC = () => {
 
       {/* Most Active Users */}
       {metrics.topUsers && metrics.topUsers.length > 0 && (
-        <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="border border-brand-gray/20 p-5 bg-brand-white">
           <h3 className="text-sm font-semibold text-brand-black mb-4">
             Most Active Users
           </h3>
@@ -259,7 +259,7 @@ export const AnalyticsView: React.FC = () => {
 
       {/* Top Search Queries */}
       {metrics.searchQueries && metrics.searchQueries.length > 0 && (
-        <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="border border-brand-gray/20 p-5 bg-brand-white">
           <h3 className="text-sm font-semibold text-brand-black mb-3">
             Top Search Queries
           </h3>
@@ -277,7 +277,7 @@ export const AnalyticsView: React.FC = () => {
       )}
 
       {/* Recent Events (Collapsible) */}
-      <div className="border border-brand-gray/20 p-5 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+      <div className="border border-brand-gray/20 p-5 bg-brand-white">
         <details>
           <summary className="text-sm font-semibold text-brand-black cursor-pointer mb-2">
             Recent Events ({events.length})

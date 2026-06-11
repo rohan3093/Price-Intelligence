@@ -93,7 +93,7 @@ const LearnIndex: React.FC = () => {
             <Link
               key={guide.id}
               to={`/learn/${guide.slug}`}
-              className="group border border-brand-gray/20 p-5 bg-white hover:border-brand-black hover:shadow-md shadow-sm text-left transition-all block"
+              className="group border border-brand-gray/20 p-5 bg-white hover:border-brand-black text-left transition-all block"
             >
               <div className="flex items-start justify-between mb-3">
                 <span

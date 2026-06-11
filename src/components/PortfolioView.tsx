@@ -404,7 +404,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
       {/* Summary Strip */}
       {(portfolioAssets.length > 0 || soldPositions.length > 0) && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
-          <div className="bg-white border border-brand-gray/20 p-3 shadow-soft">
+          <div className="bg-white border border-brand-gray/20 p-3">
             <p className="text-[10px] text-brand-black/50 uppercase tracking-wide mb-0.5">Items</p>
             <p className="text-lg font-mono-numeric font-semibold text-brand-black leading-tight">
               {summary.totalItems}
@@ -413,7 +413,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               {summary.activePositionsCount} SKU{summary.activePositionsCount !== 1 ? "s" : ""}
             </p>
           </div>
-          <div className="bg-white border border-brand-gray/20 p-3 shadow-soft">
+          <div className="bg-white border border-brand-gray/20 p-3">
             <p className="text-[10px] text-brand-black/50 uppercase tracking-wide mb-0.5">Portfolio Value</p>
             <p className="text-lg font-mono-numeric font-semibold text-brand-black leading-tight">
               {summary.hasPricing ? formatPrice(summary.totalMarketValue) : "—"}
@@ -424,7 +424,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               </p>
             )}
           </div>
-          <div className="bg-white border border-brand-gray/20 p-3 shadow-soft">
+          <div className="bg-white border border-brand-gray/20 p-3">
             <p className="text-[10px] text-brand-black/50 uppercase tracking-wide mb-0.5">Unrealised P&L</p>
             {summary.hasPricing && summary.totalCostBasis > 0 ? (
               <>
@@ -443,7 +443,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               <p className="text-lg font-mono-numeric font-semibold text-brand-black leading-tight">—</p>
             )}
           </div>
-          <div className="bg-white border border-brand-gray/20 p-3 shadow-soft">
+          <div className="bg-white border border-brand-gray/20 p-3">
             <p className="text-[10px] text-brand-black/50 uppercase tracking-wide mb-0.5">Realised P&L</p>
             {summary.soldPositionsCount > 0 ? (
               <>
@@ -470,7 +470,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
 
       {/* Add Inventory Panel (collapsible) */}
       {showAddPanel && (
-        <div className="mb-4 border border-brand-gray/20 bg-white shadow-soft overflow-hidden animate-fade-in">
+        <div className="mb-4 border border-brand-gray/20 bg-white overflow-hidden animate-fade-in">
           <div className="px-4 py-3 border-b border-brand-gray/15 flex items-center justify-between">
             <p className="text-xs font-semibold text-brand-black uppercase tracking-wide">
               {selectedForAdd ? "Set Position Details" : "Search Inventory"}
@@ -692,7 +692,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                 return (
                   <div
                     key={asset.id}
-                    className="bg-white border border-brand-gray/20 shadow-soft overflow-hidden"
+                    className="bg-white border border-brand-gray/20 overflow-hidden"
                   >
                     {/* Main card content */}
                     <div className="p-3.5">
@@ -914,7 +914,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                     return (
                       <div
                         key={`${pos.assetId}-${pos.soldDate}`}
-                        className="bg-white border border-brand-gray/20 shadow-soft p-3.5"
+                        className="bg-white border border-brand-gray/20 p-3.5"
                       >
                         <div className="flex gap-3">
                           {asset.image && (

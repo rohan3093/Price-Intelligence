@@ -76,21 +76,21 @@ body {
 
   /* Enhanced button styles with better spacing */
   .btn-primary {
-    @apply px-5 py-2.5 rounded-none border-2 border-brand-black bg-brand-black text-brand-white text-sm font-semibold hover:bg-brand-black-light transition-all shadow-soft;
+    @apply px-5 py-2.5 rounded-none border-2 border-brand-black bg-brand-black text-brand-white text-sm font-semibold hover:bg-brand-black-light transition-all;
   }
   
   .btn-secondary {
-    @apply px-5 py-2.5 rounded-none border-2 border-brand-gray bg-brand-white text-brand-black text-sm font-semibold hover:border-brand-black hover:shadow-soft transition-all;
+    @apply px-5 py-2.5 rounded-none border-2 border-brand-gray bg-brand-white text-brand-black text-sm font-semibold hover:border-brand-black transition-all;
   }
 
   /* Enhanced input styles */
   .input-base {
-    @apply w-full bg-brand-white border-2 border-brand-gray rounded-none px-4 py-2.5 text-sm font-body text-brand-black placeholder:text-brand-gray-medium focus:outline-none focus:border-brand-black focus:shadow-soft transition-all;
+    @apply w-full bg-brand-white border-2 border-brand-gray rounded-none px-4 py-2.5 text-sm font-body text-brand-black placeholder:text-brand-gray-medium focus:outline-none focus:border-brand-black transition-all;
   }
 
-  /* Enhanced card/panel styles with subtle shadows */
+  /* Flat card/panel styles — elevation comes from a 1px border, not a shadow */
   .card-base {
-    @apply border border-brand-gray rounded-none bg-brand-white shadow-soft;
+    @apply border border-brand-gray rounded-none bg-brand-white;
   }
 
   /* Better section padding for breathing room */
@@ -208,9 +208,9 @@ body {
     @apply even:bg-brand-gray-light/50;
   }
   
-  /* Interactive states */
+  /* Interactive states — terminals are flat, so hover raises the surface */
   .interactive-hover {
-    @apply hover:shadow-soft transition-all duration-200;
+    @apply hover:bg-brand-gray-light transition-all duration-200;
   }
 }
 

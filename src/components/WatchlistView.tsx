@@ -34,7 +34,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
             Track your favorite assets and monitor price movements
           </p>
         </div>
-        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm">
+        <div className="border border-brand-gray/20 p-8 text-center bg-white">
           <svg className="w-12 h-12 mx-auto text-brand-black/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
@@ -79,7 +79,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
 
       {/* Watchlist Content */}
       {watchlistIds.length === 0 ? (
-        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm">
+        <div className="border border-brand-gray/20 p-8 text-center bg-white">
           <svg className="w-12 h-12 mx-auto text-brand-black/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
           </svg>
@@ -122,7 +122,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
             return (
               <div
                 key={asset.id}
-                className="border border-brand-gray/20 p-4 bg-white hover:shadow-md shadow-sm transition-all"
+                className="border border-brand-gray/20 p-4 bg-white transition-all"
               >
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                   {/* Asset Info */}
