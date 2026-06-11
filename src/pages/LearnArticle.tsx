@@ -50,7 +50,7 @@ const LearnArticle: React.FC = () => {
       </Helmet>
 
       {/* Navigation */}
-      <nav className="border-b border-brand-gray/30 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      <nav className="border-b border-brand-gray/30 bg-terminal-surface/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <Link to="/">
             <img src="/sentria-logo.svg" alt="Sentria" className="h-5 sm:h-6" />
@@ -145,7 +145,7 @@ const LearnArticle: React.FC = () => {
           </p>
           <Link
             to="/app"
-            className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold bg-terminal-surface text-brand-black hover:bg-white/90 transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold bg-terminal-surface text-brand-black border border-brand-gray hover:bg-terminal-surface-raised transition-colors"
           >
             Open Sentria
             <svg
