@@ -7,6 +7,107 @@
 
 import { Asset, PricePoint, SizeVariant } from "../types";
 
+// TEMP — superseded by validation brief.
+// Floor for plausible INR quotes. Anything at or below this is treated as a
+// data artefact (₹1 / ₹10 scrape noise) and excluded before any min / median /
+// mark / spread math. Mark price and spread must consume validated quotes only.
+export const MIN_PLAUSIBLE_PRICE = 1000;
+
+/** Keep only finite, positive quotes at or above the plausibility floor. */
+export function filterPlausiblePrices(prices: number[]): number[] {
+  return prices.filter(
+    (p) => typeof p === "number" && isFinite(p) && p >= MIN_PLAUSIBLE_PRICE
+  );
+}
+
+/** Median of a numeric list (sorted copy). Returns undefined for empty input. */
+function median(values: number[]): number | undefined {
+  if (values.length === 0) return undefined;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0
+    ? sorted[mid]
+    : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+export type MarkPriceMode = "mid" | "ask-median" | "bid-only";
+
+export interface MarkMetrics {
+  /** Lowest validated ask (WTS + marketplace + international landed). */
+  bestAsk?: number;
+  /** Highest validated bid (WhatsApp WTB). */
+  bestBid?: number;
+  /** Reference mark price; see MarkPriceMode for derivation. */
+  markPrice?: number;
+  /** How markPrice was derived. Undefined when no validated quotes exist. */
+  markMode?: MarkPriceMode;
+  /** Absolute spread (bestAsk − bestBid); only when both sides exist. */
+  spreadAbs?: number;
+  /** Spread as a fraction of mark price; only when both sides exist. */
+  spreadPct?: number;
+  /** True when only one side of the book has validated quotes. */
+  oneSided: boolean;
+  /** Count of validated asks / bids that fed the math. */
+  askCount: number;
+  bidCount: number;
+}
+
+/**
+ * Compute exchange-style mark price and spread from raw quote prices.
+ *
+ * Operates on VALIDATED, floor-filtered quotes only:
+ *   bestAsk  = min of validated ask-side prices
+ *   bestBid  = max of validated bid-side prices
+ *   markPrice:
+ *     both sides -> (bestBid + bestAsk) / 2     (mid)
+ *     asks only  -> median of validated asks    (ask-median)
+ *     bids only  -> bestBid                      (bid-only, indicative)
+ *   spreadAbs = bestAsk − bestBid ; spreadPct = spreadAbs / markPrice
+ *
+ * @param askPrices raw ask-side prices (intl should already be landed cost)
+ * @param bidPrices raw bid-side prices (WhatsApp WTB)
+ */
+export function computeMarkMetrics(
+  askPrices: number[],
+  bidPrices: number[]
+): MarkMetrics {
+  const asks = filterPlausiblePrices(askPrices);
+  const bids = filterPlausiblePrices(bidPrices);
+
+  const bestAsk = asks.length > 0 ? Math.min(...asks) : undefined;
+  const bestBid = bids.length > 0 ? Math.max(...bids) : undefined;
+
+  let markPrice: number | undefined;
+  let markMode: MarkPriceMode | undefined;
+  let spreadAbs: number | undefined;
+  let spreadPct: number | undefined;
+
+  if (bestAsk !== undefined && bestBid !== undefined) {
+    markPrice = (bestBid + bestAsk) / 2;
+    markMode = "mid";
+    spreadAbs = bestAsk - bestBid;
+    spreadPct = markPrice > 0 ? spreadAbs / markPrice : undefined;
+  } else if (bestAsk !== undefined) {
+    markPrice = median(asks);
+    markMode = "ask-median";
+  } else if (bestBid !== undefined) {
+    markPrice = bestBid;
+    markMode = "bid-only";
+  }
+
+  return {
+    bestAsk,
+    bestBid,
+    markPrice,
+    markMode,
+    spreadAbs,
+    spreadPct,
+    oneSided: (bestAsk === undefined) !== (bestBid === undefined),
+    askCount: asks.length,
+    bidCount: bids.length,
+  };
+}
+
 /**
  * Calculate the best available price from price points
  */
@@ -33,8 +134,9 @@ export function calculateBestAvailablePrice(pricePoints: {
     if (pricePoints.stockxGoat) allPrices.push(...pricePoints.stockxGoat.map(p => p.price));
   }
 
-  if (allPrices.length === 0) return undefined;
-  return Math.min(...allPrices);
+  const validated = filterPlausiblePrices(allPrices);
+  if (validated.length === 0) return undefined;
+  return Math.min(...validated);
 }
 
 /**
