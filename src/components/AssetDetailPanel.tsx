@@ -7,27 +7,8 @@ import { ToastContainer } from "./Toast";
 import { useToast } from "../hooks/useToast";
 import { createConnectionRequest, getAssetListings, createTradeListing } from "../utils/connectionsApi";
 import { User } from "firebase/auth";
-import {
-  computeOpportunities,
-  ArbitrageOpportunity,
-  DEFAULT_CONFIG,
-  channelLabel,
-  turnaroundColor,
-  turnaroundLabel,
-} from "../utils/arbitrageEngine";
+import { getSellFee } from "../utils/arbitrageEngine";
 import { computeMarkMetrics } from "../utils/priceMetrics";
-
-// ─── Discrepancy display helpers (channel-pair language, no strategy/risk pills) ───
-const ANOMALOUS_NET_PCT_THRESHOLD = 5.0; // 500% spread is data noise, not signal.
-
-const friendlyChannel = (ch: MarketChannel): string => {
-  if (ch === "whatsapp") return "P2P";
-  if (ch === "marketplace") return "Platform";
-  return "International";
-};
-
-const channelPairLabel = (opp: ArbitrageOpportunity): string =>
-  `${friendlyChannel(opp.buy.channel)} → ${friendlyChannel(opp.sell.channel)}`;
 
 interface AssetDetailPanelProps {
   asset: Asset | undefined;
@@ -321,119 +302,6 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   );
 };
 
-// Mobile Card View for Arbitrage Opportunities (uses engine types)
-const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
-  const roiPct = opp.netPct * 100;
-
-  return (
-    <div className="border border-brand-gray/20 bg-terminal-surface p-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3 pb-2 border-b border-brand-gray/15">
-        <span className="text-xs text-brand-black/50">{channelPairLabel(opp)}</span>
-        <span className="text-xs text-brand-black/40">
-          Confidence: {opp.confidence}%
-        </span>
-      </div>
-
-      {/* Time Horizon */}
-      <div className="flex items-center gap-1.5 mb-3">
-        <span className={`text-[10px] font-semibold ${turnaroundColor(opp.turnaroundDays)}`}>
-          {turnaroundLabel(opp.turnaroundDays)}
-        </span>
-      </div>
-
-      {/* Lower → Higher Price Flow */}
-      <div className="space-y-2 mb-3">
-        {/* Lower Price */}
-        <div className="flex items-baseline justify-between bg-brand-background/30 border border-brand-gray/15 p-2.5">
-          <div>
-            <div className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5">Lower Price</div>
-            <div className="text-xs font-semibold text-brand-black">{channelLabel(opp.buy.channel)}</div>
-            <div className="text-[10px] text-brand-black/50 truncate max-w-[140px]">{opp.buy.source}</div>
-          </div>
-          <div className="text-right">
-            <div className="text-sm font-bold font-mono-numeric text-brand-black">₹{opp.buy.allIn.toLocaleString('en-IN')}</div>
-            {opp.buyShippingCost > 0 && (
-              <div className="text-[10px] text-brand-black/40 font-mono-numeric">+₹{opp.buyShippingCost.toLocaleString('en-IN')} ship</div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex justify-center">
-          <svg className="w-4 h-4 text-brand-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
-        </div>
-
-        {/* Higher Price */}
-        <div className="flex items-baseline justify-between bg-brand-background/30 border border-brand-gray/15 p-2.5">
-          <div>
-            <div className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5">Higher Price</div>
-            <div className="text-xs font-semibold text-brand-black">{channelLabel(opp.sell.channel)}</div>
-            <div className="text-[10px] text-brand-black/50 truncate max-w-[140px]">{opp.sell.source}</div>
-            {opp.sellReliability === "consignment" && (
-              <span className="inline-block mt-0.5 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200/60 cursor-help" title="Consignment: marketplace lists your item and pays you after it sells. Payout timing varies.">
-                Consignment
-              </span>
-            )}
-          </div>
-          <div className="text-right">
-            <div className="text-sm font-bold font-mono-numeric text-brand-black">₹{opp.sell.net.toLocaleString('en-IN')}</div>
-            {opp.sellFeeAmount > 0 && (
-              <div className="text-[10px] text-brand-black/40 font-mono-numeric">−{(opp.sellFeeRate * 100).toFixed(1)}% fee</div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Spread */}
-      <div className="bg-terminal-surface-raised text-terminal-text p-3 flex items-center justify-between">
-        <div>
-          <div className="text-[10px] uppercase font-semibold tracking-wider opacity-70">Spread</div>
-          <div className="text-xl font-bold font-mono-numeric">₹{opp.netProfit.toLocaleString('en-IN')}</div>
-        </div>
-        <div className="text-right">
-          <div className="text-sm font-bold font-mono-numeric">{roiPct.toFixed(1)}%</div>
-        </div>
-      </div>
-
-      {/* Action + Footer */}
-      <div className="mt-3 flex items-center justify-between">
-        {opp.buy.sellerContact ? (
-          <a
-            href={`https://wa.me/${opp.buy.sellerContact.replace(/[^0-9]/g, '')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-up text-terminal-bg hover:bg-up/90 transition-colors"
-          >
-            Contact Seller
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
-        ) : opp.buy.url ? (
-          <a
-            href={opp.buy.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-accent text-terminal-bg hover:bg-accent/80 transition-colors"
-          >
-            View Listing
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
-        ) : (
-          <span />
-        )}
-        <span className="text-[10px] text-brand-black/40">
-          {opp.scalable} pair{opp.scalable !== 1 ? 's' : ''} · Buy: {opp.buy.count} · Sell: {opp.sell.count}
-        </span>
-      </div>
-    </div>
-  );
-};
-
 // Helper function to sort sizes numerically
 // Extracts numeric value from size strings like "UK 6", "UK 3.5", etc.
 const sortSizesNumerically = (sizes: SizeVariant[]): SizeVariant[] => {
@@ -465,8 +333,15 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [unifiedChannelFilter, setUnifiedChannelFilter] = useState<'all' | 'WhatsApp' | 'Marketplace' | 'International' | 'Sentria'>('all');
   const [unifiedSideFilter, setUnifiedSideFilter] = useState<'all' | 'Buy' | 'Sell' | 'Listing'>('all');
-  const [minArbNetPct, setMinArbNetPct] = useState(0.03); // 3%
-  const [minArbNetRs, setMinArbNetRs] = useState(0);
+  // Trade Calculator — user-driven assessment. Resting state is empty until the
+  // user enters their own assumptions. No ranking, no recommendation.
+  const [calcBuyChannel, setCalcBuyChannel] = useState<'' | MarketChannel>('');
+  const [calcSellChannel, setCalcSellChannel] = useState<'' | MarketChannel>('');
+  const [calcBuyPrice, setCalcBuyPrice] = useState<string>('');
+  const [calcSellPrice, setCalcSellPrice] = useState<string>('');
+  const [calcFeePct, setCalcFeePct] = useState<string>('');
+  const [calcShipping, setCalcShipping] = useState<string>('');
+  const [calcHoldingCost, setCalcHoldingCost] = useState<string>('');
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [connectionTarget, setConnectionTarget] = useState<{userId: string; email: string; name?: string} | null>(null);
   const [showBuyModal, setShowBuyModal] = useState(false);
@@ -857,42 +732,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       return (b.listingCount || 0) - (a.listingCount || 0);
     });
   }, [whatsappPrices.buy, whatsappPrices.sell, marketplacePrices, internationalPrices, tradeListings]);
-
-  // Arbitrage opportunities — powered by shared engine
-  const arbitrageOpps = useMemo((): ArbitrageOpportunity[] => {
-    if (!asset || !sizeVariant) return [];
-    return computeOpportunities(sizeVariant, {
-      ...DEFAULT_CONFIG,
-      minNetPct: minArbNetPct,
-      minNetRs: minArbNetRs,
-      limit: 50,
-    }, {
-      assetId: asset.id,
-      assetName: asset.name,
-      volatility: asset.volatility,
-    });
-  }, [asset, sizeVariant, minArbNetPct, minArbNetRs]);
-
-  // Best arbitrage across ALL sizes — for the "best size" banner
-  const bestSizeArb = useMemo((): { size: string; opp: ArbitrageOpportunity } | null => {
-    if (!asset?.sizes || asset.sizes.length < 2) return null;
-    let best: { size: string; opp: ArbitrageOpportunity } | null = null;
-    for (const sv of asset.sizes) {
-      if (sv.size === selectedSize) continue;
-      const opps = computeOpportunities(sv, {
-        ...DEFAULT_CONFIG,
-        minNetPct: 0.03,
-        minNetRs: 0,
-        limit: 1,
-      }, { assetId: asset.id, assetName: asset.name, volatility: asset.volatility });
-      if (opps.length > 0 && (!best || opps[0].netProfit > best.opp.netProfit)) {
-        best = { size: sv.size, opp: opps[0] };
-      }
-    }
-    // Only show if the other size is meaningfully better than current best
-    if (best && arbitrageOpps.length > 0 && best.opp.netProfit <= arbitrageOpps[0].netProfit) return null;
-    return best;
-  }, [asset, selectedSize, arbitrageOpps]);
 
   // Memoized calculation of best available price (lowest price across all channels)
   // For international prices, use total landed cost (platform price + reshipping cost)
@@ -1456,11 +1295,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 : 'bg-terminal-surface text-brand-black border-2 border-brand-gray/30 hover:border-terminal-border-strong'
             }`}
           >
-            Discrepancies {arbitrageOpps.length > 0 && (
-              <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'arbitrage' ? 'bg-white/20' : 'bg-terminal-surface-raised'}`}>
-                {arbitrageOpps.length}
-              </span>
-            )}
+            Trade Calculator
           </button>
         </div>
       </div>
@@ -2210,332 +2045,193 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
         </div>
       )}
 
-      {/* ARBITRAGE TAB */}
+      {/* TRADE CALCULATOR TAB — user-driven assessment. No ranking, no recommendation. */}
       {mainTab === 'arbitrage' && (() => {
-        // Data quality filter: spreads above ANOMALOUS_NET_PCT_THRESHOLD are noise, not signal.
-        const cleanArbitrageOpps = arbitrageOpps.filter(o => o.netPct <= ANOMALOUS_NET_PCT_THRESHOLD);
-        const anomalousArbitrageCount = arbitrageOpps.length - cleanArbitrageOpps.length;
-        const showBestSizeArb = !!bestSizeArb && bestSizeArb.opp.netPct <= ANOMALOUS_NET_PCT_THRESHOLD;
-        // Confidence floor: never headline a low-certainty signal. Pick the largest spread whose
-        // confidence clears the floor (cleanArbitrageOpps is sorted by spread desc).
-        const FEATURED_CONFIDENCE_FLOOR = 20;
-        const featuredOpp = cleanArbitrageOpps.find(opp => opp.confidence >= FEATURED_CONFIDENCE_FLOOR) ?? null;
-        // The full list still shows everything (including low-confidence signals). Just dedupe the
-        // featured one so it isn't rendered twice.
-        const listOpps = featuredOpp
-          ? cleanArbitrageOpps.filter(o => o !== featuredOpp)
-          : cleanArbitrageOpps;
+        // Sentria supplies live prices; the user supplies the assumptions and judgement.
+        const channelAskPrice = (ch: MarketChannel): number | undefined => {
+          if (ch === 'whatsapp') {
+            const v = whatsappPrices.buy.map((p) => p.price);
+            return v.length ? Math.min(...v) : undefined;
+          }
+          if (ch === 'marketplace') {
+            const v = marketplacePrices.map((p) => p.price);
+            return v.length ? Math.min(...v) : undefined;
+          }
+          const v = internationalPrices.map((p) => p.price + (p.reshippingCost || 0));
+          return v.length ? Math.min(...v) : undefined;
+        };
+        const channelSellRef = (ch: MarketChannel): number | undefined => {
+          if (ch === 'whatsapp') {
+            const v = whatsappPrices.sell.map((p) => p.price); // WTB bids
+            return v.length ? Math.max(...v) : undefined;
+          }
+          if (ch === 'marketplace') {
+            const v = marketplacePrices.map((p) => p.price);
+            return v.length ? Math.min(...v) : undefined;
+          }
+          const v = internationalPrices.map((p) => p.price + (p.reshippingCost || 0));
+          return v.length ? Math.min(...v) : undefined;
+        };
+
+        const channelOptions: { ch: MarketChannel; label: string }[] = [];
+        if (whatsappPrices.buy.length || whatsappPrices.sell.length) channelOptions.push({ ch: 'whatsapp', label: 'WhatsApp (P2P)' });
+        if (marketplacePrices.length) channelOptions.push({ ch: 'marketplace', label: 'Marketplace' });
+        if (internationalPrices.length) channelOptions.push({ ch: 'international', label: 'International' });
+
+        const onPickBuy = (value: string) => {
+          const ch = (value || '') as '' | MarketChannel;
+          setCalcBuyChannel(ch);
+          const p = ch ? channelAskPrice(ch) : undefined;
+          setCalcBuyPrice(p !== undefined ? String(Math.round(p)) : '');
+        };
+        const onPickSell = (value: string) => {
+          const ch = (value || '') as '' | MarketChannel;
+          setCalcSellChannel(ch);
+          const p = ch ? channelSellRef(ch) : undefined;
+          setCalcSellPrice(p !== undefined ? String(Math.round(p)) : '');
+          if (ch === 'marketplace' && calcFeePct === '') setCalcFeePct((getSellFee(undefined) * 100).toString());
+          if (ch === 'whatsapp') setCalcFeePct(calcFeePct === '' ? '0' : calcFeePct);
+        };
+
+        const num = (s: string) => { const n = parseFloat(s); return isFinite(n) ? n : 0; };
+        const buyPriceNum = parseFloat(calcBuyPrice);
+        const sellPriceNum = parseFloat(calcSellPrice);
+        const hasResult = !!calcBuyChannel && !!calcSellChannel
+          && isFinite(buyPriceNum) && buyPriceNum > 0
+          && isFinite(sellPriceNum) && sellPriceNum > 0;
+
+        const buyAllIn = num(calcBuyPrice) + num(calcShipping);
+        const sellNet = num(calcSellPrice) * (1 - num(calcFeePct) / 100);
+        const netResult = sellNet - buyAllIn - num(calcHoldingCost);
+        const netPct = buyAllIn > 0 ? (netResult / buyAllIn) * 100 : 0;
+        const netTone = netResult > 0 ? 'text-up' : netResult < 0 ? 'text-down' : 'text-brand-black';
+
+        const resetCalc = () => {
+          setCalcBuyChannel(''); setCalcSellChannel('');
+          setCalcBuyPrice(''); setCalcSellPrice('');
+          setCalcFeePct(''); setCalcShipping(''); setCalcHoldingCost('');
+        };
+
+        const inputCls = "w-full border border-brand-gray/30 px-2 py-1.5 text-sm text-brand-black font-mono-numeric tabular-nums focus:outline-none focus:border-terminal-border-strong bg-brand-white";
+        const selectCls = "w-full border border-brand-gray/30 px-2 py-1.5 text-sm text-brand-black focus:outline-none focus:border-terminal-border-strong bg-brand-white";
+        const labelCls = "block text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold mb-1";
+
         return (
         <div className="space-y-4">
-
-      {/* Best Size Banner — shows when another size has a larger spread */}
-      {showBestSizeArb && bestSizeArb && (
-        <button
-          onClick={() => setSelectedSize(bestSizeArb.size)}
-          className="w-full flex items-center gap-3 bg-gradient-to-r from-up to-up border border-up/40 p-3 text-left hover:border-up/40 transition-colors"
-        >
-          <div className="w-8 h-8 bg-up text-terminal-bg flex items-center justify-center flex-shrink-0">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-up uppercase tracking-wide">Larger spread in {bestSizeArb.size}</p>
-            <p className="text-sm text-up mt-0.5">
-              ₹{bestSizeArb.opp.netProfit.toLocaleString('en-IN')} ({(bestSizeArb.opp.netPct * 100).toFixed(1)}%) — tap to switch
-            </p>
-          </div>
-          <svg className="w-5 h-5 text-up flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      )}
-
-      {anomalousArbitrageCount > 0 && (
-        <p className="text-xs text-brand-black/40 px-1">
-          {anomalousArbitrageCount === 1 ? 'Anomalous spread' : `${anomalousArbitrageCount} anomalous spreads`} — data under review
-        </p>
-      )}
-
-      {cleanArbitrageOpps.length > 0 ? (
-        <>
-        {/* Largest Spread — only featured if it clears the confidence floor; otherwise show a fallback. */}
-        {featuredOpp ? (() => {
-          const top = featuredOpp;
-          const topRoi = top.netPct * 100;
-          const buyAction = top.buy.sellerContact
-            ? { type: 'whatsapp' as const, href: `https://wa.me/${top.buy.sellerContact.replace(/[^0-9]/g, '')}` }
-            : top.buy.url
-            ? { type: 'link' as const, href: top.buy.url }
-            : null;
-          return (
-            <Card className="border-2 border-terminal-border-strong" noPadding>
-              <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-terminal-surface-raised text-terminal-text flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-sm font-bold uppercase tracking-wide whitespace-nowrap">Largest Spread</span>
-                  <span className="text-xs text-white/50 whitespace-nowrap truncate">
-                    {channelPairLabel(top)}
-                  </span>
-                </div>
-                <span className="text-xs text-white/40 whitespace-nowrap">
-                  Confidence: {top.confidence}%
-                </span>
+          <Card
+            title="Trade Calculator"
+            subtitle="Assess a trade on your own assumptions. Sentria supplies live prices and the arithmetic — the judgement is yours."
+            icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m-6 4h6m-6 4h6M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
+              </svg>
+            }
+            headerAction={
+              (calcBuyChannel || calcSellChannel) ? (
+                <button
+                  onClick={resetCalc}
+                  className="text-[10px] uppercase tracking-wider font-semibold text-brand-black/50 hover:text-brand-black border border-brand-gray/30 px-2 py-1 hover:border-terminal-border-strong transition-colors"
+                >
+                  Reset
+                </button>
+              ) : undefined
+            }
+          >
+            {channelOptions.length === 0 ? (
+              <div className="py-8 text-center">
+                <p className="text-sm font-semibold text-brand-black/60">No channel data for this size</p>
+                <p className="text-xs text-brand-black/40 mt-1">Add quotes to assess a trade.</p>
               </div>
-              <div className="p-3 sm:p-4">
-                {/* Mobile: stacked Buy → Profit → Sell. Desktop: 3-column grid. */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 sm:items-center">
-                  {/* Lower Price */}
-                  <div className="flex sm:block items-center justify-between bg-brand-background/40 sm:bg-transparent border sm:border-0 border-brand-gray/15 p-2.5 sm:p-0 min-w-0">
-                    <div className="min-w-0">
-                      <p className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5 sm:mb-1">Lower Price</p>
-                      <p className="text-sm font-semibold text-brand-black truncate">{channelLabel(top.buy.channel)}</p>
-                      <p className="text-[10px] text-brand-black/50 truncate">{top.buy.source}</p>
-                    </div>
-                    <p className="text-base font-bold font-mono-numeric text-brand-black mt-0 sm:mt-1 ml-2 sm:ml-0 whitespace-nowrap">₹{top.buy.allIn.toLocaleString('en-IN')}</p>
+            ) : (
+              <div className="space-y-4">
+                {/* Inputs — all user-supplied */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelCls}>Buy channel</label>
+                    <select className={selectCls} value={calcBuyChannel} onChange={(e) => onPickBuy(e.target.value)}>
+                      <option value="">Select…</option>
+                      {channelOptions.map((o) => (
+                        <option key={o.ch} value={o.ch}>{o.label}</option>
+                      ))}
+                    </select>
                   </div>
-
-                  {/* Spread (center on desktop, prominent banner on mobile) */}
-                  <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:gap-1 bg-up/10 sm:bg-transparent border sm:border-0 border-up/40 p-2.5 sm:p-0">
-                    <svg className="hidden sm:block w-5 h-5 text-brand-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                    <div className="sm:text-center">
-                      <p className="text-[10px] text-up sm:hidden uppercase font-semibold tracking-wider">Spread</p>
-                      <p className="text-lg sm:text-xl font-bold font-mono-numeric text-up">₹{top.netProfit.toLocaleString('en-IN')}</p>
-                    </div>
-                    <p className="text-xs font-semibold text-up whitespace-nowrap">{topRoi.toFixed(1)}%</p>
-                    <p className={`hidden sm:block text-[10px] font-semibold ${turnaroundColor(top.turnaroundDays)}`}>{turnaroundLabel(top.turnaroundDays)}</p>
+                  <div>
+                    <label className={labelCls}>Buy price (₹)</label>
+                    <input type="number" className={inputCls} value={calcBuyPrice} placeholder="0"
+                      onChange={(e) => setCalcBuyPrice(e.target.value)} step="100" inputMode="numeric" />
                   </div>
-
-                  {/* Higher Price */}
-                  <div className="flex sm:block items-center justify-between bg-brand-background/40 sm:bg-transparent border sm:border-0 border-brand-gray/15 p-2.5 sm:p-0 sm:text-right min-w-0">
-                    <div className="min-w-0">
-                      <p className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5 sm:mb-1">Higher Price</p>
-                      <p className="text-sm font-semibold text-brand-black truncate">{channelLabel(top.sell.channel)}</p>
-                      <p className="text-[10px] text-brand-black/50 truncate">{top.sell.source}</p>
-                    </div>
-                    <div className="sm:mt-1 ml-2 sm:ml-0 text-right">
-                      <p className="text-base font-bold font-mono-numeric text-brand-black whitespace-nowrap">₹{top.sell.net.toLocaleString('en-IN')}</p>
-                      {top.sellFeeAmount > 0 && (
-                        <p className="text-[10px] text-brand-black/40 font-mono-numeric">−{(top.sellFeeRate * 100).toFixed(1)}% fee</p>
-                      )}
-                    </div>
+                  <div>
+                    <label className={labelCls}>Sell channel</label>
+                    <select className={selectCls} value={calcSellChannel} onChange={(e) => onPickSell(e.target.value)}>
+                      <option value="">Select…</option>
+                      {channelOptions.map((o) => (
+                        <option key={o.ch} value={o.ch}>{o.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Sell price (₹)</label>
+                    <input type="number" className={inputCls} value={calcSellPrice} placeholder="0"
+                      onChange={(e) => setCalcSellPrice(e.target.value)} step="100" inputMode="numeric" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Sell-side fee (%)</label>
+                    <input type="number" className={inputCls} value={calcFeePct} placeholder="0"
+                      onChange={(e) => setCalcFeePct(e.target.value)} step="0.5" inputMode="decimal" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Shipping (₹)</label>
+                    <input type="number" className={inputCls} value={calcShipping} placeholder="0"
+                      onChange={(e) => setCalcShipping(e.target.value)} step="50" inputMode="numeric" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Holding cost (₹)</label>
+                    <input type="number" className={inputCls} value={calcHoldingCost} placeholder="0"
+                      onChange={(e) => setCalcHoldingCost(e.target.value)} step="50" inputMode="numeric" />
                   </div>
                 </div>
-                {/* Turnaround label on mobile (hidden on desktop where it's in the profit block) */}
-                <p className={`sm:hidden mt-2 text-[10px] font-semibold ${turnaroundColor(top.turnaroundDays)}`}>
-                  {turnaroundLabel(top.turnaroundDays)}
-                </p>
-                {buyAction && (
-                  <div className="mt-3 pt-3 border-t border-brand-gray/20">
-                    <a
-                      href={buyAction.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-xs font-bold uppercase tracking-wide text-terminal-bg transition-colors ${
-                        buyAction.type === 'whatsapp' ? 'bg-up hover:bg-up/90' : 'bg-accent hover:bg-accent/90'
-                      }`}
-                    >
-                      {buyAction.type === 'whatsapp' ? 'Contact Seller on WhatsApp' : 'View Buy Listing'}
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
+
+                {/* Output — pure arithmetic on the user's inputs, or empty resting state */}
+                {hasResult ? (
+                  <div className="border border-brand-gray/20 bg-brand-background/40">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-brand-gray/20 border-b border-brand-gray/20">
+                      <div className="p-3">
+                        <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Buy all-in</p>
+                        <p className="text-sm font-mono-numeric font-bold text-brand-black tabular-nums">₹{Math.round(buyAllIn).toLocaleString('en-IN')}</p>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Sell net</p>
+                        <p className="text-sm font-mono-numeric font-bold text-brand-black tabular-nums">₹{Math.round(sellNet).toLocaleString('en-IN')}</p>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Net</p>
+                        <p className={`text-sm font-mono-numeric font-bold tabular-nums ${netTone}`}>
+                          {netResult >= 0 ? '+' : '−'}₹{Math.abs(Math.round(netResult)).toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Return</p>
+                        <p className={`text-sm font-mono-numeric font-bold tabular-nums ${netTone}`}>
+                          {netPct >= 0 ? '+' : ''}{netPct.toFixed(1)}%
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-brand-black/40 p-3 leading-relaxed">
+                      Arithmetic on your inputs only: net = (sell price × (1 − fee%)) − buy price − shipping − holding cost.
+                      Sentria does not rate, rank, or advise on this trade. Verify all prices and fees independently before acting.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="border border-dashed border-brand-gray/30 bg-brand-background/30 p-6 text-center">
+                    <p className="text-sm text-brand-black/60">Enter your assumptions to compute the net.</p>
+                    <p className="text-[11px] text-brand-black/40 mt-1">
+                      Pick a buy and sell channel — prefilled with live prices you can override — then add your fee, shipping and holding cost.
+                    </p>
                   </div>
                 )}
               </div>
-            </Card>
-          );
-        })() : (
-          <div className="border border-brand-gray/20 p-4 text-center">
-            <p className="text-sm font-semibold text-brand-black/60">No high-confidence spread detected</p>
-            <p className="text-[11px] text-brand-black/40 mt-1">
-              {cleanArbitrageOpps.length > 0
-                ? `${cleanArbitrageOpps.length} low-confidence signal${cleanArbitrageOpps.length !== 1 ? 's' : ''} found — see full list below`
-                : 'No price discrepancies found for this size'}
-            </p>
-          </div>
-        )}
-
-        {/* Remaining Discrepancies — full list still includes low-confidence signals; users can assess them. */}
-        {listOpps.length > 0 && (
-        <Card
-          title={`All Discrepancies (${cleanArbitrageOpps.length})`}
-          subtitle={featuredOpp
-            ? 'Sorted by spread — largest highlighted above'
-            : 'Sorted by spread — no signal met confidence threshold for featured display'}
-          icon={
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-            </svg>
-          }
-         
-          headerAction={
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <div className="flex items-center gap-2">
-                <label className="text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold whitespace-nowrap">Min ROI:</label>
-                <input
-                  type="number"
-                  value={(minArbNetPct * 100).toFixed(1)}
-                  onChange={(e) => setMinArbNetPct(Math.max(0, Number(e.target.value) / 100))}
-                  className="w-16 border border-brand-gray/30 px-2 py-1 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-terminal-border-strong bg-brand-white"
-                  step="0.5"
-                />
-                <span className="text-[10px] text-brand-black/50">%</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold whitespace-nowrap">Min ₹:</label>
-                <input
-                  type="number"
-                  value={minArbNetRs}
-                  onChange={(e) => setMinArbNetRs(Math.max(0, Number(e.target.value)))}
-                  className="w-20 border border-brand-gray/30 px-2 py-1 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-terminal-border-strong bg-brand-white"
-                  step="500"
-                />
-              </div>
-            </div>
-          }
-        >
-          {isMobile ? (
-            <div className="space-y-3">
-              {listOpps.map((opp, idx) => (
-                <ArbCard key={idx} opp={opp} />
-              ))}
-            </div>
-          ) : (
-            <div className="border border-brand-gray/20 overflow-hidden">
-              <div className="overflow-x-auto custom-scrollbar">
-                <table className="min-w-full text-sm border-collapse">
-                  <thead className="bg-brand-background/50 border-b-2 border-brand-gray/20">
-                    <tr>
-                      <th className="text-left px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Channels</th>
-                      <th className="text-left px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Lower Price</th>
-                      <th className="text-right px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Buy Price</th>
-                      <th className="text-left px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Higher Price</th>
-                      <th className="text-right px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Sell Net</th>
-                      <th className="text-right px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Spread</th>
-                      <th className="text-center px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Confidence</th>
-                      <th className="text-right px-3 py-2.5 font-semibold text-brand-black/60 uppercase tracking-wider text-[10px]">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {listOpps.map((opp, idx) => {
-                      const roiPct = opp.netPct * 100;
-                      const isEven = idx % 2 === 0;
-                      const buyAction = opp.buy.sellerContact
-                        ? { type: 'whatsapp' as const, href: `https://wa.me/${opp.buy.sellerContact.replace(/[^0-9]/g, '')}` }
-                        : opp.buy.url
-                        ? { type: 'link' as const, href: opp.buy.url }
-                        : null;
-
-                      return (
-                        <tr
-                          key={idx}
-                          className={`border-b border-brand-gray/10 ${isEven ? 'bg-terminal-surface' : 'bg-brand-gray/5'} hover:bg-brand-background/50 transition-colors`}
-                        >
-                          <td className="px-3 py-2.5">
-                            <span className="text-xs text-brand-black/50 whitespace-nowrap">
-                              {channelPairLabel(opp)}
-                            </span>
-                          </td>
-                          <td className="px-3 py-2.5">
-                            <div className="text-xs font-semibold text-brand-black">{channelLabel(opp.buy.channel)}</div>
-                            <div className="text-[10px] text-brand-black/50 truncate max-w-[120px]">{opp.buy.source}</div>
-                          </td>
-                          <td className="px-3 py-2.5 text-right">
-                            <div className="font-semibold font-mono-numeric text-brand-black">
-                              ₹{opp.buy.allIn.toLocaleString("en-IN")}
-                            </div>
-                            {opp.buyShippingCost > 0 && (
-                              <div className="text-[10px] text-brand-black/40 font-mono-numeric">
-                                +₹{opp.buyShippingCost.toLocaleString("en-IN")} ship
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-3 py-2.5">
-                            <div className="text-xs font-semibold text-brand-black">{channelLabel(opp.sell.channel)}</div>
-                            <div className="text-[10px] text-brand-black/50 truncate max-w-[120px]">{opp.sell.source}</div>
-                            {opp.sellReliability === "consignment" && (
-                              <span className="inline-block mt-0.5 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200/60">
-                                Consignment
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2.5 text-right">
-                            <div className="font-semibold font-mono-numeric text-brand-black">
-                              ₹{opp.sell.net.toLocaleString("en-IN")}
-                            </div>
-                            {opp.sellFeeAmount > 0 && (
-                              <div className="text-[10px] text-brand-black/40 font-mono-numeric">
-                                −{(opp.sellFeeRate * 100).toFixed(1)}% fee
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-3 py-2.5 text-right">
-                            <div className="font-bold font-mono-numeric text-brand-black">
-                              ₹{opp.netProfit.toLocaleString("en-IN")}
-                            </div>
-                            <div className="text-[10px] text-brand-black/50 font-mono-numeric">
-                              {roiPct.toFixed(1)}% ROI
-                            </div>
-                          </td>
-                          <td className="px-3 py-2.5 text-center" title={`Confidence: ${opp.confidence}/100`}>
-                            <span className="text-xs text-brand-black/40 font-mono-numeric">
-                              {opp.confidence}%
-                            </span>
-                          </td>
-                          <td className="px-3 py-2.5 text-right">
-                            {buyAction ? (
-                              <a
-                                href={buyAction.href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-terminal-bg transition-colors whitespace-nowrap ${
-                                  buyAction.type === 'whatsapp' ? 'bg-up hover:bg-up/90' : 'bg-accent hover:bg-accent/90'
-                                }`}
-                              >
-                                {buyAction.type === 'whatsapp' ? 'Contact' : 'View'}
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                              </a>
-                            ) : (
-                              <span className="text-xs text-brand-black/30">—</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Disclaimer */}
-          <p className="text-[10px] text-brand-black/40 mt-3 pt-2 border-t border-brand-gray/15">
-            Per-platform fees applied. Marketplace sells are consignment — payout timing varies. Confidence penalised for stale data. Always verify before executing. Spreads above 500% are suppressed as data anomalies.
-          </p>
-        </Card>
-        )}
-        </>
-      ) : (
-        <Card title="Discrepancies" subtitle="No price discrepancies for this size">
-          <div className="py-8 text-center text-brand-black/60">
-            <svg className="w-12 h-12 mx-auto mb-3 text-brand-gray/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-            <p className="text-sm font-semibold text-brand-black/60">No Price Discrepancies</p>
-            <p className="text-xs text-brand-black/40 mt-1 mb-4">Market is efficiently priced or not enough cross-channel data yet</p>
-            <div className="max-w-sm mx-auto text-left bg-brand-background/50 border border-brand-gray/20 p-3 space-y-2">
-              <p className="text-xs font-semibold text-brand-black/70">What is a price discrepancy?</p>
-              <p className="text-[11px] text-brand-black/50 leading-relaxed">
-                Price discrepancies appear when the same sneaker is priced differently across channels. We surface cross-channel gaps of 3%+ and rank them by spread size after accounting for platform fees.
-              </p>
-            </div>
-          </div>
-        </Card>
-      )}
+            )}
+          </Card>
         </div>
         );
       })()}
