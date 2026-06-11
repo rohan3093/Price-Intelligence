@@ -70,7 +70,6 @@ export const Toast: React.FC<ToastProps> = ({
   return (
     <div
       className={`flex items-center gap-3 px-4 py-3 border-2 ${getColors()} shadow-dropdown animate-slide-in-right`}
-      style={{ borderRadius: "0px" }}
     >
       <div className="flex-shrink-0">{getIcon()}</div>
       <p className="text-sm font-medium flex-1">{message}</p>

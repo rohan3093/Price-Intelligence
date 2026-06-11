@@ -354,7 +354,7 @@ export const ScrapedPricesReview: React.FC<ScrapedPricesReviewProps> = ({
             Scraped Prices
           </h2>
           {pendingCount > 0 && (
-            <span className="px-2.5 py-1 bg-brand-black text-brand-white text-xs font-medium" style={{ borderRadius: '20px' }}>
+            <span className="px-2.5 py-1 bg-brand-black text-brand-white text-xs font-medium">
               {pendingCount.toLocaleString()} to review
             </span>
           )}
@@ -367,7 +367,6 @@ export const ScrapedPricesReview: React.FC<ScrapedPricesReviewProps> = ({
                 ? "border-brand-black bg-brand-black text-brand-white"
                 : "border-brand-gray/20 text-brand-black/50 hover:border-brand-black/40"
             }`}
-            style={{ borderRadius: '8px' }}
           >
             History
           </button>
@@ -375,7 +374,6 @@ export const ScrapedPricesReview: React.FC<ScrapedPricesReviewProps> = ({
             onClick={handleTriggerScrape}
             disabled={triggeringScrape}
             className="px-4 py-1.5 bg-brand-black text-brand-white text-xs font-medium hover:bg-brand-black/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ borderRadius: '8px' }}
           >
             {triggeringScrape ? (
               <span className="flex items-center gap-1.5">
@@ -396,14 +394,14 @@ export const ScrapedPricesReview: React.FC<ScrapedPricesReviewProps> = ({
 
       {/* Result banner */}
       {scrapeResult && (
-        <div className="bg-green-50 border border-green-200 px-4 py-2.5 text-sm text-green-700" style={{ borderRadius: '8px' }}>
+        <div className="bg-green-50 border border-green-200 px-4 py-2.5 text-sm text-green-700">
           {scrapeResult}
         </div>
       )}
 
       {/* Error banner */}
       {errorMsg && (
-        <div className="bg-red-50 border border-red-200 px-4 py-2.5 text-sm text-red-700" style={{ borderRadius: '8px' }}>
+        <div className="bg-red-50 border border-red-200 px-4 py-2.5 text-sm text-red-700">
           {errorMsg}
         </div>
       )}
@@ -418,7 +416,6 @@ export const ScrapedPricesReview: React.FC<ScrapedPricesReviewProps> = ({
         onChange={(e) => setSearchQuery(e.target.value)}
         placeholder="Search by name or SKU…"
         className="w-full border border-brand-gray/20 px-3 py-2 text-sm text-brand-black placeholder:text-brand-black/30 focus:outline-none focus:border-brand-black/40 transition-colors"
-        style={{ borderRadius: '8px' }}
       />
 
       {/* Review queue — always visible */}
@@ -517,7 +514,7 @@ const AssetCard: React.FC<{
   const isApproving = actionLoading === `approve-${group.assetId}`;
 
   return (
-    <div className="border border-brand-gray/20 bg-brand-white" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+    <div className="border border-brand-gray/20 bg-brand-white" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
       {/* Card header — always visible */}
       <div className="p-4">
         <div className="flex items-start gap-3">
@@ -527,7 +524,6 @@ const AssetCard: React.FC<{
               src={group.image}
               alt={group.assetName}
               className="w-14 h-14 object-cover border border-brand-gray/15 flex-shrink-0"
-              style={{ borderRadius: '8px' }}
             />
           )}
 
@@ -548,7 +544,7 @@ const AssetCard: React.FC<{
                     {listings[0]?.marketplaceDisplayName || mp}
                   </span>
                   {listings[0]?.channel === "international" && (
-                    <span className="text-[10px] px-1 py-0 bg-blue-100 text-blue-700 font-medium" style={{ borderRadius: '3px' }}>
+                    <span className="text-[10px] px-1 py-0 bg-blue-100 text-blue-700 font-medium">
                       INTL
                     </span>
                   )}
@@ -568,7 +564,6 @@ const AssetCard: React.FC<{
             <button
               onClick={onToggle}
               className="px-3 py-1.5 text-xs font-medium border border-brand-gray/20 text-brand-black/50 hover:border-brand-black/40 hover:text-brand-black transition-all"
-              style={{ borderRadius: '8px' }}
             >
               {isExpanded ? "Hide" : "Inspect"}
             </button>
@@ -578,7 +573,6 @@ const AssetCard: React.FC<{
                 onSkip();
               }}
               className="px-3 py-1.5 text-xs font-medium border border-brand-gray/20 text-brand-black/40 hover:border-brand-black/30 transition-all"
-              style={{ borderRadius: '8px' }}
             >
               Skip
             </button>
@@ -589,7 +583,6 @@ const AssetCard: React.FC<{
               }}
               disabled={isApproving}
               className="px-3 py-1.5 text-xs font-medium bg-green-600 text-white hover:bg-green-700 transition-all disabled:opacity-50"
-              style={{ borderRadius: '8px' }}
             >
               {isApproving ? (
                 <span className="flex items-center gap-1">
@@ -615,7 +608,7 @@ const AssetCard: React.FC<{
                   {listings[0]?.marketplaceDisplayName || mp}
                 </span>
                 {listings[0]?.channel === "international" && (
-                  <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 font-medium" style={{ borderRadius: '4px' }}>
+                  <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 font-medium">
                     INTL
                   </span>
                 )}
@@ -668,7 +661,6 @@ const AssetCard: React.FC<{
                                 if (e.key === "Escape") onEditCancel();
                               }}
                               className="w-20 border border-brand-black/20 px-2 py-1 text-xs font-mono-numeric focus:outline-none focus:border-brand-black/40"
-                              style={{ borderRadius: '6px' }}
                               autoFocus
                             />
                             <button
@@ -724,7 +716,6 @@ const AssetCard: React.FC<{
                                 <button
                                   onClick={() => onApproveSingle(listing)}
                                   className="w-6 h-6 flex items-center justify-center text-green-600 hover:bg-green-50 transition-all text-xs"
-                                  style={{ borderRadius: '6px' }}
                                   title="Approve"
                                 >
                                   ✓
@@ -732,7 +723,6 @@ const AssetCard: React.FC<{
                                 <button
                                   onClick={() => onStartEdit(listing.id, listing.price)}
                                   className="w-6 h-6 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-all text-xs"
-                                  style={{ borderRadius: '6px' }}
                                   title="Edit price"
                                 >
                                   ✎
@@ -740,7 +730,6 @@ const AssetCard: React.FC<{
                                 <button
                                   onClick={() => onRejectSingle(listing)}
                                   className="w-6 h-6 flex items-center justify-center text-red-500 hover:bg-red-50 transition-all text-xs"
-                                  style={{ borderRadius: '6px' }}
                                   title="Reject"
                                 >
                                   ✕
@@ -787,7 +776,7 @@ const ProgressBar: React.FC<{ progress: ScrapeProgress }> = ({ progress }) => {
       : "Finishing…";
 
   return (
-    <div className="border border-brand-gray/20 bg-brand-white p-4 space-y-2.5" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+    <div className="border border-brand-gray/20 bg-brand-white p-4 space-y-2.5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Spinner size={3} />
@@ -804,10 +793,10 @@ const ProgressBar: React.FC<{ progress: ScrapeProgress }> = ({ progress }) => {
         </span>
       </div>
 
-      <div className="w-full h-1.5 bg-brand-gray/15 overflow-hidden" style={{ borderRadius: '4px' }}>
+      <div className="w-full h-1.5 bg-brand-gray/15 overflow-hidden">
         <div
           className="h-full bg-brand-black transition-all duration-500 ease-out"
-          style={{ width: `${Math.max(pct, 2)}%`, borderRadius: '4px' }}
+          style={{ width: `${Math.max(pct, 2)}%` }}
         />
       </div>
 
@@ -838,14 +827,14 @@ const ProgressBar: React.FC<{ progress: ScrapeProgress }> = ({ progress }) => {
 const HistoryPanel: React.FC<{ runs: ScrapeRun[] }> = ({ runs }) => {
   if (runs.length === 0) {
     return (
-      <div className="border border-brand-gray/20 p-6 text-center bg-brand-white" style={{ borderRadius: '12px' }}>
+      <div className="border border-brand-gray/20 p-6 text-center bg-brand-white">
         <p className="text-sm text-brand-black/40">No scrape runs yet</p>
       </div>
     );
   }
 
   return (
-    <div className="border border-brand-gray/20 divide-y divide-brand-gray/10 bg-brand-white overflow-hidden" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+    <div className="border border-brand-gray/20 divide-y divide-brand-gray/10 bg-brand-white overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
       <div className="px-4 py-3 bg-brand-gray/5">
         <span className="text-xs font-medium text-brand-black/50">
           Recent Runs

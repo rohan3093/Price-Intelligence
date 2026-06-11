@@ -20,14 +20,12 @@ export const EducationHub: React.FC = () => {
           <button
             onClick={() => setSelectedGuide(null)}
             className="px-3 py-2 text-xs font-medium text-brand-black border border-brand-gray/30 bg-white hover:border-brand-black flex items-center gap-1.5 transition leading-tight"
-            style={{ borderRadius: "6px" }}
           >
             ← Back to Guides
           </button>
         </div>
         <article
           className="border border-brand-gray/20 p-4 md:p-6 bg-white shadow-sm"
-          style={{ borderRadius: "12px" }}
         >
           <div className="flex items-center gap-2 mb-3 pb-3 border-b border-brand-gray/20">
             <span
@@ -38,7 +36,6 @@ export const EducationHub: React.FC = () => {
                     ? "bg-yellow-500/10 text-yellow-700 border border-yellow-500/30"
                     : "bg-brand-gray/10 text-brand-black border border-brand-gray/30"
               }`}
-              style={{ borderRadius: "4px" }}
             >
               {selectedGuide.difficulty}
             </span>
@@ -171,7 +168,6 @@ export const EducationHub: React.FC = () => {
                   ? "bg-brand-black text-white"
                   : "border border-brand-gray/30 bg-white text-brand-black hover:border-brand-black"
               }`}
-              style={{ borderRadius: "20px" }}
             >
               {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </button>
@@ -186,7 +182,6 @@ export const EducationHub: React.FC = () => {
             key={guide.id}
             onClick={() => setSelectedGuide(guide)}
             className="border border-brand-gray/20 p-4 bg-white hover:border-brand-black hover:shadow-md shadow-sm text-left transition-all"
-            style={{ borderRadius: "8px" }}
           >
             <div className="flex items-start justify-between mb-2">
               <span
@@ -197,7 +192,6 @@ export const EducationHub: React.FC = () => {
                       ? "bg-yellow-500/10 text-yellow-700 border border-yellow-500/30"
                       : "bg-brand-gray/10 text-brand-black border border-brand-gray/30"
                 }`}
-                style={{ borderRadius: "4px" }}
               >
                 {guide.difficulty}
               </span>

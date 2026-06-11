@@ -518,7 +518,6 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                             src={asset.image}
                             alt=""
                             className="w-10 h-10 object-cover border border-brand-gray/20 flex-shrink-0"
-                            style={{ borderRadius: "6px" }}
                           />
                         )}
                         <div className="min-w-0 flex-1">
@@ -551,7 +550,6 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                       src={selectedForAdd.image}
                       alt=""
                       className="w-12 h-12 object-cover border border-brand-gray/20 flex-shrink-0"
-                      style={{ borderRadius: "6px" }}
                     />
                   )}
                   <div className="flex-1 min-w-0">
@@ -705,7 +703,6 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                             src={asset.image}
                             alt=""
                             className="w-16 h-16 md:w-18 md:h-18 object-cover border border-brand-gray/15 flex-shrink-0"
-                            style={{ borderRadius: "6px" }}
                           />
                         )}
 
@@ -925,7 +922,6 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                               src={asset.image}
                               alt=""
                               className="w-12 h-12 object-cover border border-brand-gray/15 flex-shrink-0 opacity-70"
-                              style={{ borderRadius: "6px" }}
                             />
                           )}
                           <div className="flex-1 min-w-0">
@@ -986,7 +982,6 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
         >
           <div
             className="bg-white w-full md:max-w-md md:mx-4 shadow-modal animate-fade-in"
-            style={{ borderRadius: "0px" }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -1012,7 +1007,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               {/* Item preview */}
               <div className="flex items-center gap-3">
                 {selectedForSale.asset.image && (
-                  <img src={selectedForSale.asset.image} alt="" className="w-12 h-12 object-cover border border-brand-gray/15" style={{ borderRadius: "6px" }} />
+                  <img src={selectedForSale.asset.image} alt="" className="w-12 h-12 object-cover border border-brand-gray/15" />
                 )}
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-brand-black leading-tight truncate">
@@ -1136,7 +1131,6 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
         >
           <div
             className="bg-white w-full md:max-w-md md:mx-4 shadow-modal animate-fade-in"
-            style={{ borderRadius: "0px" }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -1162,7 +1156,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               {/* Item preview */}
               <div className="flex items-center gap-3">
                 {selectedForListing.asset.image && (
-                  <img src={selectedForListing.asset.image} alt="" className="w-12 h-12 object-cover border border-brand-gray/15" style={{ borderRadius: "6px" }} />
+                  <img src={selectedForListing.asset.image} alt="" className="w-12 h-12 object-cover border border-brand-gray/15" />
                 )}
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-brand-black leading-tight truncate">

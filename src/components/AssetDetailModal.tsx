@@ -45,7 +45,6 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
       <div 
         className="relative w-full md:max-w-5xl md:max-h-[90vh] bg-brand-white border-t-2 md:border-2 border-brand-black shadow-modal md:m-8 overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
-        style={{ borderRadius: '0px' }}
       >
         {/* Top Bar — combined drag handle + brand/SKU + close. flex-shrink-0 keeps it always visible regardless of scroll. */}
         <div className="flex-shrink-0 bg-brand-white border-b border-brand-gray relative z-10">
@@ -62,7 +61,6 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
               onClick={onClose}
               className="flex-shrink-0 text-brand-black hover:text-brand-white hover:bg-brand-black border-2 border-brand-gray text-xl min-w-[40px] min-h-[40px] md:min-w-[44px] md:min-h-[44px] flex items-center justify-center transition-all duration-200 active:scale-95"
               aria-label="Close"
-              style={{ borderRadius: '0px' }}
             >
               ✕
             </button>

@@ -189,7 +189,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
   const activeFilterCount = (selectedBrand ? 1 : 0) + (priceRange.min !== null || priceRange.max !== null ? 1 : 0);
 
   return (
-    <section className="border border-brand-gray/20 p-4 space-y-4 bg-white shadow-sm" style={{ borderRadius: '12px' }}>
+    <section className="border border-brand-gray/20 p-4 space-y-4 bg-white shadow-sm">
       {/* Market Stats - more compact */}
       <div className="pb-3 border-b border-brand-gray/20">
         <div className="flex items-baseline gap-2">
@@ -241,7 +241,6 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
             aria-autocomplete="list"
             aria-expanded={showSuggestions || showHistory}
             className="w-full bg-white border border-brand-gray/30 py-3 pl-10 pr-10 text-sm font-body text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-brand-black transition-all"
-            style={{ borderRadius: '8px' }}
           />
           <span id="search-hint" className="sr-only">
             Type to search assets. Use arrow keys to navigate suggestions, Enter to select.
@@ -250,8 +249,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           {showSuggestions && suggestions.length > 0 && (
             <div 
               ref={suggestionsRef}
-              className="absolute z-50 w-full mt-2 bg-white border border-brand-gray/20 shadow-lg max-h-60 overflow-hidden" 
-              style={{ borderRadius: '8px' }}
+              className="absolute z-50 w-full mt-2 bg-white border border-brand-gray/20 shadow-lg max-h-60 overflow-hidden"
               role="listbox"
               aria-label="Search suggestions"
             >
@@ -277,8 +275,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           {/* Search History Dropdown */}
           {showHistory && !query.trim() && searchHistory.length > 0 && (
             <div 
-              className="absolute z-50 w-full mt-2 bg-white border border-brand-gray/20 shadow-lg max-h-60 overflow-hidden" 
-              style={{ borderRadius: '8px' }}
+              className="absolute z-50 w-full mt-2 bg-white border border-brand-gray/20 shadow-lg max-h-60 overflow-hidden"
               role="listbox"
               aria-label="Recent searches"
             >
@@ -318,7 +315,6 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
             <button
               onClick={() => setQuery("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-brand-gray/10 transition-colors flex items-center justify-center"
-              style={{ borderRadius: '6px' }}
               aria-label="Clear search"
             >
               <svg className="w-4 h-4 text-brand-black/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -338,7 +334,6 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
               <button
                 onClick={() => onBrandChange(null)}
                 className="px-3 py-1.5 bg-brand-black text-white text-xs font-medium hover:bg-brand-black/90 transition-all flex items-center gap-1.5"
-                style={{ borderRadius: '20px' }}
               >
                 {selectedBrand}
                 <span className="text-sm">✕</span>
@@ -348,7 +343,6 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
               <button
                 onClick={() => onPriceRangeChange({ min: null, max: null })}
                 className="px-3 py-1.5 bg-brand-black text-white text-xs font-medium hover:bg-brand-black/90 transition-all flex items-center gap-1.5"
-                style={{ borderRadius: '20px' }}
               >
                 ₹{priceRange.min?.toLocaleString("en-IN") || "0"} - ₹{priceRange.max?.toLocaleString("en-IN") || "∞"}
                 <span className="text-sm">✕</span>
@@ -362,7 +356,6 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="w-full px-4 py-2.5 border border-brand-gray/30 bg-white hover:bg-brand-background/50 text-sm font-semibold text-brand-black transition-all flex items-center justify-between"
-            style={{ borderRadius: '8px' }}
           >
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,7 +363,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
               </svg>
               <span>Filters</span>
               {activeFilterCount > 0 && (
-                <span className="px-2 py-0.5 bg-brand-black text-white text-xs font-bold" style={{ borderRadius: '10px' }}>
+                <span className="px-2 py-0.5 bg-brand-black text-white text-xs font-bold">
                   {activeFilterCount}
                 </span>
               )}
@@ -404,7 +397,6 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                       ? "bg-brand-black text-white"
                       : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
                   }`}
-                  style={{ borderRadius: '20px' }}
                 >
                   All
                 </button>
@@ -417,7 +409,6 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                         ? "bg-brand-black text-white"
                         : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
                     }`}
-                    style={{ borderRadius: '20px' }}
                   >
                     {brand}
                   </button>
@@ -440,7 +431,6 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                       ? "bg-brand-black text-white"
                       : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
                   }`}
-                  style={{ borderRadius: '20px' }}
                 >
                   All
                 </button>
@@ -455,7 +445,6 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                           ? "bg-brand-black text-white"
                           : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
                       }`}
-                      style={{ borderRadius: '20px' }}
                     >
                       {preset.label}
                     </button>
@@ -480,7 +469,6 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                       ? "bg-brand-black text-white hover:bg-brand-black/90"
                       : "bg-white border border-brand-gray/30 text-brand-black/40 cursor-not-allowed"
                   }`}
-                  style={{ borderRadius: '20px' }}
                   title={!cat.available ? `${cat.name} tracking is coming soon — stay tuned!` : undefined}
                 >
                   {cat.name}

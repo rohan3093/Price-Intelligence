@@ -132,11 +132,11 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
     <div className="space-y-6">
       {/* Market Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div className="border border-brand-gray/20 bg-brand-background p-4" style={{ borderRadius: '8px' }}>
+        <div className="border border-brand-gray/20 bg-brand-background p-4">
           <p className="text-xs text-brand-black/50 mb-1">Instruments</p>
           <p className="text-2xl font-semibold text-brand-black">{assets.length}</p>
         </div>
-        <div className="border border-brand-gray/20 bg-brand-background p-4" style={{ borderRadius: '8px' }}>
+        <div className="border border-brand-gray/20 bg-brand-background p-4">
           <p className="text-xs text-brand-black/50 mb-1">Updated Today</p>
           <p className="text-2xl font-semibold text-green-600">
             {assets.filter(a => {
@@ -146,7 +146,7 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
             }).length}
           </p>
         </div>
-        <div className="border border-brand-gray/20 bg-brand-background p-4" style={{ borderRadius: '8px' }}>
+        <div className="border border-brand-gray/20 bg-brand-background p-4">
           <p className="text-xs text-brand-black/50 mb-1">Pending</p>
           <p className="text-2xl font-semibold text-red-600">
             {assets.filter(a => {
@@ -156,7 +156,7 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
             }).length}
           </p>
         </div>
-        <div className="border border-brand-gray/20 bg-brand-background p-4" style={{ borderRadius: '8px' }}>
+        <div className="border border-brand-gray/20 bg-brand-background p-4">
           <p className="text-xs text-brand-black/50 mb-1">Size Variants</p>
           <p className="text-2xl font-semibold text-brand-black">
             {assets.reduce((sum, a) => sum + (a.sizes?.length || 0), 0)}
@@ -167,7 +167,7 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
         {/* Asset List */}
         <div className="lg:col-span-1">
-          <div className="border border-brand-gray/20 bg-white shadow-sm p-4" style={{ borderRadius: '12px' }}>
+          <div className="border border-brand-gray/20 bg-white shadow-sm p-4">
             <h2 className="text-sm font-semibold text-brand-black mb-4">
               Instruments
             </h2>
@@ -179,7 +179,6 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name, SKU, or brand..."
                 className="w-full bg-brand-background border border-brand-gray/20 py-2 px-3 text-xs text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-brand-black"
-                style={{ borderRadius: '8px' }}
               />
               <div className="flex flex-wrap gap-2 items-center">
                 {(["all", "pending", "updated"] as const).map((status) => (
@@ -192,7 +191,6 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
                         ? "bg-brand-black text-white"
                         : "bg-white border border-brand-gray/30 text-brand-black hover:border-brand-black"
                     }`}
-                    style={{ borderRadius: '6px' }}
                   >
                     {status === "all" ? "All" : status === "pending" ? (
                       <>Pending <span className="font-mono-numeric">({getPendingAssets().length})</span></>
@@ -237,7 +235,6 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
                         ? "border-brand-black bg-brand-black text-white shadow-sm"
                         : "border-brand-gray/20 bg-white hover:border-brand-gray/40 hover:shadow-soft"
                     }`}
-                    style={{ borderRadius: '8px' }}
                     onClick={() => {
                       setSelectedAsset(asset);
                       setSelectedSize(asset.sizes?.[0]?.size || null);
@@ -256,7 +253,7 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
                               isSelected 
                                 ? "bg-green-500/30 text-green-300" 
                                 : "bg-green-100 text-green-700"
-                            }`} style={{ borderRadius: '4px' }}>
+                            }`}>
                               ✓
                             </span>
                           )}
@@ -285,7 +282,7 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
               onUpdatePricePoints={handleUpdatePricePoints}
             />
           ) : (
-            <div className="border border-brand-gray/20 bg-white shadow-sm p-12 text-center" style={{ borderRadius: '12px' }}>
+            <div className="border border-brand-gray/20 bg-white shadow-sm p-12 text-center">
               <p className="text-sm font-medium text-brand-black/60 mb-1">No Instrument Selected</p>
               <p className="text-xs text-brand-black/40">Select an instrument to begin market data entry</p>
             </div>
@@ -423,7 +420,7 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
   };
 
   return (
-    <div className="border border-brand-gray/20 bg-white shadow-sm p-5 space-y-5" style={{ borderRadius: '12px' }}>
+    <div className="border border-brand-gray/20 bg-white shadow-sm p-5 space-y-5">
       {/* Instrument Header */}
       <div className="border-b border-brand-gray/20 pb-4">
         <div className="flex items-start justify-between gap-3">
@@ -475,7 +472,6 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
                     ? "border-brand-black bg-brand-black text-white"
                     : "border-brand-gray/30 hover:border-brand-black text-brand-black bg-white"
                 }`}
-                style={{ borderRadius: '8px' }}
               >
                 {size.size}
               </button>
@@ -488,7 +484,7 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
           )}
         </div>
       ) : (
-        <div className="border border-red-200 bg-red-50 p-4" style={{ borderRadius: '8px' }}>
+        <div className="border border-red-200 bg-red-50 p-4">
           <p className="text-xs font-semibold text-red-800 mb-1">No Size Variants Configured</p>
           <p className="text-xs text-red-600">
             Define size variants in the Assets tab before entering market data.
@@ -511,7 +507,6 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
             <button
               onClick={() => setShowAddListingModal(true)}
               className="px-3 py-1.5 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition disabled:opacity-50"
-              style={{ borderRadius: '8px' }}
               disabled={!selectedSize}
             >
               + Add Listing
@@ -519,7 +514,6 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
             <button
               onClick={() => setShowBulkAddModal(true)}
               className="px-3 py-1.5 border border-brand-gray/30 bg-white text-brand-black text-xs font-semibold hover:border-brand-black transition disabled:opacity-50"
-              style={{ borderRadius: '8px' }}
               disabled={!selectedSize}
             >
               + Bulk Add

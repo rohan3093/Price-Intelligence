@@ -305,7 +305,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-3">
-      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-brand-white border border-brand-gray/30 shadow-2xl" style={{ borderRadius: '0px' }}>
+      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-brand-white border border-brand-gray/30 shadow-2xl">
         <div className="sticky top-0 z-10 flex justify-between items-center px-3 py-2 bg-brand-white border-b border-brand-gray/30">
           <h2 className="text-base font-heading font-normal text-brand-black uppercase tracking-wide leading-tight">
             Bulk Add Listings
@@ -329,7 +329,6 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                     ? "border-brand-black bg-brand-black text-white"
                     : "border-brand-gray/30 bg-white text-brand-black hover:bg-brand-gray/10"
                 }`}
-                style={{ borderRadius: '0px' }}
               >
                 CSV Paste
               </button>
@@ -341,7 +340,6 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                     ? "border-brand-black bg-brand-black text-white"
                     : "border-brand-gray/30 bg-white text-brand-black hover:bg-brand-gray/10"
                 }`}
-                style={{ borderRadius: '0px' }}
               >
                 Form Entry
               </button>
@@ -604,7 +602,6 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                   type="button"
                   onClick={addFormEntry}
                   className="w-full px-3 py-1.5 border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition leading-tight"
-                  style={{ borderRadius: '0px' }}
                 >
                   + Add Another Listing
                 </button>
@@ -628,7 +625,6 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
               <button
                 type="submit"
                 className="px-3 py-1.5 border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition leading-tight"
-                style={{ borderRadius: '0px' }}
               >
                 Add {entryMode === "csv" ? "All Listings" : `${formEntries.filter(e => e.price || e.priceUSD).length} Listing(s)`}
               </button>
@@ -636,7 +632,6 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                 type="button"
                 onClick={onClose}
                 className="px-3 py-1.5 border border-brand-gray/30 text-brand-black text-xs font-semibold uppercase tracking-wide hover:bg-brand-gray/10 transition leading-tight"
-                style={{ borderRadius: '0px' }}
               >
                 Cancel
               </button>

@@ -225,7 +225,6 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
           <button
             onClick={() => setShowAddForm(true)}
             className="px-4 py-2 bg-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90 transition-all"
-            style={{ borderRadius: '8px' }}
           >
             + Add Drop
           </button>
@@ -234,7 +233,7 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-brand-white p-4 border border-brand-gray/20" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="bg-brand-white p-4 border border-brand-gray/20" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
           <p className="text-xs text-brand-black/50 font-medium mb-1">
             Pending Review
           </p>
@@ -242,7 +241,7 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
             {pendingDrops.length}
           </p>
         </div>
-        <div className="bg-brand-white p-4 border border-brand-gray/20" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="bg-brand-white p-4 border border-brand-gray/20" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
           <p className="text-xs text-brand-black/50 font-medium mb-1">
             Upcoming
           </p>
@@ -250,7 +249,7 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
             {upcomingDrops.length}
           </p>
         </div>
-        <div className="bg-brand-white p-4 border border-brand-gray/20" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="bg-brand-white p-4 border border-brand-gray/20" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
           <p className="text-xs text-brand-black/50 font-medium mb-1">
             Total
           </p>
@@ -268,13 +267,11 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1 min-w-[200px] px-3 py-2 border border-brand-gray/20 bg-brand-white text-sm text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-brand-black/40 transition-colors"
-          style={{ borderRadius: '8px' }}
         />
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value as DropStatus | "all")}
           className="px-3 py-2 border border-brand-gray/20 bg-brand-white text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-          style={{ borderRadius: '8px' }}
         >
           <option value="all">All Status</option>
           <option value="pending_review">Pending Review</option>
@@ -288,11 +285,11 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
 
       {/* Drops List */}
       {loading ? (
-        <div className="bg-brand-white border border-brand-gray/20 p-10 text-center" style={{ borderRadius: '12px' }}>
+        <div className="bg-brand-white border border-brand-gray/20 p-10 text-center">
           <p className="text-sm text-brand-black/50">Loading drops...</p>
         </div>
       ) : filteredDrops.length === 0 ? (
-        <div className="bg-brand-white border border-brand-gray/20 p-10 text-center" style={{ borderRadius: '12px' }}>
+        <div className="bg-brand-white border border-brand-gray/20 p-10 text-center">
           <p className="text-sm text-brand-black/50">No drops found</p>
         </div>
       ) : (
@@ -305,12 +302,12 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
                   ? "border-brand-black/20 bg-brand-black/[0.02]"
                   : "border-brand-gray/20"
               }`}
-              style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
             >
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                 {/* Drop Info */}
                 <div className="md:col-span-5 flex items-center gap-3">
-                  <div className="h-14 w-14 flex-shrink-0 border border-brand-gray/15 overflow-hidden" style={{ borderRadius: '8px' }}>
+                  <div className="h-14 w-14 flex-shrink-0 border border-brand-gray/15 overflow-hidden">
                     {drop.image ? (
                       <img
                         src={drop.image}
@@ -330,12 +327,12 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
                         {drop.brand}
                       </span>
                       {drop.source.type === "nike-snkrs-scrape" && (
-                        <span className="text-[10px] px-2 py-0.5 bg-brand-black/5 text-brand-black/60" style={{ borderRadius: '6px' }}>
+                        <span className="text-[10px] px-2 py-0.5 bg-brand-black/5 text-brand-black/60">
                           Scraped
                         </span>
                       )}
                       {!drop.verified && (
-                        <span className="text-[10px] px-2 py-0.5 bg-orange-50 text-orange-600" style={{ borderRadius: '6px' }}>
+                        <span className="text-[10px] px-2 py-0.5 bg-orange-50 text-orange-600">
                           Unverified
                         </span>
                       )}
@@ -367,7 +364,6 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
                       handleUpdateStatus(drop, e.target.value as DropStatus)
                     }
                     className="w-full px-2.5 py-1.5 border border-brand-gray/20 bg-brand-white text-xs text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-                    style={{ borderRadius: '8px' }}
                   >
                     <option value="pending_review">Pending Review</option>
                     <option value="upcoming">Upcoming</option>
@@ -385,14 +381,12 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
                       <button
                         onClick={() => handleVerifyDrop(drop)}
                         className="flex-1 px-3 py-1.5 bg-green-600 text-white text-xs font-medium hover:bg-green-700 transition-all"
-                        style={{ borderRadius: '8px' }}
                       >
                         Verify
                       </button>
                       <button
                         onClick={() => handleRejectDrop(drop)}
                         className="flex-1 px-3 py-1.5 bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-all"
-                        style={{ borderRadius: '8px' }}
                       >
                         Reject
                       </button>
@@ -401,14 +395,12 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
                   <button
                     onClick={() => setSelectedDrop(drop)}
                     className="px-3 py-1.5 border border-brand-gray/20 bg-brand-white text-xs font-medium text-brand-black hover:border-brand-black/40 transition-all"
-                    style={{ borderRadius: '8px' }}
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDeleteDrop(drop.id)}
                     className="px-3 py-1.5 border border-brand-gray/20 bg-brand-white text-xs font-medium text-brand-black hover:border-red-400 hover:text-red-600 transition-all"
-                    style={{ borderRadius: '8px' }}
                   >
                     Delete
                   </button>
@@ -493,7 +485,7 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-brand-white border border-brand-gray/20 max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+      <div className="bg-brand-white border border-brand-gray/20 max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
         <div className="p-5 border-b border-brand-gray/15">
           <h3 className="text-base font-semibold text-brand-black">
             {drop ? "Edit Drop" : "Add New Drop"}
@@ -512,7 +504,6 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
                 setFormData({ ...formData, name: e.target.value })
               }
               className="w-full px-3 py-2 border border-brand-gray/20 bg-brand-white text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-              style={{ borderRadius: '8px' }}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -528,7 +519,6 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
                   setFormData({ ...formData, brand: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-brand-gray/20 bg-brand-white text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-                style={{ borderRadius: '8px' }}
               />
             </div>
             <div>
@@ -542,7 +532,6 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
                   setFormData({ ...formData, category: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-brand-gray/20 bg-brand-white text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-                style={{ borderRadius: '8px' }}
               />
             </div>
           </div>
@@ -557,7 +546,6 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
                 setFormData({ ...formData, image: e.target.value })
               }
               className="w-full px-3 py-2 border border-brand-gray/20 bg-brand-white text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-              style={{ borderRadius: '8px' }}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -573,7 +561,6 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
                   setFormData({ ...formData, releaseDate: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-brand-gray/20 bg-brand-white text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-                style={{ borderRadius: '8px' }}
               />
             </div>
             <div>
@@ -588,7 +575,6 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
                   setFormData({ ...formData, releaseTime: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-brand-gray/20 bg-brand-white text-sm text-brand-black focus:outline-none focus:border-brand-black/40 placeholder:text-brand-black/30 transition-colors"
-                style={{ borderRadius: '8px' }}
               />
             </div>
           </div>
@@ -606,7 +592,6 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
                 })
               }
               className="w-full px-3 py-2 border border-brand-gray/20 bg-brand-white text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-              style={{ borderRadius: '8px' }}
             />
           </div>
           <div>
@@ -622,7 +607,6 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
                 })
               }
               className="w-full px-3 py-2 border border-brand-gray/20 bg-brand-white text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-              style={{ borderRadius: '8px' }}
             >
               <option value="">Not Set</option>
               <option value="low">Low Hype</option>
@@ -635,7 +619,6 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
             <button
               type="submit"
               className="flex-1 px-4 py-2.5 bg-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90 transition-all"
-              style={{ borderRadius: '8px' }}
             >
               Save
             </button>
@@ -643,7 +626,6 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
               type="button"
               onClick={onClose}
               className="flex-1 px-4 py-2.5 border border-brand-gray/20 bg-brand-white text-brand-black text-sm font-medium hover:border-brand-black/40 transition-all"
-              style={{ borderRadius: '8px' }}
             >
               Cancel
             </button>

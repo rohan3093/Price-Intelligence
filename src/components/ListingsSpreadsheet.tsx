@@ -336,7 +336,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
 
   if (!selectedSize) {
     return (
-      <div className="border border-brand-gray/30 bg-brand-white p-8 text-center" style={{ borderRadius: '0px' }}>
+      <div className="border border-brand-gray/30 bg-brand-white p-8 text-center">
         <p className="text-sm font-medium text-brand-black/60 mb-1">No Size Selected</p>
         <p className="text-xs text-brand-black/50">Select a size variant to view listings</p>
       </div>
@@ -344,7 +344,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
   }
 
   return (
-    <div className="border border-brand-gray/30 bg-brand-white" style={{ borderRadius: '0px' }}>
+    <div className="border border-brand-gray/30 bg-brand-white">
       {/* Toolbar */}
       <div className="border-b border-brand-gray/30 p-2 flex items-center justify-between gap-2 bg-brand-gray/5">
         <div className="flex items-center gap-3 flex-wrap">
@@ -372,7 +372,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                     ? "border-brand-black bg-brand-black text-brand-white"
                     : "border-brand-gray/30 bg-brand-white text-brand-black hover:border-brand-black"
                 }`}
-                style={{ borderRadius: '0px' }}
               >
                 {getChannelLabel(channel)}
               </button>
@@ -388,21 +387,18 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
               <button
                 onClick={() => handleBulkPriceUpdate(100)}
                 className="px-2 py-1 text-[10px] border border-brand-gray/30 bg-brand-white text-brand-black hover:bg-brand-gray/10 transition uppercase tracking-wide"
-                style={{ borderRadius: '0px' }}
               >
                 +₹100
               </button>
               <button
                 onClick={() => handleBulkPriceUpdate(-100)}
                 className="px-2 py-1 text-[10px] border border-brand-gray/30 bg-brand-white text-brand-black hover:bg-brand-gray/10 transition uppercase tracking-wide"
-                style={{ borderRadius: '0px' }}
               >
                 -₹100
               </button>
               <button
                 onClick={handleDeleteSelected}
                 className="px-2 py-1 text-[10px] border border-red-500/30 bg-red-500/10 text-red-600 hover:bg-red-500/20 transition uppercase tracking-wide"
-                style={{ borderRadius: '0px' }}
               >
                 Delete
               </button>
@@ -412,7 +408,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
         <button
           onClick={() => setSelectedRows(selectedRows.size === filteredRows.length ? new Set() : new Set(filteredRows.map(r => r.id)))}
           className="px-2 py-1 text-[10px] border border-brand-gray/30 bg-brand-white text-brand-black hover:bg-brand-gray/10 transition uppercase tracking-wide"
-          style={{ borderRadius: '0px' }}
         >
           {selectedRows.size === filteredRows.length ? 'Deselect All' : 'Select All'}
         </button>
@@ -545,7 +540,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                                 }
                               }}
                               className="w-full border-0 border-b-2 border-brand-black px-1 py-0.5 text-xs focus:outline-none bg-transparent"
-                              style={{ borderRadius: '0px' }}
                               autoFocus
                               onClick={(e) => e.stopPropagation()}
                             />
@@ -575,7 +569,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                                 handleSaveRow(row);
                               }}
                               className="px-1.5 py-0.5 text-[10px] border border-brand-black bg-brand-black text-brand-white hover:bg-brand-black/90 transition uppercase"
-                              style={{ borderRadius: '0px' }}
                               title="Save"
                             >
                               ✓
@@ -586,7 +579,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                                 handleCancelEdit(row.id);
                               }}
                               className="px-1.5 py-0.5 text-[10px] border border-brand-gray/30 text-brand-black hover:bg-brand-gray/10 transition uppercase"
-                              style={{ borderRadius: '0px' }}
                               title="Cancel"
                             >
                               ✕
@@ -600,7 +592,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                                 setEditingRowId(row.id);
                               }}
                               className="px-1.5 py-0.5 text-[10px] border border-brand-gray/30 text-brand-black hover:bg-brand-gray/10 transition uppercase"
-                              style={{ borderRadius: '0px' }}
                               title="Edit"
                             >
                               Edit
@@ -615,7 +606,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                                   ? "border-red-600 bg-red-600 text-white"
                                   : "border-red-500/30 text-red-600 hover:bg-red-500/10"
                               }`}
-                              style={{ borderRadius: '0px' }}
                               title={deleteConfirmRowId === row.id ? "Click again to confirm delete" : "Delete"}
                             >
                               {deleteConfirmRowId === row.id ? "Confirm" : "Del"}
@@ -681,7 +671,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                             handleNewRowFieldChange('marketplaceName', undefined);
                           }}
                           className="w-full border-0 border-b-2 border-brand-black px-1 py-0.5 text-xs focus:outline-none bg-transparent"
-                          style={{ borderRadius: '0px' }}
                           autoFocus
                           onClick={(e) => e.stopPropagation()}
                         >
@@ -705,7 +694,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                               }
                             }}
                             className="w-full border-0 border-b-2 border-brand-black px-1 py-0.5 text-xs focus:outline-none bg-transparent"
-                            style={{ borderRadius: '0px' }}
                             onClick={(e) => e.stopPropagation()}
                           >
                             <option value="buy">Buy</option>
@@ -733,7 +721,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                               }
                             }}
                             className="w-full border-0 border-b-2 border-brand-black px-1 py-0.5 text-xs focus:outline-none bg-transparent"
-                            style={{ borderRadius: '0px' }}
                             onClick={(e) => e.stopPropagation()}
                           >
                             {(newRow.channel === 'marketplace' ? marketplaceOptions : platformOptions).map(opt => (
@@ -769,7 +756,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                             }
                           }}
                           className="w-full border-0 border-b-2 border-brand-black px-1 py-0.5 text-xs focus:outline-none bg-transparent"
-                          style={{ borderRadius: '0px' }}
                           placeholder={col.key === 'price' ? '0' : col.key === 'listingCount' ? '1' : ''}
                           onClick={(e) => e.stopPropagation()}
                           autoFocus={colIndex === 0}
@@ -788,7 +774,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                         handleSaveNewRow();
                       }}
                       className="px-1.5 py-0.5 text-[10px] border border-brand-black bg-brand-black text-brand-white hover:bg-brand-black/90 transition uppercase"
-                      style={{ borderRadius: '0px' }}
                       title="Save (Enter)"
                     >
                       ✓
@@ -799,7 +784,6 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                         handleCancelNewRow();
                       }}
                       className="px-1.5 py-0.5 text-[10px] border border-brand-gray/30 text-brand-black hover:bg-brand-gray/10 transition uppercase"
-                      style={{ borderRadius: '0px' }}
                       title="Cancel (Esc)"
                     >
                       ✕

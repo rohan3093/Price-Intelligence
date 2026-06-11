@@ -96,7 +96,7 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
   if (emailSent) {
     return (
       <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="relative w-full max-w-md bg-brand-white border border-brand-gray/20 shadow-2xl" style={{ borderRadius: '0px' }}>
+        <div className="relative w-full max-w-md bg-brand-white border border-brand-gray/20 shadow-2xl">
           <div className="p-6 md:p-8">
             <button
               onClick={onClose}
@@ -132,14 +132,12 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
               <button
                 onClick={() => setEmailSent(false)}
                 className="w-full py-2.5 px-4 border border-brand-gray/30 text-brand-black text-xs font-medium hover:border-brand-black hover:bg-brand-gray/5 transition-colors"
-                style={{ borderRadius: '0px' }}
               >
                 Use a different email
               </button>
               <button
                 onClick={onClose}
                 className="w-full py-2.5 px-4 bg-brand-black border border-brand-black text-brand-white text-xs font-medium hover:bg-brand-black/90 transition-colors"
-                style={{ borderRadius: '0px' }}
               >
                 Done
               </button>
@@ -152,7 +150,7 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-md bg-brand-white border border-brand-gray/20 shadow-2xl" style={{ borderRadius: '0px' }}>
+      <div className="relative w-full max-w-md bg-brand-white border border-brand-gray/20 shadow-2xl">
         <div className="p-6 md:p-8">
           <button
             onClick={onClose}
@@ -188,7 +186,6 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
             onClick={handleGoogleSignIn}
             disabled={isLoading}
             className="w-full py-3 px-4 border border-brand-gray/30 bg-brand-white text-brand-black text-sm font-medium hover:border-brand-black hover:bg-brand-gray/5 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed mb-4"
-            style={{ borderRadius: '0px' }}
           >
             {/* Google Icon */}
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -230,7 +227,6 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-brand-white border border-brand-gray/30 px-4 py-2.5 text-sm text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-brand-black focus:ring-2 focus:ring-brand-black/10 transition-all"
-                style={{ borderRadius: '0px' }}
                 placeholder="you@example.com"
                 autoComplete="email"
                 disabled={isLoading}
@@ -247,7 +243,6 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
               type="submit"
               disabled={isLoading || !email.trim()}
               className="w-full py-3 px-4 bg-brand-black border border-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              style={{ borderRadius: '0px' }}
             >
               {isLoading ? (
                 <>

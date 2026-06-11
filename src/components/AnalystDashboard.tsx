@@ -130,7 +130,6 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                 ? "bg-brand-black text-white"
                 : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
             }`}
-            style={{ borderRadius: '8px' }}
           >
             {tab.label}
           </button>
@@ -138,7 +137,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
       </div>
 
       {/* Content area */}
-      <div className="bg-white border border-brand-gray/20 shadow-sm p-4 md:p-5" style={{ borderRadius: '12px' }}>
+      <div className="bg-white border border-brand-gray/20 shadow-sm p-4 md:p-5">
         {activeTab === "market-data" ? (
           <DailyPriceUpdates
             assets={assets}
@@ -196,7 +195,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Asset List */}
             <div className="lg:col-span-1">
-              <div className="border border-brand-gray/20 bg-white shadow-sm p-4" style={{ borderRadius: '12px' }}>
+              <div className="border border-brand-gray/20 bg-white shadow-sm p-4">
               <div className="mb-4 pb-3 border-b border-brand-gray/20">
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -213,7 +212,6 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                         setShowBulkAddForm(true);
                       }}
                       className="px-3 py-1.5 border border-brand-gray/30 bg-white text-brand-black text-xs font-semibold hover:border-brand-black transition-all flex-shrink-0"
-                      style={{ borderRadius: '8px' }}
                     >
                       Bulk
                     </button>
@@ -224,7 +222,6 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                         setSelectedAsset(null);
                       }}
                       className="px-3 py-1.5 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition-all flex-shrink-0"
-                      style={{ borderRadius: '8px' }}
                     >
                       + Add
                     </button>
@@ -237,7 +234,6 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by name, SKU, or brand..."
                   className="w-full border border-brand-gray/20 px-3 py-2 text-sm text-brand-black focus:outline-none focus:border-brand-black bg-brand-background"
-                  style={{ borderRadius: '8px' }}
                 />
               </div>
               <div className="space-y-1.5 max-h-[600px] overflow-y-auto custom-scrollbar">
@@ -270,7 +266,6 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                         ? "border-brand-black bg-brand-black text-white shadow-sm"
                         : "border-brand-gray/20 hover:border-brand-gray/40 hover:shadow-soft bg-white"
                     }`}
-                    style={{ borderRadius: '8px' }}
                     onClick={() => {
                       setSelectedAsset(asset);
                       setIsEditing(false);
@@ -303,7 +298,6 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                               ? "border-white/30 text-white hover:bg-white/10"
                               : "border-brand-gray/30 text-brand-black hover:border-brand-black"
                           }`}
-                          style={{ borderRadius: '6px' }}
                         >
                           Edit
                         </button>
@@ -313,7 +307,6 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                             handleDeleteAsset(asset.id);
                           }}
                           className="text-xs px-2 py-1 border border-red-200 text-red-600 hover:border-red-500 hover:bg-red-50 transition-all"
-                          style={{ borderRadius: '6px' }}
                         >
                           Del
                         </button>
@@ -331,7 +324,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
               {selectedAsset ? (
                 <AssetDetailsView asset={selectedAsset} />
               ) : (
-                <div className="border border-brand-gray/20 p-8 bg-white text-center shadow-sm" style={{ borderRadius: '12px' }}>
+                <div className="border border-brand-gray/20 p-8 bg-white text-center shadow-sm">
                   <p className="text-sm font-medium text-brand-black/60 mb-1">
                     No Instrument Selected
                   </p>
@@ -349,7 +342,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
         ) : (
           <div className="space-y-6">
             {/* Data Maintenance Section */}
-            <div className="border border-brand-gray/20 bg-white shadow-sm p-5" style={{ borderRadius: '12px' }}>
+            <div className="border border-brand-gray/20 bg-white shadow-sm p-5">
               <h3 className="text-sm font-semibold text-brand-black mb-3">
                 Data Maintenance
               </h3>
@@ -421,15 +414,14 @@ interface AssetFormModalProps {
 const AssetFormModal: React.FC<AssetFormModalProps> = ({ asset, assets, onSave, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-4">
-      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-brand-gray/20 shadow-modal" style={{ borderRadius: '16px' }}>
-        <div className="sticky top-0 z-10 flex justify-between items-center px-5 py-3.5 bg-white border-b border-brand-gray/20" style={{ borderRadius: '16px 16px 0 0' }}>
+      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-brand-gray/20 shadow-modal">
+        <div className="sticky top-0 z-10 flex justify-between items-center px-5 py-3.5 bg-white border-b border-brand-gray/20">
           <h2 className="text-lg font-heading font-normal text-brand-black">
             {asset ? "Edit Instrument" : "New Instrument"}
           </h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center text-brand-black/60 hover:text-brand-black hover:bg-brand-gray/10 transition-colors"
-            style={{ borderRadius: '8px' }}
           >
             ✕
           </button>
@@ -566,7 +558,6 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
                     ? "border-red-400 focus:border-red-500"
                     : "border-brand-gray/30 focus:border-brand-black"
                 }`}
-                style={{ borderRadius: '8px' }}
                 required
               />
               {duplicateAssets && duplicateAssets.some(d => d.name.toLowerCase() === formData.name?.toLowerCase()) && (
@@ -588,7 +579,6 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
                     ? "border-red-400 focus:border-red-500"
                     : "border-brand-gray/30 focus:border-brand-black"
                 }`}
-                style={{ borderRadius: '8px' }}
                 required
               />
               {duplicateAssets && duplicateAssets.some(d => d.sku.toLowerCase() === formData.sku?.toLowerCase()) && (
@@ -606,7 +596,6 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
                 value={formData.brand || ""}
                 onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                 className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black"
-                style={{ borderRadius: '8px' }}
                 required
               />
             </div>
@@ -618,7 +607,6 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
                 value={formData.category || "Sneakers"}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black"
-                style={{ borderRadius: '8px' }}
               >
                 <option value="Sneakers">Sneakers</option>
                 <option value="Watches">Watches</option>
@@ -635,7 +623,6 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
                 value={formData.image || ""}
                 onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                 className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black"
-                style={{ borderRadius: '8px' }}
                 placeholder="https://..."
               />
             </div>
@@ -643,7 +630,7 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
           
           {/* Duplicate Warning Banner */}
           {duplicateAssets && duplicateAssets.length > 0 && (
-            <div className="border border-yellow-300 bg-yellow-50 p-3" style={{ borderRadius: '8px' }}>
+            <div className="border border-yellow-300 bg-yellow-50 p-3">
               <div className="flex items-start gap-2">
                 <span className="text-yellow-600 text-sm mt-0.5">⚠</span>
                 <div className="flex-1">
@@ -688,7 +675,6 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
           <button
             type="submit"
             className="px-5 py-2.5 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition"
-            style={{ borderRadius: '8px' }}
           >
             {asset ? "Update" : "Create"}
           </button>
@@ -696,7 +682,6 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
             type="button"
             onClick={onCancel}
             className="px-5 py-2.5 border border-brand-gray/30 text-brand-black text-sm font-semibold hover:bg-brand-gray/10 transition"
-            style={{ borderRadius: '8px' }}
           >
             Cancel
           </button>
@@ -801,7 +786,6 @@ const PriceAnchorsForm: React.FC<PriceAnchorsFormProps> = ({ priceAnchors, onCha
             value={anchors.retailIndia || ""}
             onChange={(e) => updateRetailIndia(parseFloat(e.target.value) || 0)}
             className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-brand-black focus:outline-none focus:border-brand-black"
-            style={{ borderRadius: '8px' }}
             placeholder="e.g., 12,999"
           />
         </div>
@@ -819,7 +803,6 @@ const PriceAnchorsForm: React.FC<PriceAnchorsFormProps> = ({ priceAnchors, onCha
             value={retailGlobalUSD}
             onChange={(e) => updateRetailGlobal(e.target.value)}
             className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-brand-black focus:outline-none focus:border-brand-black"
-            style={{ borderRadius: '8px' }}
             placeholder="e.g., 150"
             disabled={isLoadingRate}
           />
@@ -914,7 +897,7 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
         </p>
       </div>
 
-      <div className="border border-brand-gray/20 p-4 bg-brand-background" style={{ borderRadius: '8px' }}>
+      <div className="border border-brand-gray/20 p-4 bg-brand-background">
         <div className="mb-3">
           <label className="block text-xs font-medium text-brand-black mb-1.5">
             Add Sizes <span className="text-red-500">*</span>
@@ -932,7 +915,6 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
               }
             }}
             className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black resize-none bg-white"
-            style={{ borderRadius: '8px' }}
             placeholder="UK 7, UK 8, UK 9, UK 10"
             rows={2}
           />
@@ -942,7 +924,6 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
             type="button"
             onClick={handleQuickAddSubmit}
             className="px-4 py-2 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition"
-            style={{ borderRadius: '8px' }}
           >
             Add Sizes
           </button>
@@ -950,7 +931,6 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
             type="button"
             onClick={() => setQuickAddInput("")}
             className="px-4 py-2 border border-brand-gray/30 text-brand-black text-sm font-semibold hover:bg-brand-gray/10 transition"
-            style={{ borderRadius: '8px' }}
           >
             Clear
           </button>
@@ -975,14 +955,13 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
           <div
             key={size.size}
             className="border border-brand-gray/20 p-3 bg-white shadow-soft"
-            style={{ borderRadius: '8px' }}
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-sm font-semibold text-brand-black">{size.size}</span>
                   {size.size === defaultSize && (
-                    <span className="text-xs px-2 py-0.5 bg-brand-gray/15 text-brand-black/70" style={{ borderRadius: '4px' }}>Default</span>
+                    <span className="text-xs px-2 py-0.5 bg-brand-gray/15 text-brand-black/70">Default</span>
                   )}
                 </div>
                 <div className="grid grid-cols-3 gap-3 text-xs text-brand-black">
@@ -1020,7 +999,6 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
                     setShowForm(true);
                   }}
                   className="text-xs px-2.5 py-1 border border-brand-gray/30 hover:border-brand-black text-brand-black transition"
-                  style={{ borderRadius: '6px' }}
                 >
                   Edit
                 </button>
@@ -1028,7 +1006,6 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
                   type="button"
                   onClick={() => handleDeleteSize(originalIndex)}
                   className="text-xs px-2.5 py-1 border border-red-200 hover:border-red-500 hover:bg-red-50 text-red-600 transition"
-                  style={{ borderRadius: '6px' }}
                 >
                   Del
                 </button>
@@ -1093,7 +1070,7 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
   };
 
   return (
-    <div className="border border-brand-gray/20 p-4 bg-white shadow-sm size-variant-form-container" style={{ borderRadius: '12px' }} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+    <div className="border border-brand-gray/20 p-4 bg-white shadow-sm size-variant-form-container" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
       <div className="mb-4 pb-2 border-b border-brand-gray/20">
         <h4 className="text-sm font-semibold text-brand-black mb-1">
           {sizeVariant ? "Edit Size Variant" : "New Size Variant"}
@@ -1124,7 +1101,6 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
               }
             }}
             className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black"
-            style={{ borderRadius: '8px' }}
             placeholder="e.g., UK 9"
             required
             autoFocus
@@ -1143,7 +1119,6 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
               handleSubmit();
             }}
             className="px-4 py-2 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition"
-            style={{ borderRadius: '8px' }}
           >
             Save Size
           </button>
@@ -1151,7 +1126,6 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
             type="button"
             onClick={onCancel}
             className="px-4 py-2 border border-brand-gray/30 text-brand-black text-sm font-semibold hover:bg-brand-gray/10 transition"
-            style={{ borderRadius: '8px' }}
           >
             Cancel
           </button>
@@ -1172,7 +1146,7 @@ const AssetDetailsView: React.FC<AssetDetailsViewProps> = ({ asset }) => {
     : 'Never';
 
   return (
-    <div className="border border-brand-gray/20 bg-white shadow-sm p-5" style={{ borderRadius: '12px' }}>
+    <div className="border border-brand-gray/20 bg-white shadow-sm p-5">
       <div className="mb-4 pb-3 border-b border-brand-gray/20">
         <h2 className="text-base font-semibold text-brand-black mb-1">
           {asset.name}
@@ -1187,22 +1161,22 @@ const AssetDetailsView: React.FC<AssetDetailsViewProps> = ({ asset }) => {
       </div>
       
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-brand-background p-3" style={{ borderRadius: '8px' }}>
+        <div className="bg-brand-background p-3">
           <p className="text-xs text-brand-black/50 mb-1">Size Variants</p>
           <p className="text-lg font-mono-numeric font-semibold text-brand-black">{asset.sizes?.length || 0}</p>
         </div>
-        <div className="bg-brand-background p-3" style={{ borderRadius: '8px' }}>
+        <div className="bg-brand-background p-3">
           <p className="text-xs text-brand-black/50 mb-1">Last Updated</p>
           <p className="text-sm font-mono-numeric font-medium text-brand-black">{lastUpdated}</p>
         </div>
         {asset.volatility && (
-          <div className="bg-brand-background p-3" style={{ borderRadius: '8px' }}>
+          <div className="bg-brand-background p-3">
             <p className="text-xs text-brand-black/50 mb-1">Volatility</p>
             <p className="text-sm font-medium text-brand-black capitalize">{asset.volatility}</p>
           </div>
         )}
         {asset.priceAnchors?.retailIndia && (
-          <div className="bg-brand-background p-3" style={{ borderRadius: '8px' }}>
+          <div className="bg-brand-background p-3">
             <p className="text-xs text-brand-black/50 mb-1">Retail (IN)</p>
             <p className="text-sm font-mono-numeric font-semibold text-brand-black">₹{asset.priceAnchors.retailIndia.toLocaleString('en-IN')}</p>
           </div>
@@ -1533,15 +1507,14 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-4">
-      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-brand-gray/20 shadow-modal" style={{ borderRadius: '16px' }}>
-        <div className="sticky top-0 z-10 flex justify-between items-center px-5 py-3.5 bg-white border-b border-brand-gray/20" style={{ borderRadius: '16px 16px 0 0' }}>
+      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-brand-gray/20 shadow-modal">
+        <div className="sticky top-0 z-10 flex justify-between items-center px-5 py-3.5 bg-white border-b border-brand-gray/20">
           <h2 className="text-lg font-heading font-normal text-brand-black">
             Bulk Add Instruments
           </h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center text-brand-black/60 hover:text-brand-black hover:bg-brand-gray/10 transition-colors"
-            style={{ borderRadius: '8px' }}
           >
             ✕
           </button>
@@ -1564,7 +1537,7 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
                   Upload CSV File
                 </label>
                 <div className="flex items-center gap-3">
-                  <label className="px-4 py-2 border border-brand-gray/30 bg-white text-brand-black text-xs font-semibold hover:border-brand-black transition cursor-pointer" style={{ borderRadius: '8px' }}>
+                  <label className="px-4 py-2 border border-brand-gray/30 bg-white text-brand-black text-xs font-semibold hover:border-brand-black transition cursor-pointer">
                     Choose File
                     <input
                       type="file"
@@ -1592,13 +1565,11 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
                   className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono text-brand-black focus:outline-none focus:border-brand-black resize-none"
                   placeholder="Name, SKU, Brand, Category, Image URL, Retail India (₹), Retail Global ($), Sizes&#10;Nike Dunk Low Panda, DN1234, Nike, Sneakers, https://example.com/image.jpg, 12999, 150, UK 7, UK 8, UK 9"
                   rows={8}
-                  style={{ borderRadius: '8px' }}
                 />
                 <button
                   type="button"
                   onClick={() => parseBulkInput()}
                   className="mt-3 px-4 py-2 border border-brand-gray/30 bg-white text-brand-black text-sm font-semibold hover:border-brand-black transition"
-                  style={{ borderRadius: '8px' }}
                 >
                   Parse & Validate
                 </button>
@@ -1606,7 +1577,7 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
             </div>
 
             {errors.length > 0 && (
-              <div className="border border-red-200 bg-red-50 p-4" style={{ borderRadius: '8px' }}>
+              <div className="border border-red-200 bg-red-50 p-4">
                 <h3 className="text-xs font-semibold text-red-800 mb-2">Errors <span className="font-mono-numeric">({errors.length})</span></h3>
                 <ul className="space-y-1">
                   {errors.map((error, index) => (
@@ -1617,7 +1588,7 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
             )}
 
             {parsedAssets.length > 0 && (
-              <div className="border border-brand-gray/20 p-4" style={{ borderRadius: '8px' }}>
+              <div className="border border-brand-gray/20 p-4">
                 <h3 className="text-sm font-semibold text-brand-black mb-3">
                   Preview — <span className="font-mono-numeric">{parsedAssets.length}</span> asset{parsedAssets.length !== 1 ? 's' : ''} ready
                   {duplicateWarnings.size > 0 && (
@@ -1635,7 +1606,6 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
                         className={`border p-3 ${
                           duplicates ? 'border-yellow-300 bg-yellow-50' : 'border-brand-gray/20 bg-brand-background'
                         }`}
-                        style={{ borderRadius: '8px' }}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -1675,19 +1645,18 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
             )}
 
             {isCreating && (
-              <div className="border border-brand-gray/20 bg-brand-background p-4" style={{ borderRadius: '8px' }}>
+              <div className="border border-brand-gray/20 bg-brand-background p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-brand-black border-t-transparent"></div>
                   <span className="text-sm font-semibold text-brand-black">
                     Creating Assets...
                   </span>
                 </div>
-                <div className="w-full bg-brand-gray/20 h-2 mb-2" style={{ borderRadius: '4px' }}>
+                <div className="w-full bg-brand-gray/20 h-2 mb-2">
                   <div 
                     className="bg-brand-black h-2 transition-all duration-300"
                     style={{ 
-                      width: `${creationProgress.total > 0 ? (creationProgress.created / creationProgress.total) * 100 : 0}%`,
-                      borderRadius: '4px'
+                      width: `${creationProgress.total > 0 ? (creationProgress.created / creationProgress.total) * 100 : 0}%`
                     }}
                   ></div>
                 </div>
@@ -1702,7 +1671,6 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
                 type="submit"
                 disabled={parsedAssets.length === 0 || isCreating}
                 className="px-5 py-2.5 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                style={{ borderRadius: '8px' }}
               >
                 {isCreating ? (
                   <>
@@ -1720,7 +1688,6 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
                 onClick={onClose}
                 disabled={isCreating}
                 className="px-5 py-2.5 border border-brand-gray/30 text-brand-black text-sm font-semibold hover:bg-brand-gray/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ borderRadius: '8px' }}
               >
                 Cancel
               </button>
@@ -1816,7 +1783,6 @@ const BackfillMetricsButton: React.FC<BackfillMetricsButtonProps> = ({
         onClick={handleBackfill}
         disabled={isProcessing || assets.length === 0}
         className="px-5 py-2.5 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        style={{ borderRadius: '8px' }}
       >
         {isProcessing ? (
           <>
@@ -1835,14 +1801,13 @@ const BackfillMetricsButton: React.FC<BackfillMetricsButtonProps> = ({
 
       {/* Progress Bar */}
       {isProcessing && progress.total > 0 && (
-        <div className="border border-brand-gray/20 bg-white shadow-sm p-4" style={{ borderRadius: '8px' }}>
+        <div className="border border-brand-gray/20 bg-white shadow-sm p-4">
           <div className="mb-2">
-            <div className="w-full bg-brand-gray/20 h-2" style={{ borderRadius: '4px' }}>
+            <div className="w-full bg-brand-gray/20 h-2">
               <div
                 className="bg-brand-black h-2 transition-all duration-300"
                 style={{
                   width: `${(progress.current / progress.total) * 100}%`,
-                  borderRadius: '4px',
                 }}
               ></div>
             </div>
@@ -1861,7 +1826,6 @@ const BackfillMetricsButton: React.FC<BackfillMetricsButtonProps> = ({
               ? "border-green-200 bg-green-50"
               : "border-red-200 bg-red-50"
           }`}
-          style={{ borderRadius: '8px' }}
         >
           <p
             className={`text-xs font-medium ${

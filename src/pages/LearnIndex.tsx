@@ -79,7 +79,6 @@ const LearnIndex: React.FC = () => {
                   ? "bg-brand-black text-white"
                   : "border border-brand-gray/30 bg-white text-brand-black hover:border-brand-black"
               }`}
-              style={{ borderRadius: "20px" }}
             >
               {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </button>
@@ -95,7 +94,6 @@ const LearnIndex: React.FC = () => {
               key={guide.id}
               to={`/learn/${guide.slug}`}
               className="group border border-brand-gray/20 p-5 bg-white hover:border-brand-black hover:shadow-md shadow-sm text-left transition-all block"
-              style={{ borderRadius: "8px" }}
             >
               <div className="flex items-start justify-between mb-3">
                 <span
@@ -106,7 +104,6 @@ const LearnIndex: React.FC = () => {
                         ? "bg-yellow-500/10 text-yellow-700 border border-yellow-500/30"
                         : "bg-brand-gray/10 text-brand-black border border-brand-gray/30"
                   }`}
-                  style={{ borderRadius: "4px" }}
                 >
                   {guide.difficulty}
                 </span>

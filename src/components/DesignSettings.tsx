@@ -83,7 +83,6 @@ export const DesignSettings: React.FC = () => {
               <button
                 onClick={handleSave}
                 className="px-4 py-2 bg-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90 transition-all"
-                style={{ borderRadius: '8px' }}
               >
                 Save Changes
               </button>
@@ -91,7 +90,6 @@ export const DesignSettings: React.FC = () => {
             <button
               onClick={handleReset}
               className="px-4 py-2 border border-brand-gray/20 bg-brand-white text-brand-black text-sm font-medium hover:border-brand-black/40 transition-all"
-              style={{ borderRadius: '8px' }}
             >
               Reset to Default
             </button>
@@ -99,7 +97,7 @@ export const DesignSettings: React.FC = () => {
         </div>
 
         {/* Color Tokens */}
-        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
           <h3 className="text-sm font-semibold text-brand-black mb-4">
             Brand Colors
           </h3>
@@ -116,20 +114,18 @@ export const DesignSettings: React.FC = () => {
                   value={tokens.brandBlack}
                   onChange={(e) => handleChange("brandBlack", e.target.value)}
                   className="h-10 w-20 border border-brand-gray/20 cursor-pointer"
-                  style={{ borderRadius: '8px' }}
                 />
                 <input
                   type="text"
                   value={tokens.brandBlack}
                   onChange={(e) => handleChange("brandBlack", e.target.value)}
                   className="flex-1 border border-brand-gray/20 px-3 py-2 text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-                  style={{ borderRadius: '8px' }}
                   placeholder="#0c0c0c"
                 />
               </div>
               <div
                 className="mt-2 h-8 border border-brand-gray/15"
-                style={{ backgroundColor: tokens.brandBlack, borderRadius: '8px' }}
+                style={{ backgroundColor: tokens.brandBlack }}
               />
             </div>
 
@@ -144,20 +140,18 @@ export const DesignSettings: React.FC = () => {
                   value={tokens.brandGray}
                   onChange={(e) => handleChange("brandGray", e.target.value)}
                   className="h-10 w-20 border border-brand-gray/20 cursor-pointer"
-                  style={{ borderRadius: '8px' }}
                 />
                 <input
                   type="text"
                   value={tokens.brandGray}
                   onChange={(e) => handleChange("brandGray", e.target.value)}
                   className="flex-1 border border-brand-gray/20 px-3 py-2 text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-                  style={{ borderRadius: '8px' }}
                   placeholder="#bec2c6"
                 />
               </div>
               <div
                 className="mt-2 h-8 border border-brand-gray/15"
-                style={{ backgroundColor: tokens.brandGray, borderRadius: '8px' }}
+                style={{ backgroundColor: tokens.brandGray }}
               />
             </div>
 
@@ -172,20 +166,18 @@ export const DesignSettings: React.FC = () => {
                   value={tokens.brandWhite}
                   onChange={(e) => handleChange("brandWhite", e.target.value)}
                   className="h-10 w-20 border border-brand-gray/20 cursor-pointer"
-                  style={{ borderRadius: '8px' }}
                 />
                 <input
                   type="text"
                   value={tokens.brandWhite}
                   onChange={(e) => handleChange("brandWhite", e.target.value)}
                   className="flex-1 border border-brand-gray/20 px-3 py-2 text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-                  style={{ borderRadius: '8px' }}
                   placeholder="#ffffff"
                 />
               </div>
               <div
                 className="mt-2 h-8 border border-brand-gray/15"
-                style={{ backgroundColor: tokens.brandWhite, borderRadius: '8px' }}
+                style={{ backgroundColor: tokens.brandWhite }}
               />
             </div>
 
@@ -200,27 +192,25 @@ export const DesignSettings: React.FC = () => {
                   value={tokens.brandYellow}
                   onChange={(e) => handleChange("brandYellow", e.target.value)}
                   className="h-10 w-20 border border-brand-gray/20 cursor-pointer"
-                  style={{ borderRadius: '8px' }}
                 />
                 <input
                   type="text"
                   value={tokens.brandYellow}
                   onChange={(e) => handleChange("brandYellow", e.target.value)}
                   className="flex-1 border border-brand-gray/20 px-3 py-2 text-sm text-brand-black focus:outline-none focus:border-brand-black/40 transition-colors"
-                  style={{ borderRadius: '8px' }}
                   placeholder="#f7f126"
                 />
               </div>
               <div
                 className="mt-2 h-8 border border-brand-gray/15"
-                style={{ backgroundColor: tokens.brandYellow, borderRadius: '8px' }}
+                style={{ backgroundColor: tokens.brandYellow }}
               />
             </div>
           </div>
         </div>
 
         {/* Typography */}
-        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
           <h3 className="text-sm font-semibold text-brand-black mb-4">
             Typography
           </h3>
@@ -246,16 +236,16 @@ export const DesignSettings: React.FC = () => {
         </div>
 
         {/* Preview */}
-        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5" style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="bg-brand-white border border-brand-gray/20 p-5 mb-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
           <h3 className="text-sm font-semibold text-brand-black mb-4">
             Preview
           </h3>
 
-          <div className="border border-brand-gray/15 p-5 bg-brand-white space-y-4" style={{ borderRadius: '12px' }}>
+          <div className="border border-brand-gray/15 p-5 bg-brand-white space-y-4">
             <div className="flex items-center gap-3">
               <div
                 className="h-12 w-12 bg-brand-gray/10"
-                style={{ backgroundColor: `${tokens.brandGray}20`, borderRadius: '8px' }}
+                style={{ backgroundColor: `${tokens.brandGray}20` }}
               />
               <div>
                 <h4 className="text-base font-semibold text-brand-black">
@@ -268,7 +258,6 @@ export const DesignSettings: React.FC = () => {
               <button
                 className="px-4 py-2 text-brand-white text-sm font-medium"
                 style={{
-                  borderRadius: '8px',
                   backgroundColor: tokens.brandBlack,
                 }}
               >
@@ -277,7 +266,6 @@ export const DesignSettings: React.FC = () => {
               <button
                 className="px-4 py-2 border text-sm font-medium"
                 style={{
-                  borderRadius: '8px',
                   borderColor: `${tokens.brandGray}33`,
                   backgroundColor: tokens.brandWhite,
                   color: tokens.brandBlack,
@@ -294,7 +282,7 @@ export const DesignSettings: React.FC = () => {
         </div>
 
         {/* Current Values Display */}
-        <div className="p-5 bg-brand-gray/5 border border-brand-gray/15" style={{ borderRadius: '12px' }}>
+        <div className="p-5 bg-brand-gray/5 border border-brand-gray/15">
           <h3 className="text-sm font-medium text-brand-black mb-3">
             Current Design Tokens
           </h3>

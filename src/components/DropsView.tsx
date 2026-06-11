@@ -23,7 +23,7 @@ interface ErrorStateProps {
 }
 
 const ErrorState: React.FC<ErrorStateProps> = ({ message, onRetry, isRetrying = false }) => (
-  <div className="border border-red-200 bg-red-50 p-6 text-center" style={{ borderRadius: '12px' }}>
+  <div className="border border-red-200 bg-red-50 p-6 text-center">
     <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 mb-3" style={{ borderRadius: '50%' }}>
       <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -43,7 +43,6 @@ const ErrorState: React.FC<ErrorStateProps> = ({ message, onRetry, isRetrying = 
           ? "border-red-200 bg-red-100 text-red-400 cursor-not-allowed"
           : "border-red-600 bg-red-600 text-white hover:bg-red-700 active:scale-95"
       }`}
-      style={{ borderRadius: '8px' }}
       aria-label={isRetrying ? "Retrying..." : "Retry loading data"}
     >
       {isRetrying ? (
@@ -409,7 +408,6 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
                 ? "bg-brand-black text-white"
                 : "border-brand-gray/30 bg-white text-brand-black/70 hover:border-brand-black"
             }`}
-            style={{ borderRadius: '20px' }}
           >
             All Brands
           </button>
@@ -422,7 +420,6 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
                   ? "bg-brand-black text-white"
                   : "border-brand-gray/30 bg-white text-brand-black/70 hover:border-brand-black"
               }`}
-              style={{ borderRadius: '20px' }}
             >
               {brand}
             </button>
@@ -432,7 +429,7 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
 
       {/* Drops List */}
       {loading ? (
-        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm" style={{ borderRadius: '12px' }}>
+        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm">
           <div className="flex items-center justify-center gap-2">
             <svg className="w-4 h-4 animate-spin text-brand-black/60" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -448,7 +445,7 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
           isRetrying={isRetrying}
         />
       ) : filteredDrops.length === 0 ? (
-        <div className="border border-brand-gray/20 p-8 bg-white shadow-sm" style={{ borderRadius: '12px' }}>
+        <div className="border border-brand-gray/20 p-8 bg-white shadow-sm">
           <div className="text-center mb-6">
             <svg className="w-12 h-12 mx-auto mb-3 text-brand-black/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -469,7 +466,6 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
               <div
                 key={i}
                 className="aspect-square flex items-center justify-center text-[10px] text-brand-black/30 border border-brand-gray/10 bg-brand-background/30"
-                style={{ borderRadius: '4px' }}
               >
                 {i + 1}
               </div>
@@ -486,7 +482,6 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
               <div
                 key={drop.id}
                 className="border border-brand-gray/20 p-4 bg-white hover:shadow-md shadow-sm transition"
-                style={{ borderRadius: '8px' }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
                   {/* Drop Image & Info */}
@@ -557,7 +552,6 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
                           ? "bg-brand-black text-white"
                           : "border-brand-gray/30 bg-white text-brand-black/70 hover:border-brand-black"
                       }`}
-                      style={{ borderRadius: '6px' }}
                       title={
                         checkHasReminder(drop.id)
                           ? "Remove reminder"
@@ -605,7 +599,6 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-block px-2.5 py-1 border border-brand-gray/30 bg-white text-[10px] font-medium text-brand-black/70 hover:border-brand-black hover:text-brand-black transition leading-tight"
-                          style={{ borderRadius: '6px' }}
                         >
                           {retailer.displayName}
                         </a>

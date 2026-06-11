@@ -58,7 +58,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({
   noPadding = false,
 }, ref) => {
   return (
-    <div ref={ref} className={`bg-white border border-brand-gray/20 shadow-sm ${className}`} style={{ borderRadius: '16px' }}>
+    <div ref={ref} className={`bg-white border border-brand-gray/20 shadow-sm ${className}`}>
       {title && (
         <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-brand-gray/10">
           {/* Header: stack title + action vertically on mobile, side-by-side on sm+ */}
@@ -104,7 +104,7 @@ const MetricSkeleton: React.FC = () => (
 );
 
 const CardSkeleton: React.FC = () => (
-  <div className="p-4 bg-brand-white border border-brand-gray/20 shadow-sm" style={{ borderRadius: '16px' }}>
+  <div className="p-4 bg-brand-white border border-brand-gray/20 shadow-sm">
     <div className="space-y-3">
       <div className="h-4 w-32 bg-brand-gray/20 relative overflow-hidden">
         <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
@@ -122,7 +122,7 @@ const CardSkeleton: React.FC = () => (
 );
 
 const ImageSkeleton: React.FC = () => (
-  <div className="aspect-square w-full max-w-xs bg-brand-gray/10 border border-brand-gray/20 relative overflow-hidden" style={{ borderRadius: '12px' }}>
+  <div className="aspect-square w-full max-w-xs bg-brand-gray/10 border border-brand-gray/20 relative overflow-hidden">
     <div className="w-full h-full bg-brand-gray/20 relative overflow-hidden">
       <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
     </div>
@@ -244,7 +244,6 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   return (
     <div
       className={`bg-white border border-brand-gray/20 border-l-4 ${getChannelAccent(listing.channel)} p-3 mb-2.5 shadow-sm`}
-      style={{ borderRadius: '10px' }}
     >
       {/* Header: Channel dot + label, optional side badge, price (right) */}
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -254,7 +253,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
             {listing.channel}
           </span>
           {showSideBadge && (
-            <span className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase ${getSideColor(listing.side)}`} style={{ borderRadius: '4px' }}>
+            <span className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase ${getSideColor(listing.side)}`}>
               {listing.side}
             </span>
           )}
@@ -312,7 +311,6 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
           <button
             onClick={handleAction}
             className="w-full min-h-[40px] px-4 py-2 bg-brand-black text-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-colors active:scale-[0.98]"
-            style={{ borderRadius: '8px' }}
           >
             {listing.side === 'Sell' ? 'Sell To' : 'Buy From'} →
           </button>
@@ -327,7 +325,7 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
   const roiPct = opp.netPct * 100;
 
   return (
-    <div className="border border-brand-gray/20 bg-white p-4" style={{ borderRadius: '12px' }}>
+    <div className="border border-brand-gray/20 bg-white p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-3 pb-2 border-b border-brand-gray/15">
         <span className="text-xs text-brand-black/50">{channelPairLabel(opp)}</span>
@@ -346,7 +344,7 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
       {/* Lower → Higher Price Flow */}
       <div className="space-y-2 mb-3">
         {/* Lower Price */}
-        <div className="flex items-baseline justify-between bg-brand-background/30 border border-brand-gray/15 p-2.5" style={{ borderRadius: '8px' }}>
+        <div className="flex items-baseline justify-between bg-brand-background/30 border border-brand-gray/15 p-2.5">
           <div>
             <div className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5">Lower Price</div>
             <div className="text-xs font-semibold text-brand-black">{channelLabel(opp.buy.channel)}</div>
@@ -367,13 +365,13 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
         </div>
 
         {/* Higher Price */}
-        <div className="flex items-baseline justify-between bg-brand-background/30 border border-brand-gray/15 p-2.5" style={{ borderRadius: '8px' }}>
+        <div className="flex items-baseline justify-between bg-brand-background/30 border border-brand-gray/15 p-2.5">
           <div>
             <div className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5">Higher Price</div>
             <div className="text-xs font-semibold text-brand-black">{channelLabel(opp.sell.channel)}</div>
             <div className="text-[10px] text-brand-black/50 truncate max-w-[140px]">{opp.sell.source}</div>
             {opp.sellReliability === "consignment" && (
-              <span className="inline-block mt-0.5 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200/60 cursor-help" style={{ borderRadius: '3px' }} title="Consignment: marketplace lists your item and pays you after it sells. Payout timing varies.">
+              <span className="inline-block mt-0.5 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200/60 cursor-help" title="Consignment: marketplace lists your item and pays you after it sells. Payout timing varies.">
                 Consignment
               </span>
             )}
@@ -388,7 +386,7 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
       </div>
 
       {/* Spread */}
-      <div className="bg-brand-black text-white p-3 flex items-center justify-between" style={{ borderRadius: '8px' }}>
+      <div className="bg-brand-black text-white p-3 flex items-center justify-between">
         <div>
           <div className="text-[10px] uppercase font-semibold tracking-wider opacity-70">Spread</div>
           <div className="text-xl font-bold font-mono-numeric">₹{opp.netProfit.toLocaleString('en-IN')}</div>
@@ -406,7 +404,6 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors"
-            style={{ borderRadius: '6px' }}
           >
             Contact Seller
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -419,7 +416,6 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-brand-black text-white hover:bg-brand-black/80 transition-colors"
-            style={{ borderRadius: '6px' }}
           >
             View Listing
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -938,7 +934,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-6 p-4 md:p-6">
           {/* Large Image - Full Height */}
           <div className="md:col-span-2">
-            <div className="w-full h-full min-h-[280px] bg-brand-gray/5 border border-brand-gray/20 flex items-center justify-center" style={{ borderRadius: '12px' }}>
+            <div className="w-full h-full min-h-[280px] bg-brand-gray/5 border border-brand-gray/20 flex items-center justify-center">
               {asset.image ? (
                 <img
                   src={asset.image}
@@ -1025,7 +1021,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                               ? 'bg-green-50 border border-green-300 text-brand-black hover:border-green-500'
                               : 'bg-white border border-brand-gray/30 text-brand-black hover:border-brand-black'
                           }`}
-                          style={{ borderRadius: '8px' }}
                         >
                           <span className="block text-xs font-semibold leading-tight">{sv.size}</span>
                           {hasPrice ? (
@@ -1053,7 +1048,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             })()}
 
             {/* Quick Decision Card - Key Metrics at a Glance */}
-            <div className="bg-brand-background border border-brand-gray/30 p-3" style={{ borderRadius: '12px' }}>
+            <div className="bg-brand-background border border-brand-gray/30 p-3">
               <div className="flex items-baseline justify-between gap-3 mb-2">
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-brand-black/50 uppercase tracking-wider mb-1">Best Price</p>
@@ -1129,7 +1124,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                         <div
                           key={ch.label}
                           className={`px-1.5 sm:px-2.5 py-2 text-center relative group/ch min-w-0 ${isBest ? "bg-green-50 border border-green-200" : "bg-white border border-brand-gray/15"}`}
-                          style={{ borderRadius: '8px' }}
                           title={tooltip}
                         >
                           <p className="text-[9px] sm:text-[10px] text-brand-black/50 uppercase tracking-wider mb-0.5 leading-tight flex items-center justify-center gap-1">
@@ -1311,7 +1305,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 <button
                   onClick={() => { setShowBuyModal(true); setBuyModalExpandWhatsapp(false); setBuyModalExpandMarketplace(false); setBuyModalExpandIntl(false); }}
                   className="px-4 py-3 bg-brand-black text-white text-center hover:bg-brand-black/80 transition-all duration-200 active:scale-95"
-                  style={{ borderRadius: '8px' }}
                   title="See verified sources for this asset"
                 >
                   <span className="text-[10px] font-normal opacity-70 block leading-tight">
@@ -1322,7 +1315,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 <button
                   onClick={() => setShowSellModal(true)}
                   className="px-4 py-3 border-2 border-brand-black text-brand-black bg-transparent text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
-                  style={{ borderRadius: '8px' }}
                   title="Post a listing for this asset"
                 >
                   <span className="text-[10px] font-normal opacity-50 block leading-tight">Your Ask Price</span>
@@ -1363,7 +1355,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 ? 'bg-brand-black text-white'
                 : 'bg-white text-brand-black border-2 border-brand-gray/30 hover:border-brand-black'
             }`}
-            style={{ borderRadius: '12px' }}
           >
             Overview
             {currentData.insight && (
@@ -1377,10 +1368,9 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 ? 'bg-brand-black text-white'
                 : 'bg-white text-brand-black border-2 border-brand-gray/30 hover:border-brand-black'
             }`}
-            style={{ borderRadius: '12px' }}
           >
             Listings {unifiedListings.length > 0 && (
-              <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'listings' ? 'bg-white/20' : 'bg-brand-black/10'}`} style={{ borderRadius: '6px' }}>
+              <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'listings' ? 'bg-white/20' : 'bg-brand-black/10'}`}>
                 {unifiedListings.length}
               </span>
             )}
@@ -1392,10 +1382,9 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 ? 'bg-brand-black text-white'
                 : 'bg-white text-brand-black border-2 border-brand-gray/30 hover:border-brand-black'
             }`}
-            style={{ borderRadius: '12px' }}
           >
             Discrepancies {arbitrageOpps.length > 0 && (
-              <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'arbitrage' ? 'bg-white/20' : 'bg-brand-black/10'}`} style={{ borderRadius: '6px' }}>
+              <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'arbitrage' ? 'bg-white/20' : 'bg-brand-black/10'}`}>
                 {arbitrageOpps.length}
               </span>
             )}
@@ -1490,7 +1479,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
 
               return (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }} title="Based on price fluctuation patterns across data points.">
+                  <div className="border border-brand-gray/20 p-3" title="Based on price fluctuation patterns across data points.">
                     <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">Volatility</p>
                     <p className={`text-lg font-semibold capitalize ${
                       asset.volatility === 'low' ? 'text-green-600' : asset.volatility === 'high' ? 'text-red-600' : 'text-yellow-600'
@@ -1505,7 +1494,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       </p>
                     )}
                   </div>
-                  <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }} title={`Lowest price: ₹${marketMin.toLocaleString('en-IN')} — Highest price: ₹${marketMax.toLocaleString('en-IN')}`}>
+                  <div className="border border-brand-gray/20 p-3" title={`Lowest price: ₹${marketMin.toLocaleString('en-IN')} — Highest price: ₹${marketMax.toLocaleString('en-IN')}`}>
                     <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">Price Range</p>
                     {marketMin > 0 ? (
                       <>
@@ -1526,7 +1515,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       <p className="text-lg font-bold text-brand-black/30">—</p>
                     )}
                   </div>
-                  <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }} title="Measures how close best prices are to the average across channels.">
+                  <div className="border border-brand-gray/20 p-3" title="Measures how close best prices are to the average across channels.">
                     <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1 flex items-center gap-1">
                       Efficiency
                       <span className="cursor-help text-brand-black/30 hover:text-brand-black/60 transition-colors">ⓘ</span>
@@ -1548,7 +1537,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       <p className="text-lg font-bold text-brand-black/30">—</p>
                     )}
                   </div>
-                  <div className="border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }} title={`Price stability: ${priceRangePct.toFixed(1)}% spread.`}>
+                  <div className="border border-brand-gray/20 p-3" title={`Price stability: ${priceRangePct.toFixed(1)}% spread.`}>
                     <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1 flex items-center gap-1">
                       Stability
                       <span className="cursor-help text-brand-black/30 hover:text-brand-black/60 transition-colors">ⓘ</span>
@@ -1594,7 +1583,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     : currentData.insight.recommendation === 'hold'
                     ? 'border-brand-black/30 text-brand-black/60'
                     : 'border-brand-black/20 text-brand-black/50'
-                }`} style={{ borderRadius: '4px' }}>
+                }`}>
                   {currentData.insight.recommendation.toUpperCase()}
                 </div>
               </div>
@@ -1604,10 +1593,10 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   <span className="text-brand-black/70">Confidence</span>
                   <span className="font-mono text-brand-black">{currentData.insight.confidence}%</span>
                 </div>
-                <div className="h-1.5 bg-brand-gray/20 overflow-hidden" style={{ borderRadius: '4px' }}>
+                <div className="h-1.5 bg-brand-gray/20 overflow-hidden">
                   <div
                     className="h-full bg-brand-black/40 transition-all"
-                    style={{ width: `${currentData.insight.confidence}%`, borderRadius: '4px' }}
+                    style={{ width: `${currentData.insight.confidence}%` }}
                   />
                 </div>
               </div>
@@ -1631,7 +1620,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       {mainTab === 'listings' && (
         <div className="space-y-4">
       {/* View Mode Toggle */}
-      <div className="inline-flex items-center gap-1 bg-white border border-brand-gray/30 p-1 w-full sm:w-fit" style={{ borderRadius: '10px' }}>
+      <div className="inline-flex items-center gap-1 bg-white border border-brand-gray/30 p-1 w-full sm:w-fit">
         <button
           onClick={() => setListingsViewMode('individual')}
           className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-semibold transition-all whitespace-nowrap ${
@@ -1639,7 +1628,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               ? 'bg-brand-black text-white'
               : 'text-brand-black/60 hover:text-brand-black'
           }`}
-          style={{ borderRadius: '8px' }}
         >
           <span className="sm:hidden">Individual</span>
           <span className="hidden sm:inline">Individual Listings</span>
@@ -1651,7 +1639,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               ? 'bg-brand-black text-white'
               : 'text-brand-black/60 hover:text-brand-black'
           }`}
-          style={{ borderRadius: '8px' }}
         >
           <span className="sm:hidden">Order Book</span>
           <span className="hidden sm:inline">Aggregated (Order Book)</span>
@@ -1700,7 +1687,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as 'price' | 'quantity' | 'newest')}
                   className="text-[11px] border border-brand-gray/30 bg-white px-2 py-1 text-brand-black focus:outline-none focus:border-brand-black"
-                  style={{ borderRadius: '6px' }}
                   aria-label="Sort listings"
                 >
                   <option value="price">Sort: Price ↑</option>
@@ -1777,7 +1763,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     value={filterLocation || ''}
                     onChange={(e) => setFilterLocation(e.target.value || null)}
                     className="flex-1 min-w-0 text-[11px] border border-brand-gray/30 bg-white px-2 py-1 text-brand-black focus:outline-none focus:border-brand-black"
-                    style={{ borderRadius: '6px' }}
                   >
                     <option value="">All locations</option>
                     {Array.from(new Set(unifiedListings.map(row => row.location).filter((loc): loc is string => Boolean(loc)))).map((loc: string) => (
@@ -1815,7 +1800,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                           ? 'bg-brand-black text-white'
                           : 'bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black'
                       }`}
-                      style={{ borderRadius: '20px' }}
                     >
                       {opt.label}
                     </button>
@@ -1844,7 +1828,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                           ? 'bg-brand-black text-white'
                           : 'bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black'
                       }`}
-                      style={{ borderRadius: '20px' }}
                     >
                       {opt.label}
                     </button>
@@ -1862,7 +1845,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     value={filterLocation || ''}
                     onChange={(e) => setFilterLocation(e.target.value || null)}
                     className="flex-1 text-sm border border-brand-gray/30 bg-white px-3 py-1.5 text-brand-black focus:outline-none focus:border-brand-black"
-                    style={{ borderRadius: '8px' }}
                   >
                     <option value="">All Locations</option>
                     {Array.from(new Set(unifiedListings.map(row => row.location).filter((loc): loc is string => Boolean(loc)))).map((loc: string) => (
@@ -1877,7 +1859,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as 'price' | 'quantity' | 'newest')}
                     className="flex-1 text-sm border border-brand-gray/30 bg-white px-3 py-1.5 text-brand-black focus:outline-none focus:border-brand-black"
-                    style={{ borderRadius: '8px' }}
                   >
                     <option value="price">Price: Low to High</option>
                     <option value="quantity">Quantity: High to Low</option>
@@ -1985,7 +1966,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                         return (
                           <div key={idx} className="relative">
                             {isBestDeal && (
-                              <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-yellow-400 text-brand-black px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-sm" style={{ borderRadius: '4px' }}>
+                              <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-yellow-400 text-brand-black px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-sm">
                                 <span>⭐</span>
                                 <span>Best</span>
                               </div>
@@ -2091,7 +2072,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                             row.side === 'Buy' ? 'bg-green-50 text-green-700' :
                             row.side === 'Sell' ? 'bg-red-50 text-red-700' :
                             'bg-gray-50 text-gray-700'
-                          }`} style={{ borderRadius: '6px' }}>
+                          }`}>
                             {row.side}
                           </span>
                         </td>
@@ -2152,7 +2133,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                   }
                                 }}
                                 className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors whitespace-nowrap"
-                                style={{ borderRadius: '6px' }}
                               >
                                 Request Intro
                               </button>
@@ -2164,7 +2144,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors whitespace-nowrap"
-                                style={{ borderRadius: '6px' }}
                               >
                                 {row.side === 'Sell' ? 'Sell to' : 'Buy from'}
                               </a>
@@ -2174,7 +2153,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold border border-brand-gray/30 text-brand-black hover:bg-brand-black hover:text-white hover:border-brand-black transition-colors whitespace-nowrap"
-                                style={{ borderRadius: '6px' }}
                               >
                                 {row.side === 'Sell' ? 'Sell to' : 'Buy from'}
                               </a>
@@ -2231,9 +2209,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
         <button
           onClick={() => setSelectedSize(bestSizeArb.size)}
           className="w-full flex items-center gap-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 p-3 text-left hover:border-green-500 transition-colors"
-          style={{ borderRadius: '12px' }}
         >
-          <div className="w-8 h-8 bg-green-600 text-white flex items-center justify-center flex-shrink-0" style={{ borderRadius: '8px' }}>
+          <div className="w-8 h-8 bg-green-600 text-white flex items-center justify-center flex-shrink-0">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
@@ -2284,7 +2261,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 {/* Mobile: stacked Buy → Profit → Sell. Desktop: 3-column grid. */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 sm:items-center">
                   {/* Lower Price */}
-                  <div className="flex sm:block items-center justify-between bg-brand-background/40 sm:bg-transparent border sm:border-0 border-brand-gray/15 p-2.5 sm:p-0 min-w-0" style={{ borderRadius: '8px' }}>
+                  <div className="flex sm:block items-center justify-between bg-brand-background/40 sm:bg-transparent border sm:border-0 border-brand-gray/15 p-2.5 sm:p-0 min-w-0">
                     <div className="min-w-0">
                       <p className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5 sm:mb-1">Lower Price</p>
                       <p className="text-sm font-semibold text-brand-black truncate">{channelLabel(top.buy.channel)}</p>
@@ -2294,7 +2271,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   </div>
 
                   {/* Spread (center on desktop, prominent banner on mobile) */}
-                  <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:gap-1 bg-green-50 sm:bg-transparent border sm:border-0 border-green-200 p-2.5 sm:p-0" style={{ borderRadius: '8px' }}>
+                  <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:gap-1 bg-green-50 sm:bg-transparent border sm:border-0 border-green-200 p-2.5 sm:p-0">
                     <svg className="hidden sm:block w-5 h-5 text-brand-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
@@ -2307,7 +2284,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   </div>
 
                   {/* Higher Price */}
-                  <div className="flex sm:block items-center justify-between bg-brand-background/40 sm:bg-transparent border sm:border-0 border-brand-gray/15 p-2.5 sm:p-0 sm:text-right min-w-0" style={{ borderRadius: '8px' }}>
+                  <div className="flex sm:block items-center justify-between bg-brand-background/40 sm:bg-transparent border sm:border-0 border-brand-gray/15 p-2.5 sm:p-0 sm:text-right min-w-0">
                     <div className="min-w-0">
                       <p className="text-[10px] text-brand-black/50 uppercase font-semibold tracking-wider mb-0.5 sm:mb-1">Higher Price</p>
                       <p className="text-sm font-semibold text-brand-black truncate">{channelLabel(top.sell.channel)}</p>
@@ -2334,7 +2311,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors ${
                         buyAction.type === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-brand-black hover:bg-brand-black/80'
                       }`}
-                      style={{ borderRadius: '8px' }}
                     >
                       {buyAction.type === 'whatsapp' ? 'Contact Seller on WhatsApp' : 'View Buy Listing'}
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2347,7 +2323,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             </Card>
           );
         })() : (
-          <div className="border border-brand-gray/20 p-4 text-center" style={{ borderRadius: '12px' }}>
+          <div className="border border-brand-gray/20 p-4 text-center">
             <p className="text-sm font-semibold text-brand-black/60">No high-confidence spread detected</p>
             <p className="text-[11px] text-brand-black/40 mt-1">
               {cleanArbitrageOpps.length > 0
@@ -2379,7 +2355,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   value={(minArbNetPct * 100).toFixed(1)}
                   onChange={(e) => setMinArbNetPct(Math.max(0, Number(e.target.value) / 100))}
                   className="w-16 border border-brand-gray/30 px-2 py-1 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-brand-black bg-brand-white"
-                  style={{ borderRadius: '6px' }}
                   step="0.5"
                 />
                 <span className="text-[10px] text-brand-black/50">%</span>
@@ -2391,7 +2366,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   value={minArbNetRs}
                   onChange={(e) => setMinArbNetRs(Math.max(0, Number(e.target.value)))}
                   className="w-20 border border-brand-gray/30 px-2 py-1 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-brand-black bg-brand-white"
-                  style={{ borderRadius: '6px' }}
                   step="500"
                 />
               </div>
@@ -2405,7 +2379,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               ))}
             </div>
           ) : (
-            <div className="border border-brand-gray/20 overflow-hidden" style={{ borderRadius: '12px' }}>
+            <div className="border border-brand-gray/20 overflow-hidden">
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="min-w-full text-sm border-collapse">
                   <thead className="bg-brand-background/50 border-b-2 border-brand-gray/20">
@@ -2458,7 +2432,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                             <div className="text-xs font-semibold text-brand-black">{channelLabel(opp.sell.channel)}</div>
                             <div className="text-[10px] text-brand-black/50 truncate max-w-[120px]">{opp.sell.source}</div>
                             {opp.sellReliability === "consignment" && (
-                              <span className="inline-block mt-0.5 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200/60" style={{ borderRadius: '3px' }}>
+                              <span className="inline-block mt-0.5 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200/60">
                                 Consignment
                               </span>
                             )}
@@ -2495,7 +2469,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                 className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white transition-colors whitespace-nowrap ${
                                   buyAction.type === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-brand-black hover:bg-brand-black/80'
                                 }`}
-                                style={{ borderRadius: '6px' }}
                               >
                                 {buyAction.type === 'whatsapp' ? 'Contact' : 'View'}
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2530,7 +2503,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             </svg>
             <p className="text-sm font-semibold text-brand-black/60">No Price Discrepancies</p>
             <p className="text-xs text-brand-black/40 mt-1 mb-4">Market is efficiently priced or not enough cross-channel data yet</p>
-            <div className="max-w-sm mx-auto text-left bg-brand-background/50 border border-brand-gray/20 p-3 space-y-2" style={{ borderRadius: '8px' }}>
+            <div className="max-w-sm mx-auto text-left bg-brand-background/50 border border-brand-gray/20 p-3 space-y-2">
               <p className="text-xs font-semibold text-brand-black/70">What is a price discrepancy?</p>
               <p className="text-[11px] text-brand-black/50 leading-relaxed">
                 Price discrepancies appear when the same sneaker is priced differently across channels. We surface cross-channel gaps of 3%+ and rank them by spread size after accounting for platform fees.
@@ -2578,7 +2551,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               <button
                 onClick={() => setShowBuyModal(false)}
                 className="w-10 h-10 flex items-center justify-center border-2 border-brand-gray hover:border-brand-black hover:bg-brand-gray/10 transition-all active:scale-95"
-                style={{ borderRadius: '8px' }}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -2636,7 +2608,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                   }
                                 }}
                                 className="mt-2 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold uppercase tracking-wide hover:bg-green-700 transition-all whitespace-nowrap"
-                                style={{ borderRadius: '4px' }}
                               >
                                 Request Intro
                               </button>
@@ -2697,7 +2668,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     <button
                       onClick={() => setBuyModalExpandWhatsapp(!buyModalExpandWhatsapp)}
                       className="mt-2 w-full py-2 text-xs font-semibold text-brand-black/70 hover:text-brand-black border border-brand-gray/20 hover:border-brand-black/30 transition-colors bg-white"
-                      style={{ borderRadius: '6px' }}
                     >
                       {buyModalExpandWhatsapp ? 'Show less' : `Show all ${whatsappPrices.buy.length} sellers`}
                     </button>
@@ -2743,7 +2713,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     <button
                       onClick={() => setBuyModalExpandMarketplace(!buyModalExpandMarketplace)}
                       className="mt-2 w-full py-2 text-xs font-semibold text-brand-black/70 hover:text-brand-black border border-brand-gray/20 hover:border-brand-black/30 transition-colors bg-white"
-                      style={{ borderRadius: '6px' }}
                     >
                       {buyModalExpandMarketplace ? 'Show less' : `Show all ${marketplacePrices.length} listings`}
                     </button>
@@ -2796,7 +2765,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     <button
                       onClick={() => setBuyModalExpandIntl(!buyModalExpandIntl)}
                       className="mt-2 w-full py-2 text-xs font-semibold text-brand-black/70 hover:text-brand-black border border-brand-gray/20 hover:border-brand-black/30 transition-colors bg-white"
-                      style={{ borderRadius: '6px' }}
                     >
                       {buyModalExpandIntl ? 'Show less' : `Show all ${internationalPrices.length} listings`}
                     </button>
@@ -2932,7 +2900,6 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
           <button
             onClick={onClose}
             className="w-10 h-10 flex items-center justify-center border-2 border-brand-gray hover:border-brand-black hover:bg-brand-gray/10 transition-all active:scale-95"
-            style={{ borderRadius: '0px' }}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -2983,7 +2950,6 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
                 onChange={(e) => setAskingPrice(e.target.value)}
                 placeholder="e.g., 12500"
                 className="w-full pl-8 pr-3 py-3 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black"
-                style={{ borderRadius: '8px' }}
               />
             </div>
             {bestPrice && (
@@ -3006,7 +2972,6 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
               value={quantity}
               onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
               className="w-full px-3 py-3 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black"
-              style={{ borderRadius: '8px' }}
             />
           </div>
 
@@ -3025,7 +2990,6 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
                       ? 'border-brand-black bg-brand-black text-white'
                       : 'border-brand-gray text-brand-black hover:bg-brand-gray/10'
                   }`}
-                  style={{ borderRadius: '4px' }}
                 >
                   {cond}
                 </button>
@@ -3045,7 +3009,6 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
               rows={4}
               maxLength={500}
               className="w-full px-3 py-3 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black resize-none"
-              style={{ borderRadius: '8px' }}
             />
             <p className="text-xs text-brand-black/60 mt-1">{description.length}/500 characters</p>
           </div>
@@ -3056,7 +3019,6 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
               onClick={onClose}
               disabled={isSubmitting}
               className="flex-1 px-6 py-3 border border-brand-gray text-sm font-semibold uppercase tracking-wide text-brand-black hover:bg-brand-gray/10 transition-all disabled:opacity-50"
-              style={{ borderRadius: '8px' }}
             >
               Cancel
             </button>
@@ -3064,7 +3026,6 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
               onClick={handleSubmit}
               disabled={isSubmitting || !askingPrice || parseFloat(askingPrice) <= 0}
               className="flex-1 px-6 py-3 bg-brand-black text-white text-sm font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ borderRadius: '8px' }}
             >
               {isSubmitting ? 'Creating...' : 'Create Listing'}
             </button>

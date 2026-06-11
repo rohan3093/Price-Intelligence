@@ -84,7 +84,6 @@ export const IntentPanel: React.FC<IntentPanelProps> = ({
   return (
     <div
       className="bg-white border border-brand-gray/20 shadow-sm"
-      style={{ borderRadius: "16px" }}
     >
       {/* Header */}
       <div className="px-5 py-4 border-b border-brand-gray/10">
@@ -122,7 +121,6 @@ export const IntentPanel: React.FC<IntentPanelProps> = ({
             </label>
             <div
               className="px-3 py-2.5 bg-brand-background border border-brand-gray/30 text-sm font-semibold text-brand-black"
-              style={{ borderRadius: "8px" }}
             >
               {selectedSize || "Select size"}
             </div>
@@ -141,7 +139,6 @@ export const IntentPanel: React.FC<IntentPanelProps> = ({
               onChange={(e) => setLimitPrice(e.target.value)}
               placeholder="Enter price"
               className="w-full px-3 py-2.5 bg-white border-2 border-brand-gray text-sm font-mono-numeric font-semibold text-brand-black placeholder:text-brand-black/30 focus:border-brand-black focus:outline-none transition-colors"
-              style={{ borderRadius: "8px" }}
             />
             {suggestedPrice > 0 && (
               <button
@@ -184,14 +181,12 @@ export const IntentPanel: React.FC<IntentPanelProps> = ({
             onClick={handleSubmit}
             disabled={!selectedSize || !limitPrice}
             className="flex-1 bg-brand-black text-white px-4 py-3 text-sm font-bold uppercase tracking-wide hover:bg-brand-black/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
-            style={{ borderRadius: "8px" }}
           >
             Post Intent
           </button>
           <button
             onClick={handleSave}
             className="px-4 py-3 border-2 border-brand-gray text-sm font-bold text-brand-black hover:bg-brand-gray/10 transition-all active:scale-[0.98]"
-            style={{ borderRadius: "8px" }}
           >
             Save
           </button>

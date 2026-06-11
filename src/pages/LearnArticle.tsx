@@ -98,7 +98,6 @@ const LearnArticle: React.FC = () => {
                     ? "bg-yellow-500/10 text-yellow-700 border border-yellow-500/30"
                     : "bg-brand-gray/10 text-brand-black border border-brand-gray/30"
               }`}
-              style={{ borderRadius: "4px" }}
             >
               {guide.difficulty}
             </span>
@@ -135,7 +134,6 @@ const LearnArticle: React.FC = () => {
         {/* CTA */}
         <div
           className="mt-12 p-6 bg-brand-black text-white"
-          style={{ borderRadius: "8px" }}
         >
           <h3 className="text-sm font-semibold mb-1.5">
             Ready to put this into practice?
@@ -172,7 +170,6 @@ const LearnArticle: React.FC = () => {
             <Link
               to={`/learn/${prevGuide.slug}`}
               className="group p-4 border border-brand-gray/20 bg-white hover:border-brand-black transition-colors text-left"
-              style={{ borderRadius: "8px" }}
             >
               <span className="text-[10px] text-brand-black/40 uppercase tracking-wider">
                 Previous
@@ -188,7 +185,6 @@ const LearnArticle: React.FC = () => {
             <Link
               to={`/learn/${nextGuide.slug}`}
               className="group p-4 border border-brand-gray/20 bg-white hover:border-brand-black transition-colors text-right"
-              style={{ borderRadius: "8px" }}
             >
               <span className="text-[10px] text-brand-black/40 uppercase tracking-wider">
                 Next

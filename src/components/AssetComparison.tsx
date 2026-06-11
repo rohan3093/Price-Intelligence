@@ -48,7 +48,7 @@ export const AssetComparison: React.FC<AssetComparisonProps> = ({ assets, onClos
   if (selectedAssets.length === 0) {
     return (
       <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-brand-white border border-brand-gray/20 p-6 max-w-2xl w-full" style={{ borderRadius: '0px' }}>
+        <div className="bg-brand-white border border-brand-gray/20 p-6 max-w-2xl w-full">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-heading font-normal text-brand-black uppercase tracking-wide">
               Compare Assets
@@ -69,7 +69,7 @@ export const AssetComparison: React.FC<AssetComparisonProps> = ({ assets, onClos
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-brand-white border border-brand-gray/20 p-6 max-w-7xl w-full my-8" style={{ borderRadius: '0px' }}>
+      <div className="bg-brand-white border border-brand-gray/20 p-6 max-w-7xl w-full my-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/20">
           <h2 className="text-lg font-heading font-normal text-brand-black uppercase tracking-wide">
@@ -115,7 +115,7 @@ export const AssetComparison: React.FC<AssetComparisonProps> = ({ assets, onClos
                 <td className="p-3 text-xs text-brand-black/60 uppercase tracking-wide">Image</td>
                 {selectedAssets.map((asset) => (
                   <td key={asset.id} className="p-3">
-                    <div className="w-24 h-24 bg-brand-gray/5 border border-brand-gray/20 flex items-center justify-center" style={{ borderRadius: '0px' }}>
+                    <div className="w-24 h-24 bg-brand-gray/5 border border-brand-gray/20 flex items-center justify-center">
                       <img
                         src={asset.image}
                         alt={asset.name}
@@ -202,10 +202,10 @@ export const AssetComparison: React.FC<AssetComparisonProps> = ({ assets, onClos
                     <td key={asset.id} className="p-3">
                       <div className="flex items-center gap-2">
                         <p className="text-base font-semibold text-brand-black">{confidence}/100</p>
-                        <div className="flex-1 bg-brand-gray/20 h-2" style={{ borderRadius: '0px' }}>
+                        <div className="flex-1 bg-brand-gray/20 h-2">
                           <div 
                             className="h-full bg-brand-black transition-all"
-                            style={{ width: `${confidence}%`, borderRadius: '0px' }}
+                            style={{ width: `${confidence}%` }}
                           ></div>
                         </div>
                       </div>

@@ -320,7 +320,6 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
               value={chatText}
               onChange={(e) => setChatText(e.target.value)}
               className="w-full border border-brand-gray/30 px-3 py-2 text-xs font-mono text-brand-black focus:outline-none focus:border-brand-black resize-none"
-              style={{ borderRadius: "8px" }}
               rows={12}
               placeholder={`Paste your WhatsApp chat export here...\n\nExample:\n18/02/2026, 10:32 am - Rahul_Delhi: WTS Jordan 4 Bred UK9 12000\n18/02/2026, 10:45 am - SneakerVault: wts Dunk Low Panda uk8 uk9 uk10 ₹8,500\n18/02/2026, 11:02 am - Mayankk_01: WTB Yeezy 350 Bone UK10 7k`}
             />
@@ -331,14 +330,13 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
               onClick={handleParse}
               disabled={!chatText.trim()}
               className="px-4 py-2 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ borderRadius: "8px" }}
             >
               Parse Chat
             </button>
 
             <span className="text-xs text-brand-black/40">or</span>
 
-            <label className="px-4 py-2 border border-brand-gray/30 text-brand-black text-xs font-semibold cursor-pointer hover:border-brand-black transition-all" style={{ borderRadius: "8px" }}>
+            <label className="px-4 py-2 border border-brand-gray/30 text-brand-black text-xs font-semibold cursor-pointer hover:border-brand-black transition-all">
               Upload .txt File
               <input
                 type="file"
@@ -358,7 +356,6 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
           {/* How-to instructions */}
           <div
             className="border border-brand-gray/15 bg-brand-gray/5 p-3"
-            style={{ borderRadius: "8px" }}
           >
             <p className="text-[10px] font-semibold text-brand-black/60 uppercase tracking-wide mb-2">
               How to Export
@@ -388,10 +385,10 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
                 listings found
               </div>
               <div className="flex items-center gap-1.5 text-[10px]">
-                <span className="px-1.5 py-0.5 border border-red-400/40 text-red-600 font-medium" style={{ borderRadius: "4px" }}>
+                <span className="px-1.5 py-0.5 border border-red-400/40 text-red-600 font-medium">
                   {stats.wts} WTS
                 </span>
-                <span className="px-1.5 py-0.5 border border-emerald-400/40 text-emerald-600 font-medium" style={{ borderRadius: "4px" }}>
+                <span className="px-1.5 py-0.5 border border-emerald-400/40 text-emerald-600 font-medium">
                   {stats.wtb} WTB
                 </span>
               </div>
@@ -408,7 +405,6 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
                   setSaveResult(null);
                 }}
                 className="px-3 py-1.5 border border-brand-gray/30 text-brand-black text-[10px] font-semibold hover:border-brand-black transition-all"
-                style={{ borderRadius: "6px" }}
               >
                 ← Back to Input
               </button>
@@ -421,7 +417,6 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
               value={sideFilter}
               onChange={(e) => setSideFilter(e.target.value as any)}
               className="border border-brand-gray/30 px-2 py-1 text-[11px] text-brand-black focus:outline-none focus:border-brand-black"
-              style={{ borderRadius: "6px" }}
             >
               <option value="all">All Sides</option>
               <option value="WTS">WTS Only</option>
@@ -431,7 +426,6 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
               value={confidenceFilter}
               onChange={(e) => setConfidenceFilter(e.target.value as any)}
               className="border border-brand-gray/30 px-2 py-1 text-[11px] text-brand-black focus:outline-none focus:border-brand-black"
-              style={{ borderRadius: "6px" }}
             >
               <option value="all">All Matches</option>
               <option value="high">High Confidence (&ge;50)</option>
@@ -443,7 +437,6 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search asset, sender…"
               className="border border-brand-gray/30 px-2 py-1 text-[11px] text-brand-black focus:outline-none focus:border-brand-black placeholder:text-brand-black/30 w-48"
-              style={{ borderRadius: "6px" }}
             />
 
             <div className="ml-auto flex items-center gap-2">
@@ -463,7 +456,7 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
           </div>
 
           {/* Listings table */}
-          <div className="border border-brand-gray/20 overflow-hidden" style={{ borderRadius: "8px" }}>
+          <div className="border border-brand-gray/20 overflow-hidden">
             <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
               <table className="min-w-full text-[11px]">
                 <thead className="sticky top-0 z-10">
@@ -543,7 +536,6 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
               onClick={handleImport}
               disabled={stats.selected === 0 || isSaving}
               className="px-5 py-2.5 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ borderRadius: "8px" }}
             >
               {isSaving
                 ? "Saving…"
@@ -559,7 +551,6 @@ export const WhatsAppImport: React.FC<WhatsAppImportProps> = ({
                   ? "border-yellow-300 bg-yellow-50 text-yellow-800"
                   : "border-emerald-300 bg-emerald-50 text-emerald-800"
               }`}
-              style={{ borderRadius: "8px" }}
             >
               <p className="font-semibold mb-1">
                 {saveResult.saved > 0 ? "✓ " : ""}
@@ -619,7 +610,6 @@ const MessageDetailModal: React.FC<{
     >
       <div
         className="bg-white w-full max-w-lg max-h-[85vh] shadow-2xl border border-brand-gray/20 flex flex-col"
-        style={{ borderRadius: "12px" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-brand-gray/15 bg-brand-gray/5 flex-shrink-0">
@@ -630,7 +620,6 @@ const MessageDetailModal: React.FC<{
                   ? "border-red-400/40 text-red-600"
                   : "border-emerald-400/40 text-emerald-600"
               }`}
-              style={{ borderRadius: "3px" }}
             >
               {listing.side}
             </span>
@@ -659,7 +648,6 @@ const MessageDetailModal: React.FC<{
             </p>
             <div
               className="bg-brand-gray/5 border border-brand-gray/15 px-3 py-2.5 text-xs text-brand-black leading-relaxed whitespace-pre-wrap break-words"
-              style={{ borderRadius: "8px" }}
             >
               {listing.rawMessage}
             </div>
@@ -716,7 +704,6 @@ const MessageDetailModal: React.FC<{
               </p>
               <div
                 className="flex items-center justify-between border border-brand-gray/15 px-3 py-2"
-                style={{ borderRadius: "8px" }}
               >
                 <div>
                   <span className="text-xs font-medium text-brand-black">
@@ -734,7 +721,6 @@ const MessageDetailModal: React.FC<{
                       ? "text-yellow-700 bg-yellow-50 border-yellow-200"
                       : "text-orange-600 bg-orange-50 border-orange-200"
                   }`}
-                  style={{ borderRadius: "4px" }}
                 >
                   {listing.matchConfidence}% match
                 </span>
@@ -859,7 +845,6 @@ const ListingRow: React.FC<{
               ? "border-red-400/40 text-red-600"
               : "border-emerald-400/40 text-emerald-600"
           }`}
-          style={{ borderRadius: "3px" }}
         >
           {listing.side}
         </span>
@@ -908,11 +893,9 @@ const ListingRow: React.FC<{
               onBlur={() => setTimeout(() => setShowAssetDropdown(false), 200)}
               placeholder="Search assets..."
               className="w-full border border-brand-black px-1.5 py-1 text-[10px] focus:outline-none"
-              style={{ borderRadius: "4px" }}
             />
             <div
               className="absolute z-10 w-56 max-h-40 overflow-y-auto bg-white border border-brand-gray/30 shadow-lg"
-              style={{ borderRadius: "6px" }}
             >
               {filteredAssets.map((a) => (
                 <button
@@ -965,7 +948,6 @@ const ListingRow: React.FC<{
             value={listing.manualSize || listing.sizes[0] || ""}
             onChange={(e) => onSizeOverride(index, e.target.value)}
             className="border border-brand-gray/30 px-1 py-0.5 text-[10px] focus:outline-none focus:border-brand-black w-full max-w-[80px]"
-            style={{ borderRadius: "4px" }}
           >
             <option value="">—</option>
             {availableSizes.map((s) => (
@@ -999,7 +981,6 @@ const ListingRow: React.FC<{
             if (!isNaN(val)) onPriceOverride(index, val);
           }}
           className="w-20 text-right border border-brand-gray/20 px-1 py-0.5 text-[11px] font-mono-numeric focus:outline-none focus:border-brand-black"
-          style={{ borderRadius: "4px" }}
           placeholder="₹"
         />
       </td>
@@ -1008,7 +989,6 @@ const ListingRow: React.FC<{
       <td className="px-2 py-2">
         <span
           className={`inline-block px-1.5 py-0.5 text-[9px] font-semibold border ${confColor}`}
-          style={{ borderRadius: "4px" }}
         >
           {listing.matchConfidence > 0 ? `${listing.matchConfidence}%` : "None"}
         </span>

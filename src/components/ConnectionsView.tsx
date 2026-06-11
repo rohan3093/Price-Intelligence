@@ -75,7 +75,7 @@ export const ConnectionsView: React.FC<ConnectionsViewProps> = ({ currentUser, o
             Manage your connection requests with other traders
           </p>
         </div>
-        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm" style={{ borderRadius: '12px' }}>
+        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm">
           <svg className="w-12 h-12 mx-auto text-brand-black/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
@@ -88,7 +88,6 @@ export const ConnectionsView: React.FC<ConnectionsViewProps> = ({ currentUser, o
           <button
             onClick={onSignInClick}
             className="px-4 py-2 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition leading-tight"
-            style={{ borderRadius: '8px' }}
           >
             Sign In
           </button>
@@ -142,7 +141,7 @@ export const ConnectionsView: React.FC<ConnectionsViewProps> = ({ currentUser, o
 
       {/* Connections List */}
       {!loading && connections.length === 0 && (
-        <div className="text-center py-12 border border-brand-gray/20 bg-white shadow-sm" style={{ borderRadius: '12px' }}>
+        <div className="text-center py-12 border border-brand-gray/20 bg-white shadow-sm">
           <p className="text-sm text-brand-black/60">
             {activeTab === 'received' 
               ? "No connection requests received yet"
@@ -230,7 +229,7 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({
   };
 
   return (
-    <div className="border border-brand-gray/20 bg-white p-4 hover:shadow-md shadow-sm transition-shadow" style={{ borderRadius: '8px' }}>
+    <div className="border border-brand-gray/20 bg-white p-4 hover:shadow-md shadow-sm transition-shadow">
       {/* Asset Info */}
       <div className="flex gap-4 mb-4">
         <img 
@@ -383,7 +382,7 @@ const CompletionModal: React.FC<CompletionModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       
-      <div className="relative bg-white border border-brand-gray/20 w-full max-w-md shadow-lg" style={{ borderRadius: '12px' }}>
+      <div className="relative bg-white border border-brand-gray/20 w-full max-w-md shadow-lg">
         <div className="border-b border-brand-gray/20 px-4 py-3 flex items-center justify-between">
           <h3 className="text-sm font-semibold uppercase tracking-wide">Complete Transaction</h3>
           <button onClick={onClose} className="text-brand-black hover:text-brand-black/60">
@@ -408,7 +407,6 @@ const CompletionModal: React.FC<CompletionModalProps> = ({
                 onChange={(e) => setActualPrice(e.target.value)}
                 placeholder="e.g., 12500"
                 className="w-full pl-8 pr-3 py-2.5 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black"
-                style={{ borderRadius: '8px' }}
                 required
               />
             </div>
@@ -442,7 +440,6 @@ const CompletionModal: React.FC<CompletionModalProps> = ({
               placeholder="How was the trade?"
               rows={3}
               className="w-full px-3 py-2.5 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black resize-none"
-              style={{ borderRadius: '8px' }}
             />
           </div>
 
@@ -451,14 +448,12 @@ const CompletionModal: React.FC<CompletionModalProps> = ({
               type="button"
               onClick={onClose}
               className="flex-1 px-4 py-2 border border-brand-gray/30 text-sm font-semibold uppercase tracking-wide text-brand-black hover:bg-brand-gray/10 transition-all"
-              style={{ borderRadius: '6px' }}
             >
               Cancel
             </button>
             <button
               type="submit"
               className="flex-1 px-4 py-2 bg-brand-black text-white text-sm font-semibold uppercase tracking-wide hover:bg-brand-black/80 transition-all"
-              style={{ borderRadius: '6px' }}
             >
               Complete Trade
             </button>

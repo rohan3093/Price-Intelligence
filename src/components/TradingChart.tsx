@@ -63,7 +63,6 @@ const TimeframeButton: React.FC<{
         ? "bg-brand-black text-white"
         : "bg-transparent text-brand-black/60 hover:text-brand-black hover:bg-brand-gray/10"
     }`}
-    style={{ borderRadius: "6px" }}
     title={`Show ${label} data`}
   >
     {label}
@@ -284,7 +283,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
     if (rows.length === 0) return null;
 
     return (
-      <div className="bg-white border-2 border-brand-black px-3 py-2 shadow-lg" style={{ borderRadius: "8px" }}>
+      <div className="bg-white border-2 border-brand-black px-3 py-2 shadow-lg">
         <p className="text-xs text-brand-black/60 mb-1.5">{data.displayDate}</p>
         {rows.map((r) => (
           <div key={r.channel} className="flex items-center gap-2 mb-0.5">
@@ -308,7 +307,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
 
   if (chartData.length === 0) {
     return (
-      <div className="bg-brand-background/30 border border-brand-gray/20 p-8 text-center" style={{ borderRadius: "12px" }}>
+      <div className="bg-brand-background/30 border border-brand-gray/20 p-8 text-center">
         <svg className="w-12 h-12 mx-auto mb-3 text-brand-black/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
             d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
@@ -354,19 +353,18 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
       {/* Controls — hidden when data is sparse, or when only "ALL" is available (single-button selector is not a choice) */}
       {!isSparse && availableTimeframes.length > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="inline-flex items-center gap-0.5 sm:gap-1 border border-brand-gray/30 bg-brand-background/50 p-1 flex-wrap" style={{ borderRadius: "8px" }}>
+          <div className="inline-flex items-center gap-0.5 sm:gap-1 border border-brand-gray/30 bg-brand-background/50 p-1 flex-wrap">
             {availableTimeframes.map((tf) => (
               <TimeframeButton key={tf} label={tf} active={timeframe === tf} onClick={() => setTimeframe(tf)} />
             ))}
           </div>
 
-          <div className="inline-flex items-center gap-1 border border-brand-gray/30 bg-brand-background/50 p-1" style={{ borderRadius: "8px" }}>
+          <div className="inline-flex items-center gap-1 border border-brand-gray/30 bg-brand-background/50 p-1">
             <button
               onClick={() => setChartType("area")}
               className={`px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 ${
                 chartType === "area" ? "bg-brand-black text-white" : "bg-transparent text-brand-black/60 hover:text-brand-black"
               }`}
-              style={{ borderRadius: "6px" }}
               title="Area Chart"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -379,7 +377,6 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
               className={`px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 ${
                 chartType === "line" ? "bg-brand-black text-white" : "bg-transparent text-brand-black/60 hover:text-brand-black"
               }`}
-              style={{ borderRadius: "6px" }}
               title="Line Chart"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -435,7 +432,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
       {/* Sparse data advisory — only for non-sparse-but-thin-day-count cases.
           When isSparse is true, the replacement view below carries its own line. */}
       {!isSparse && chartData.length < 5 && chartData.length > 0 && (
-        <div className="flex items-start gap-2 text-xs text-brand-black/50 bg-brand-background/50 border border-brand-gray/15 p-2.5" style={{ borderRadius: "8px" }}>
+        <div className="flex items-start gap-2 text-xs text-brand-black/50 bg-brand-background/50 border border-brand-gray/15 p-2.5">
           <svg className="w-4 h-4 text-brand-black/30 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -481,7 +478,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
           </p>
         </div>
       ) : (
-        <div className="bg-white border border-brand-gray/20 p-2 sm:p-4" style={{ borderRadius: "12px" }}>
+        <div className="bg-white border border-brand-gray/20 p-2 sm:p-4">
           <ResponsiveContainer width="100%" height={chartData.length < 10 ? 200 : 320}>
             {chartType === "area" ? (
               <AreaChart key="area" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>

@@ -94,7 +94,6 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
           <button
             onClick={onClose}
             className="w-10 h-10 flex items-center justify-center border-2 border-brand-gray hover:border-brand-black hover:bg-brand-gray/10 transition-all active:scale-95"
-            style={{ borderRadius: '0px' }}
             aria-label="Close modal"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,7 +110,6 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
               src={asset.image} 
               alt={asset.name}
               className="w-20 h-20 object-contain border border-brand-gray/30"
-              style={{ borderRadius: '0px' }}
             />
             <div className="flex-1">
               <h3 className="font-semibold text-brand-black mb-1">{asset.name}</h3>
@@ -162,7 +160,6 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
                 value={quantity}
                 onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2.5 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black"
-                style={{ borderRadius: '0px' }}
                 required
               />
             </div>
@@ -183,7 +180,6 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
                     onChange={(e) => setProposedPrice(e.target.value)}
                     placeholder="e.g., 12500"
                     className="w-full pl-8 pr-3 py-2.5 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black"
-                    style={{ borderRadius: '0px' }}
                   />
                 </div>
                 <p className="text-xs text-brand-black/60 mt-1">
@@ -204,7 +200,6 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
                 rows={4}
                 maxLength={500}
                 className="w-full px-3 py-2.5 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black resize-none"
-                style={{ borderRadius: '0px' }}
               />
               <p className="text-xs text-brand-black/60 mt-1">
                 {message.length}/500 characters
@@ -225,7 +220,6 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
                 onClick={onClose}
                 disabled={isSubmitting}
                 className="flex-1 px-4 py-3 border border-brand-gray text-sm font-semibold uppercase tracking-wide text-brand-black hover:bg-brand-gray/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ borderRadius: '0px' }}
               >
                 Cancel
               </button>
@@ -233,7 +227,6 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
                 type="submit"
                 disabled={isSubmitting || !currentUser}
                 className="flex-1 px-4 py-3 border border-brand-gray bg-brand-black text-white text-sm font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ borderRadius: '0px' }}
               >
                 {isSubmitting ? "Sending..." : "Send Request"}
               </button>

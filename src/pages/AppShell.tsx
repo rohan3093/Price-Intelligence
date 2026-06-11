@@ -433,7 +433,6 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
                         ? "border-yellow-600 text-yellow-700 hover:bg-yellow-100 active:scale-95"
                         : "border-red-600 bg-red-600 text-white hover:bg-red-700 active:scale-95"
                     }`}
-                    style={{ borderRadius: '0px' }}
                   >
                     {isRetrying ? "Retrying..." : "Refresh"}
                   </button>
@@ -559,7 +558,6 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
                   <button
                     onClick={() => setShowSignInModal(true)}
                     className="px-4 py-2 border border-brand-black bg-brand-black text-brand-white text-xs font-medium hover:bg-brand-black/90 transition leading-tight"
-                    style={{ borderRadius: "0px" }}
                   >
                     Sign In to Access Portfolio
                   </button>

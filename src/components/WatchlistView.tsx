@@ -34,7 +34,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
             Track your favorite assets and monitor price movements
           </p>
         </div>
-        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm" style={{ borderRadius: '12px' }}>
+        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm">
           <svg className="w-12 h-12 mx-auto text-brand-black/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
@@ -47,7 +47,6 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
           <button
             onClick={onSignInClick}
             className="px-4 py-2 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition leading-tight"
-            style={{ borderRadius: '8px' }}
           >
             Sign In
           </button>
@@ -80,7 +79,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
 
       {/* Watchlist Content */}
       {watchlistIds.length === 0 ? (
-        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm" style={{ borderRadius: '12px' }}>
+        <div className="border border-brand-gray/20 p-8 text-center bg-white shadow-sm">
           <svg className="w-12 h-12 mx-auto text-brand-black/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
           </svg>
@@ -93,7 +92,6 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
           <button
             onClick={onBrowseMarket}
             className="px-4 py-2 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition leading-tight"
-            style={{ borderRadius: '8px' }}
           >
             Browse Market
           </button>
@@ -125,12 +123,11 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
               <div
                 key={asset.id}
                 className="border border-brand-gray/20 p-4 bg-white hover:shadow-md shadow-sm transition-all"
-                style={{ borderRadius: '8px' }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                   {/* Asset Info */}
                   <div className="md:col-span-4 flex items-center gap-3">
-                    <div className="h-14 w-14 flex-shrink-0 border border-brand-gray/20 overflow-hidden" style={{ borderRadius: '6px' }}>
+                    <div className="h-14 w-14 flex-shrink-0 border border-brand-gray/20 overflow-hidden">
                       <img
                         src={asset.image}
                         alt={asset.name}
@@ -193,7 +190,6 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
                     <button
                       onClick={() => onRemoveFromWatchlist(asset.id)}
                       className="px-4 py-2 border border-brand-gray/30 bg-white text-xs font-semibold text-brand-black hover:border-brand-black hover:bg-brand-black hover:text-white transition-all leading-tight"
-                      style={{ borderRadius: '6px' }}
                     >
                       Remove
                     </button>

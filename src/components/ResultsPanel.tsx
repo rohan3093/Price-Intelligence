@@ -119,19 +119,19 @@ function formatSizeRange(asset: Asset): string {
 
 // Loading skeleton for asset card - more compact with shimmer
 const AssetCardSkeleton: React.FC = () => (
-  <div className="border border-brand-gray/20 p-3 flex gap-3 bg-white" style={{ borderRadius: '8px' }}>
-    <div className="h-12 w-12 bg-brand-gray/10 flex-shrink-0 relative overflow-hidden" style={{ borderRadius: '6px' }}>
+  <div className="border border-brand-gray/20 p-3 flex gap-3 bg-white">
+    <div className="h-12 w-12 bg-brand-gray/10 flex-shrink-0 relative overflow-hidden">
       <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
     </div>
     <div className="flex-1 space-y-2">
-      <div className="h-4 w-3/4 bg-brand-gray/10 relative overflow-hidden" style={{ borderRadius: '4px' }}>
+      <div className="h-4 w-3/4 bg-brand-gray/10 relative overflow-hidden">
         <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
       </div>
-      <div className="h-3 w-1/2 bg-brand-gray/10 relative overflow-hidden" style={{ borderRadius: '4px' }}>
+      <div className="h-3 w-1/2 bg-brand-gray/10 relative overflow-hidden">
         <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
       </div>
     </div>
-    <div className="h-5 w-20 bg-brand-gray/10 relative overflow-hidden" style={{ borderRadius: '4px' }}>
+    <div className="h-5 w-20 bg-brand-gray/10 relative overflow-hidden">
       <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
     </div>
   </div>
@@ -195,10 +195,9 @@ const AssetRow: React.FC<AssetRowProps> = React.memo(({
                     ? "border-brand-black bg-brand-black text-brand-white shadow-sm" 
                     : "border-brand-gray/20 bg-white hover:border-brand-gray/40 hover:shadow-sm"
                 }`}
-                style={{ borderRadius: '8px' }}
               >
                 {/* Asset image */}
-                <div className="h-12 w-12 bg-white flex items-center justify-center flex-shrink-0 border border-brand-gray/20" style={{ borderRadius: '6px' }}>
+                <div className="h-12 w-12 bg-white flex items-center justify-center flex-shrink-0 border border-brand-gray/20">
                   <img
                     src={asset.image}
                     alt={asset.name}
@@ -237,7 +236,7 @@ const AssetRow: React.FC<AssetRowProps> = React.memo(({
                         isSelected 
                           ? "bg-green-500 text-white" 
                           : "bg-green-500/10 text-green-700 border border-green-500/30"
-                      }`} style={{ borderRadius: '4px' }}>
+                      }`}>
                         DEAL
                       </span>
                     )}
@@ -435,7 +434,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
   const watchlistSet = useMemo(() => new Set(watchlistIds), [watchlistIds]);
 
   return (
-    <section className="border border-brand-gray/20 p-4 bg-white flex-1 flex flex-col min-h-0 shadow-sm" style={{ borderRadius: '12px' }}>
+    <section className="border border-brand-gray/20 p-4 bg-white flex-1 flex flex-col min-h-0 shadow-sm">
       <div className="flex items-center justify-between mb-3 pb-3 border-b border-brand-gray/20 flex-shrink-0">
         <div className="flex items-center gap-2">
           <h2 className="text-xs font-semibold text-brand-black uppercase tracking-wider">
@@ -456,7 +455,6 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
                   ? "border-brand-black bg-brand-black text-white"
                   : "border-brand-gray/30 text-brand-black/70 hover:border-brand-black"
               }`}
-              style={{ borderRadius: '6px' }}
               aria-label="Sort assets"
               title="Sort assets"
             >
@@ -468,7 +466,6 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
             {showSortMenu && (
               <div
                 className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-brand-gray/20 shadow-lg z-50 py-1"
-                style={{ borderRadius: '8px' }}
               >
                 {(Object.keys(sortLabels) as SortOption[]).map((option) => (
                   <button

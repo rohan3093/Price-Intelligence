@@ -143,13 +143,13 @@ export const OrderBook: React.FC<OrderBookProps> = ({
     <div className="space-y-4">
       {/* Summary Stats */}
       <div className={`grid gap-4 ${bids.length === 0 || asks.length === 0 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-3'}`}>
-        <div className="bg-brand-background/30 border border-brand-gray/20 p-3 text-center" style={{ borderRadius: '8px' }}>
+        <div className="bg-brand-background/30 border border-brand-gray/20 p-3 text-center">
           <div className="text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold mb-1">Lowest Ask</div>
           <div className="text-lg font-bold font-mono-numeric text-brand-black">{bestAsk > 0 ? formatPrice(bestAsk) : '—'}</div>
           <div className="text-xs text-brand-black/50 mt-1">{asks.length} selling</div>
         </div>
         {(bids.length > 0 && asks.length > 0) && (
-          <div className={`border p-3 text-center ${spread < 0 ? 'bg-green-50/50 border-green-200/50' : 'bg-brand-background/30 border-brand-gray/20'}`} style={{ borderRadius: '8px' }}>
+          <div className={`border p-3 text-center ${spread < 0 ? 'bg-green-50/50 border-green-200/50' : 'bg-brand-background/30 border-brand-gray/20'}`}>
             <div className="text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold mb-1">Spread</div>
             {spread > 0 ? (
               <>
@@ -168,7 +168,7 @@ export const OrderBook: React.FC<OrderBookProps> = ({
             )}
           </div>
         )}
-        <div className="bg-brand-background/30 border border-brand-gray/20 p-3 text-center" style={{ borderRadius: '8px' }}>
+        <div className="bg-brand-background/30 border border-brand-gray/20 p-3 text-center">
           <div className="text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold mb-1">Highest Bid</div>
           <div className="text-lg font-bold font-mono-numeric text-brand-black">{bestBid > 0 ? formatPrice(bestBid) : '—'}</div>
           <div className="text-xs text-brand-black/50 mt-1">{bids.length} buying</div>
@@ -177,7 +177,7 @@ export const OrderBook: React.FC<OrderBookProps> = ({
 
       {/* Crossed market notice */}
       {spread < 0 && bids.length > 0 && asks.length > 0 && (
-        <div className="flex items-start gap-2 text-xs bg-green-50/50 border border-green-200/50 p-3" style={{ borderRadius: '8px' }}>
+        <div className="flex items-start gap-2 text-xs bg-green-50/50 border border-green-200/50 p-3">
           <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
@@ -190,7 +190,7 @@ export const OrderBook: React.FC<OrderBookProps> = ({
 
       {/* One-sided market notice */}
       {bids.length === 0 && asks.length > 0 && (
-        <div className="flex items-start gap-2 text-xs bg-brand-background/50 border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }}>
+        <div className="flex items-start gap-2 text-xs bg-brand-background/50 border border-brand-gray/20 p-3">
           <svg className="w-4 h-4 text-brand-black/40 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -201,7 +201,7 @@ export const OrderBook: React.FC<OrderBookProps> = ({
         </div>
       )}
       {asks.length === 0 && bids.length > 0 && (
-        <div className="flex items-start gap-2 text-xs bg-brand-background/50 border border-brand-gray/20 p-3" style={{ borderRadius: '8px' }}>
+        <div className="flex items-start gap-2 text-xs bg-brand-background/50 border border-brand-gray/20 p-3">
           <svg className="w-4 h-4 text-brand-black/40 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -213,7 +213,7 @@ export const OrderBook: React.FC<OrderBookProps> = ({
       )}
 
       {/* Order Book Table — only show the side(s) that have data */}
-      <div className="border border-brand-gray/20" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+      <div className="border border-brand-gray/20" style={{ overflow: 'hidden' }}>
         <table className="w-full font-mono-numeric text-sm table-fixed">
           <colgroup>
             {asks.length > 0 && <col style={{ width: bids.length > 0 ? '35%' : '60%' }} />}
