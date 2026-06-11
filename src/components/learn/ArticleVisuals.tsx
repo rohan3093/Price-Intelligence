@@ -8,13 +8,13 @@ export const TipCard: React.FC<{
   children: React.ReactNode;
 }> = ({ type = "tip", title, children }) => {
   const styles = {
-    tip: "bg-green-50 border-green-200 text-green-900",
+    tip: "bg-up/10 border-up/40 text-up",
     warning: "bg-amber-50 border-amber-200 text-amber-900",
     info: "bg-blue-50 border-blue-200 text-blue-900",
   };
   const icons = {
     tip: (
-      <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4 text-up flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
       </svg>
     ),
@@ -48,7 +48,7 @@ export const StatGrid: React.FC<{
     {stats.map((s) => (
       <div
         key={s.label}
-        className="bg-white border border-brand-gray/20 p-3 rounded-lg text-center"
+        className="bg-terminal-surface border border-brand-gray/20 p-3 rounded-lg text-center"
       >
         <p className="text-lg sm:text-xl font-bold font-mono text-brand-black mb-0.5">
           {s.value}
@@ -67,7 +67,7 @@ export const StatGrid: React.FC<{
 export const PriceTierBars: React.FC<{
   tiers: { label: string; price: string; width: string; color: string; tag?: string }[];
 }> = ({ tiers }) => (
-  <div className="my-6 bg-white border border-brand-gray/20 rounded-lg p-4">
+  <div className="my-6 bg-terminal-surface border border-brand-gray/20 rounded-lg p-4">
     <p className="text-[10px] font-bold text-brand-black/50 uppercase tracking-wider mb-3">
       Price comparison (same sneaker)
     </p>
@@ -78,7 +78,7 @@ export const PriceTierBars: React.FC<{
             <span className="text-[11px] font-semibold text-brand-black">{t.label}</span>
             <div className="flex items-center gap-2">
               {t.tag && (
-                <span className="text-[9px] px-1.5 py-0.5 bg-brand-black/5 text-brand-black/50 rounded">
+                <span className="text-[9px] px-1.5 py-0.5 bg-terminal-text/5 text-brand-black/50 rounded">
                   {t.tag}
                 </span>
               )}
@@ -101,7 +101,7 @@ export const FlowDiagram: React.FC<{
   steps: { icon: string; label: string; sub: string }[];
   title?: string;
 }> = ({ steps, title }) => (
-  <div className="my-6 bg-white border border-brand-gray/20 rounded-lg p-4 overflow-x-auto">
+  <div className="my-6 bg-terminal-surface border border-brand-gray/20 rounded-lg p-4 overflow-x-auto">
     {title && (
       <p className="text-[10px] font-bold text-brand-black/50 uppercase tracking-wider mb-4">
         {title}
@@ -111,7 +111,7 @@ export const FlowDiagram: React.FC<{
       {steps.map((step, i) => (
         <React.Fragment key={step.label}>
           <div className="flex flex-col items-center text-center w-24 flex-shrink-0">
-            <div className="w-10 h-10 rounded-full bg-brand-black/[0.04] border border-brand-gray/20 flex items-center justify-center text-lg mb-1.5">
+            <div className="w-10 h-10 rounded-full bg-terminal-surface-raised border border-brand-gray/20 flex items-center justify-center text-lg mb-1.5">
               {step.icon}
             </div>
             <p className="text-[11px] font-semibold text-brand-black leading-tight">
@@ -136,7 +136,7 @@ export const AllocationBar: React.FC<{
   segments: { label: string; pct: number; color: string }[];
   title?: string;
 }> = ({ segments, title }) => (
-  <div className="my-6 bg-white border border-brand-gray/20 rounded-lg p-4">
+  <div className="my-6 bg-terminal-surface border border-brand-gray/20 rounded-lg p-4">
     {title && (
       <p className="text-[10px] font-bold text-brand-black/50 uppercase tracking-wider mb-3">
         {title}
@@ -173,9 +173,9 @@ export const ComparisonCard: React.FC<{
   colB: string;
   accentA?: string;
   accentB?: string;
-}> = ({ title, items, colA, colB, accentA = "text-red-600", accentB = "text-green-600" }) => (
-  <div className="my-6 bg-white border border-brand-gray/20 rounded-lg overflow-hidden">
-    <div className="px-4 py-2.5 bg-brand-black/[0.02] border-b border-brand-gray/15">
+}> = ({ title, items, colA, colB, accentA = "text-down", accentB = "text-up" }) => (
+  <div className="my-6 bg-terminal-surface border border-brand-gray/20 rounded-lg overflow-hidden">
+    <div className="px-4 py-2.5 bg-terminal-surface-raised border-b border-brand-gray/15">
       <p className="text-[10px] font-bold text-brand-black/50 uppercase tracking-wider">
         {title}
       </p>
@@ -211,8 +211,8 @@ export const PortfolioCard: React.FC<{
   items: { name: string; size: string; price: string; target: string; risk: string }[];
   total: string;
 }> = ({ items, total }) => (
-  <div className="my-6 bg-white border border-brand-gray/20 rounded-lg overflow-hidden">
-    <div className="px-4 py-2.5 bg-brand-black/[0.02] border-b border-brand-gray/15 flex items-center justify-between">
+  <div className="my-6 bg-terminal-surface border border-brand-gray/20 rounded-lg overflow-hidden">
+    <div className="px-4 py-2.5 bg-terminal-surface-raised border-b border-brand-gray/15 flex items-center justify-between">
       <p className="text-[10px] font-bold text-brand-black/50 uppercase tracking-wider">
         Sample Starter Portfolio
       </p>
@@ -227,12 +227,12 @@ export const PortfolioCard: React.FC<{
           </div>
           <div className="text-right flex-shrink-0">
             <p className="text-[12px] font-bold font-mono text-brand-black">{item.price}</p>
-            <p className="text-[10px] text-green-600">Target: {item.target}</p>
+            <p className="text-[10px] text-up">Target: {item.target}</p>
           </div>
           <span className={`text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase ${
-            item.risk === "Low" ? "bg-green-100 text-green-700" :
+            item.risk === "Low" ? "bg-up/10 text-up" :
             item.risk === "Medium" ? "bg-yellow-100 text-yellow-700" :
-            "bg-red-100 text-red-700"
+            "bg-down/10 text-down"
           }`}>
             {item.risk}
           </span>
@@ -247,28 +247,28 @@ export const SignalCards: React.FC<{
   hold: string[];
 }> = ({ sell, hold }) => (
   <div className="my-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-    <div className="border border-green-200 bg-green-50/50 rounded-lg p-4">
+    <div className="border border-up/40 bg-up/50 rounded-lg p-4">
       <div className="flex items-center gap-1.5 mb-2.5">
-        <div className="w-2 h-2 rounded-full bg-green-500" />
-        <p className="text-[10px] font-bold text-green-700 uppercase tracking-wider">Sell Signals</p>
+        <div className="w-2 h-2 rounded-full bg-up" />
+        <p className="text-[10px] font-bold text-up uppercase tracking-wider">Sell Signals</p>
       </div>
       <ul className="space-y-1.5">
         {sell.map((s) => (
-          <li key={s} className="text-[12px] text-green-800 flex items-start gap-1.5">
-            <span className="text-green-500 mt-0.5">&#10003;</span> {s}
+          <li key={s} className="text-[12px] text-up flex items-start gap-1.5">
+            <span className="text-up mt-0.5">&#10003;</span> {s}
           </li>
         ))}
       </ul>
     </div>
-    <div className="border border-red-200 bg-red-50/50 rounded-lg p-4">
+    <div className="border border-down/40 bg-down/50 rounded-lg p-4">
       <div className="flex items-center gap-1.5 mb-2.5">
-        <div className="w-2 h-2 rounded-full bg-red-500" />
-        <p className="text-[10px] font-bold text-red-700 uppercase tracking-wider">Hold / Wait</p>
+        <div className="w-2 h-2 rounded-full bg-down" />
+        <p className="text-[10px] font-bold text-down uppercase tracking-wider">Hold / Wait</p>
       </div>
       <ul className="space-y-1.5">
         {hold.map((h) => (
-          <li key={h} className="text-[12px] text-red-800 flex items-start gap-1.5">
-            <span className="text-red-500 mt-0.5">&#10007;</span> {h}
+          <li key={h} className="text-[12px] text-down flex items-start gap-1.5">
+            <span className="text-down mt-0.5">&#10007;</span> {h}
           </li>
         ))}
       </ul>
@@ -278,14 +278,14 @@ export const SignalCards: React.FC<{
 
 export const LandedCostWaterfall: React.FC = () => {
   const items = [
-    { label: "Base Price", value: "₹15,000", width: "44%", color: "bg-brand-black" },
-    { label: "+ Platform Fees (12%)", value: "₹1,800", width: "5%", color: "bg-brand-black/70" },
-    { label: "+ Shipping", value: "₹3,500", width: "10%", color: "bg-brand-black/50" },
-    { label: "+ Customs (42%)", value: "₹8,526", width: "25%", color: "bg-red-500" },
-    { label: "+ GST (18%)", value: "₹5,189", width: "15%", color: "bg-red-400" },
+    { label: "Base Price", value: "₹15,000", width: "44%", color: "bg-terminal-text" },
+    { label: "+ Platform Fees (12%)", value: "₹1,800", width: "5%", color: "bg-terminal-text/70" },
+    { label: "+ Shipping", value: "₹3,500", width: "10%", color: "bg-terminal-text/50" },
+    { label: "+ Customs (42%)", value: "₹8,526", width: "25%", color: "bg-down" },
+    { label: "+ GST (18%)", value: "₹5,189", width: "15%", color: "bg-down" },
   ];
   return (
-    <div className="my-6 bg-white border border-brand-gray/20 rounded-lg p-4">
+    <div className="my-6 bg-terminal-surface border border-brand-gray/20 rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
         <p className="text-[10px] font-bold text-brand-black/50 uppercase tracking-wider">
           Landed cost breakdown — importing to India
@@ -318,15 +318,15 @@ export const LandedCostWaterfall: React.FC = () => {
 
 export const RiskMatrix: React.FC = () => {
   const risks = [
-    { name: "Counterfeits", likelihood: "High", impact: "High", color: "bg-red-500" },
+    { name: "Counterfeits", likelihood: "High", impact: "High", color: "bg-down" },
     { name: "Price Drop", likelihood: "Medium", impact: "High", color: "bg-orange-500" },
     { name: "Liquidity", likelihood: "Medium", impact: "Medium", color: "bg-yellow-500" },
     { name: "Storage Damage", likelihood: "Low", impact: "Medium", color: "bg-yellow-400" },
     { name: "Market Saturation", likelihood: "Low", impact: "High", color: "bg-orange-400" },
   ];
   return (
-    <div className="my-6 bg-white border border-brand-gray/20 rounded-lg overflow-hidden">
-      <div className="px-4 py-2.5 bg-brand-black/[0.02] border-b border-brand-gray/15">
+    <div className="my-6 bg-terminal-surface border border-brand-gray/20 rounded-lg overflow-hidden">
+      <div className="px-4 py-2.5 bg-terminal-surface-raised border-b border-brand-gray/15">
         <p className="text-[10px] font-bold text-brand-black/50 uppercase tracking-wider">
           Risk assessment matrix
         </p>
@@ -386,9 +386,9 @@ const articleVisuals: Record<string, { hero?: React.ReactNode; inserts: VisualIn
         component: (
           <PriceTierBars
             tiers={[
-              { label: "B2B (WhatsApp)", price: "₹12,000", width: "48%", color: "bg-green-500", tag: "Lowest" },
+              { label: "B2B (WhatsApp)", price: "₹12,000", width: "48%", color: "bg-up", tag: "Lowest" },
               { label: "Marketplace (B2C)", price: "₹15,000", width: "64%", color: "bg-blue-500", tag: "Mid" },
-              { label: "StockX / GOAT", price: "₹22,000", width: "92%", color: "bg-brand-black", tag: "+customs" },
+              { label: "StockX / GOAT", price: "₹22,000", width: "92%", color: "bg-terminal-text", tag: "+customs" },
             ]}
           />
         ),
@@ -467,8 +467,8 @@ const articleVisuals: Record<string, { hero?: React.ReactNode; inserts: VisualIn
             title="Exit Strategy Comparison"
             colA="Pros"
             colB="Cons"
-            accentA="text-green-600"
-            accentB="text-red-500"
+            accentA="text-up"
+            accentB="text-down"
             items={[
               { label: "Profit Target", a: "Emotion-free", b: "May miss upside" },
               { label: "Time-Based", a: "Prevents holding", b: "Ignores trends" },
@@ -494,10 +494,10 @@ const articleVisuals: Record<string, { hero?: React.ReactNode; inserts: VisualIn
     hero: (
       <PriceTierBars
         tiers={[
-          { label: "B2B Market (WhatsApp)", price: "₹12,000", width: "44%", color: "bg-green-500", tag: "Best buy" },
+          { label: "B2B Market (WhatsApp)", price: "₹12,000", width: "44%", color: "bg-up", tag: "Best buy" },
           { label: "End Customer (Marketplace)", price: "₹15,500", width: "60%", color: "bg-blue-500", tag: "Best sell" },
           { label: "StockX/GOAT (International)", price: "₹22,000", width: "84%", color: "bg-purple-500", tag: "+customs" },
-          { label: "StockX Landed (to India)", price: "₹34,000", width: "100%", color: "bg-brand-black", tag: "Total" },
+          { label: "StockX Landed (to India)", price: "₹34,000", width: "100%", color: "bg-terminal-text", tag: "Total" },
         ]}
       />
     ),
@@ -505,14 +505,14 @@ const articleVisuals: Record<string, { hero?: React.ReactNode; inserts: VisualIn
       {
         after: "Price Spread Analysis",
         component: (
-          <div className="my-6 bg-white border border-brand-gray/20 rounded-lg p-4">
+          <div className="my-6 bg-terminal-surface border border-brand-gray/20 rounded-lg p-4">
             <p className="text-[10px] font-bold text-brand-black/50 uppercase tracking-wider mb-3">
               Spread = Your profit margin
             </p>
             <div className="flex items-center gap-3">
-              <div className="flex-1 text-center p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-[10px] text-green-600 font-semibold uppercase">Buy (B2B)</p>
-                <p className="text-lg font-bold font-mono text-green-700">₹12,000</p>
+              <div className="flex-1 text-center p-3 bg-up/10 border border-up/40 rounded-lg">
+                <p className="text-[10px] text-up font-semibold uppercase">Buy (B2B)</p>
+                <p className="text-lg font-bold font-mono text-up">₹12,000</p>
               </div>
               <svg className="w-6 h-6 text-brand-black/30 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -521,7 +521,7 @@ const articleVisuals: Record<string, { hero?: React.ReactNode; inserts: VisualIn
                 <p className="text-[10px] text-blue-600 font-semibold uppercase">Sell (B2C)</p>
                 <p className="text-lg font-bold font-mono text-blue-700">₹15,000</p>
               </div>
-              <div className="flex-1 text-center p-3 bg-brand-black text-white rounded-lg">
+              <div className="flex-1 text-center p-3 bg-terminal-surface-raised text-terminal-text rounded-lg">
                 <p className="text-[10px] font-semibold uppercase opacity-70">Spread</p>
                 <p className="text-lg font-bold font-mono">₹3,000</p>
                 <p className="text-[10px] opacity-70">25% margin</p>
@@ -551,9 +551,9 @@ const articleVisuals: Record<string, { hero?: React.ReactNode; inserts: VisualIn
           <AllocationBar
             title="Recommended portfolio allocation"
             segments={[
-              { label: "Safe Bets (proven models)", pct: 40, color: "bg-green-500" },
+              { label: "Safe Bets (proven models)", pct: 40, color: "bg-up" },
               { label: "Growth Plays (emerging)", pct: 40, color: "bg-blue-500" },
-              { label: "Speculative (high risk)", pct: 20, color: "bg-red-400" },
+              { label: "Speculative (high risk)", pct: 20, color: "bg-down" },
             ]}
           />
         ),
@@ -576,7 +576,7 @@ const articleVisuals: Record<string, { hero?: React.ReactNode; inserts: VisualIn
         <AllocationBar
           title="The 60-30-10 Rule"
           segments={[
-            { label: "Core Holdings — Safe Bets", pct: 60, color: "bg-green-600" },
+            { label: "Core Holdings — Safe Bets", pct: 60, color: "bg-up" },
             { label: "Growth — Emerging Trends", pct: 30, color: "bg-blue-500" },
             { label: "Speculative — High Risk", pct: 10, color: "bg-orange-500" },
           ]}
