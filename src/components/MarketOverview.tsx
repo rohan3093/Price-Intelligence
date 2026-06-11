@@ -28,10 +28,12 @@ interface ChannelStats {
 
 interface MarketSnapshot {
   totalAssets: number;
-  healthIndex: number;
   averageChange30d: number;
   marketBreadthPct: number; // % of assets with positive 30d change
   averageCrossChannelSpread: number; // avg gap between cheapest & priciest channel tier per asset
+  medianSpreadPct: number; // median validated cross-channel spread
+  advancers: number; // assets with validated change30d > 0
+  decliners: number; // assets with validated change30d < 0
   highSignalMovers: number; // |change30d| >= 5
   mostActiveChannelTier: string; // "WhatsApp" | "Marketplaces" | "International" | "—"
   channelStats: ChannelStats[];
@@ -39,11 +41,28 @@ interface MarketSnapshot {
 }
 
 const HIGH_SIGNAL_THRESHOLD = 5;
+// Validation guard: a 30d move beyond this is a data artefact (e.g. −100% to
+// near-zero, or +1851% off a bad anchor), not a real market move. Such assets
+// are excluded from movers / advancers-decliners so artefacts don't leak in.
+// TEMP — superseded by validation brief.
+const MAX_PLAUSIBLE_ABS_CHANGE = 100;
 
 function parseChangePercent(changeStr: string | undefined): number | null {
   if (!changeStr) return null;
   const match = changeStr.match(/[+-]?[\d.]+/);
   return match ? parseFloat(match[0]) : null;
+}
+
+/** A 30d change is usable only if finite and within the plausibility band. */
+function isValidChange(change: number | null): change is number {
+  return change !== null && isFinite(change) && Math.abs(change) < MAX_PLAUSIBLE_ABS_CHANGE;
+}
+
+function medianOf(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
 function getDefaultSizeVariant(asset: Asset) {
@@ -111,10 +130,12 @@ function computeSnapshot(assets: Asset[]): MarketSnapshot {
   if (assets.length === 0) {
     return {
       totalAssets: 0,
-      healthIndex: 50,
       averageChange30d: 0,
       marketBreadthPct: 0,
       averageCrossChannelSpread: 0,
+      medianSpreadPct: 0,
+      advancers: 0,
+      decliners: 0,
       highSignalMovers: 0,
       mostActiveChannelTier: "—",
       channelStats: [],
@@ -122,18 +143,23 @@ function computeSnapshot(assets: Asset[]): MarketSnapshot {
     };
   }
 
-  // --- Movers, breadth, average 30d change ---
+  // --- Movers, breadth, average 30d change (validated only) ---
   const moverCandidates: TopMover[] = [];
   const changes: number[] = [];
   let positive = 0;
+  let advancers = 0;
+  let decliners = 0;
   let highSignal = 0;
 
   assets.forEach((asset) => {
     const change = getAssetChange30d(asset);
     const price = getAssetBestPrice(asset);
-    if (change !== null) {
+    // Exclude assets whose 30d move fails validation so artefacts never surface
+    // as movers or skew advancers/decliners.
+    if (isValidChange(change)) {
       changes.push(change);
-      if (change > 0) positive += 1;
+      if (change > 0) { positive += 1; advancers += 1; }
+      if (change < 0) decliners += 1;
       if (Math.abs(change) >= HIGH_SIGNAL_THRESHOLD) highSignal += 1;
       moverCandidates.push({
         asset,
@@ -144,10 +170,11 @@ function computeSnapshot(assets: Asset[]): MarketSnapshot {
     }
   });
 
+  const validCount = changes.length;
   const averageChange30d =
     changes.length > 0 ? changes.reduce((a, b) => a + b, 0) / changes.length : 0;
   const marketBreadthPct =
-    assets.length > 0 ? (positive / assets.length) * 100 : 0;
+    validCount > 0 ? (positive / validCount) * 100 : 0;
 
   // Sort by absolute movement so we surface true signal — gainers and losers compete equally.
   moverCandidates.sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent));
@@ -249,6 +276,7 @@ function computeSnapshot(assets: Asset[]): MarketSnapshot {
     crossChannelSpreads.length > 0
       ? crossChannelSpreads.reduce((a, b) => a + b, 0) / crossChannelSpreads.length
       : 0;
+  const medianSpreadPct = medianOf(crossChannelSpreads);
 
   // Most active tier (today): pick the tier with the highest aggregated listing count;
   // if no price-point data, fall back to listingsSnapshot rollup.
@@ -279,21 +307,14 @@ function computeSnapshot(assets: Asset[]): MarketSnapshot {
     });
   }
 
-  // Health index: blend breadth, average return, and cross-channel efficiency.
-  // 0–100 scale where higher = healthier.
-  const breadthScore = marketBreadthPct; // already 0–100
-  const returnScore = Math.max(0, Math.min(100, 50 + averageChange30d * 4));
-  const efficiencyScore = Math.max(0, 100 - averageCrossChannelSpread * 2);
-  const healthIndex = Math.round(
-    breadthScore * 0.4 + returnScore * 0.4 + efficiencyScore * 0.2
-  );
-
   return {
     totalAssets: assets.length,
-    healthIndex,
     averageChange30d: Math.round(averageChange30d * 10) / 10,
     marketBreadthPct: Math.round(marketBreadthPct),
     averageCrossChannelSpread: Math.round(averageCrossChannelSpread * 10) / 10,
+    medianSpreadPct: Math.round(medianSpreadPct * 10) / 10,
+    advancers,
+    decliners,
     highSignalMovers: highSignal,
     mostActiveChannelTier: mostActiveTier ? tierLabel(mostActiveTier) : "—",
     channelStats,
@@ -311,13 +332,6 @@ const formatSignedPercent = (value: number): string => {
 
 const formatPercent = (value: number, digits = 1): string =>
   `${value.toFixed(digits)}%`;
-
-const spreadDescriptor = (spread: number): string => {
-  if (spread <= 0) return "Spreads stable";
-  if (spread <= 5) return "Spreads tight";
-  if (spread <= 10) return "Spreads normal";
-  return "Spreads wide";
-};
 
 const Chevron: React.FC<{ open: boolean }> = ({ open }) => (
   <svg
@@ -345,23 +359,9 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const snapshot = useMemo(() => computeSnapshot(assets), [assets]);
 
-  const healthTone =
-    snapshot.healthIndex >= 65
-      ? "text-up"
-      : snapshot.healthIndex <= 40
-      ? "text-down"
-      : "text-brand-black";
-
-  const changeTone =
-    snapshot.averageChange30d > 0
-      ? "text-up"
-      : snapshot.averageChange30d < 0
-      ? "text-down"
-      : "text-brand-black";
-
   const pulseLine = `${snapshot.totalAssets} ${
     snapshot.totalAssets === 1 ? "asset" : "assets"
-  } tracked · ${spreadDescriptor(snapshot.averageCrossChannelSpread)} · ${
+  } tracked · median spread ${formatPercent(snapshot.medianSpreadPct)} · ${
     snapshot.highSignalMovers
   } high-signal mover${snapshot.highSignalMovers === 1 ? "" : "s"}`;
 
@@ -390,19 +390,30 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({
 
           <div className="flex items-baseline gap-1.5 flex-shrink-0">
             <span className="text-[10px] uppercase tracking-wide text-brand-black/50">
-              Health
+              Tracked
             </span>
-            <span className={`font-mono-numeric font-bold text-sm ${healthTone}`}>
-              {snapshot.healthIndex}
+            <span className="font-mono-numeric font-bold text-sm text-brand-black">
+              {snapshot.totalAssets}
             </span>
           </div>
 
-          <div className="flex items-baseline gap-1.5 flex-shrink-0">
+          <div className="flex items-baseline gap-1.5 flex-shrink-0" title="Advancers / decliners (validated 30d moves)">
             <span className="text-[10px] uppercase tracking-wide text-brand-black/50">
-              30d
+              Adv/Dec
             </span>
-            <span className={`font-mono-numeric font-bold text-sm ${changeTone}`}>
-              {formatSignedPercent(snapshot.averageChange30d)}
+            <span className="font-mono-numeric font-bold text-sm">
+              <span className="text-up">{snapshot.advancers}</span>
+              <span className="text-brand-black/40"> / </span>
+              <span className="text-down">{snapshot.decliners}</span>
+            </span>
+          </div>
+
+          <div className="hidden sm:flex items-baseline gap-1.5 flex-shrink-0" title="Median cross-channel spread">
+            <span className="text-[10px] uppercase tracking-wide text-brand-black/50">
+              Median Spread
+            </span>
+            <span className="font-mono-numeric font-bold text-sm text-brand-black">
+              {formatPercent(snapshot.medianSpreadPct)}
             </span>
           </div>
 

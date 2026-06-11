@@ -9,6 +9,7 @@ import { ErrorBoundary } from "../components/ErrorBoundary";
 import { ToastContainer } from "../components/Toast";
 import { useToast } from "../hooks/useToast";
 import { MarketOverview } from "../components/MarketOverview";
+import { ActivityTicker } from "../components/ActivityTicker";
 import { SignInModal } from "../components/SignInModal";
 import { View, Asset, PricePoint, PortfolioPosition } from "../types";
 import { storage } from "../utils/storage";
@@ -440,6 +441,10 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
               )}
 
               <div className="flex-shrink-0">
+                <ActivityTicker
+                  assets={assets}
+                  onSelectAsset={(id) => setSelectedId(id)}
+                />
                 <MarketOverview
                   assets={assets}
                   onSelectAsset={(id) => setSelectedId(id)}
