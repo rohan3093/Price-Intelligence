@@ -1346,18 +1346,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             }
            
           >
-            <TradingChart
-              pricePoints={(() => {
-                const sp = sizeVariant?.pricePoints;
-                if (sp) {
-                  const hasData = ('whatsapp' in sp && sp.whatsapp?.length)
-                    || ('marketplace' in sp && sp.marketplace?.length)
-                    || ('international' in sp && sp.international?.length);
-                  if (hasData) return sp;
-                }
-                return sizeVariant?.legacyPricePoints || asset.pricePoints;
-              })()}
-            />
+            <TradingChart assetId={asset.id} size={selectedSize || undefined} />
           </Card>
 
           {/* Market Analytics */}

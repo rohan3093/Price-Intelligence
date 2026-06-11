@@ -10,45 +10,32 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { PricePoint } from "../types";
+import { fetchPriceHistory, markSeriesForSize, MarkSeriesPoint } from "../utils/priceHistoryApi";
 
 interface TradingChartProps {
-  pricePoints: any;
+  /** Asset id whose daily mark-price history to plot. */
+  assetId: number | string;
+  /** Selected size; series is per-size, falling back to asset mark when absent. */
+  size?: string;
 }
 
-type Timeframe = "1D" | "7D" | "1M" | "3M" | "6M" | "1Y" | "ALL";
-type Channel = "whatsapp" | "marketplace" | "international";
+type Timeframe = "7D" | "1M" | "3M" | "6M" | "1Y" | "ALL";
 
-const CHANNEL_META: Record<Channel, { label: string; color: string }> = {
-  whatsapp:      { label: "WhatsApp",      color: "#10b981" },
-  marketplace:   { label: "Marketplace",   color: "#3b82f6" },
-  international: { label: "International", color: "#f59e0b" },
-};
+const MARK_COLOR = "#2563eb";
+const ASK_COLOR = "#f59e0b";
+const BID_COLOR = "#10b981";
 
-const CHANNELS: Channel[] = ["whatsapp", "marketplace", "international"];
-const DATA_KEYS: Record<Channel, string> = {
-  whatsapp: "whatsappPrice",
-  marketplace: "marketplacePrice",
-  international: "internationalPrice",
-};
-
-// Below this raw observation count we don't draw a chart — a 4-point line through
-// weeks of timestamps misrepresents listing observations as a price trajectory.
-const SPARSE_THRESHOLD = 8;
-
-interface RawPoint {
-  timestamp: number;
-  price: number;
-  channel: Channel;
-}
+// Below this many dated points we don't draw a line — a 2-point line through weeks
+// misrepresents the trajectory. We show the latest value + a building-history note.
+const MIN_CHART_POINTS = 5;
 
 interface ChartDataPoint {
-  timestamp: number;
   date: string;
+  timestamp: number;
   displayDate: string;
-  whatsappPrice?: number;
-  marketplacePrice?: number;
-  internationalPrice?: number;
+  mark: number;
+  ask: number | null;
+  bid: number | null;
 }
 
 const TimeframeButton: React.FC<{
@@ -69,7 +56,6 @@ const TimeframeButton: React.FC<{
   </button>
 );
 
-// Compact currency formatter for tight mobile layouts
 const formatCompactINR = (value: number): string => {
   if (!Number.isFinite(value) || value === 0) return "₹0";
   const abs = Math.abs(value);
@@ -79,161 +65,76 @@ const formatCompactINR = (value: number): string => {
   return `₹${value.toLocaleString("en-IN")}`;
 };
 
-export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
+const dateKeyToMs = (key: string): number => new Date(`${key}T00:00:00`).getTime();
+
+const TIMEFRAME_MS: Record<Timeframe, number> = {
+  "7D": 7 * 24 * 60 * 60 * 1000,
+  "1M": 30 * 24 * 60 * 60 * 1000,
+  "3M": 90 * 24 * 60 * 60 * 1000,
+  "6M": 180 * 24 * 60 * 60 * 1000,
+  "1Y": 365 * 24 * 60 * 60 * 1000,
+  "ALL": Infinity,
+};
+
+export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => {
   const [timeframe, setTimeframe] = useState<Timeframe>("1M");
   const [chartType, setChartType] = useState<"area" | "line">("line");
+  const [history, setHistory] = useState<MarkSeriesPoint[] | null>(null);
 
-  const { chartData, activeChannels, totalPoints, channelStats, availableTimeframes } = useMemo(() => {
-    const raw: RawPoint[] = [];
+  useEffect(() => {
+    let cancelled = false;
+    setHistory(null);
+    fetchPriceHistory(assetId).then((days) => {
+      if (cancelled) return;
+      setHistory(markSeriesForSize(days, size));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [assetId, size]);
+
+  const { chartData, totalPoints, availableTimeframes, hasAsk, hasBid } = useMemo(() => {
+    const series = history ?? [];
     const now = Date.now();
 
-    const addPoints = (points: PricePoint[], channel: Channel) => {
-      points.forEach((p) => {
-        if (p.price == null || !p.lastSeen) return;
-        // Sanity filter: drop zero/negative and absurdly high prices (likely scrape errors).
-        if (p.price <= 0 || p.price > 10_00_000) return;
+    const all: ChartDataPoint[] = series
+      .map((p) => ({
+        date: p.date,
+        timestamp: dateKeyToMs(p.date),
+        displayDate: new Date(dateKeyToMs(p.date)).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
+        mark: p.mark,
+        ask: p.bestAsk,
+        bid: p.bestBid,
+      }))
+      .filter((p) => isFinite(p.timestamp))
+      .sort((a, b) => a.timestamp - b.timestamp);
 
-        let ts: number;
-        const ls = p.lastSeen as any;
-        if (typeof ls === "string") {
-          ts = new Date(ls).getTime();
-        } else if (ls instanceof Date) {
-          ts = ls.getTime();
-        } else if (typeof ls === "object" && typeof ls.toDate === "function") {
-          // Firestore Timestamp
-          ts = ls.toDate().getTime();
-        } else if (typeof ls === "object" && typeof ls.seconds === "number") {
-          // Raw Firestore Timestamp shape
-          ts = ls.seconds * 1000;
-        } else {
-          return;
-        }
-        if (isNaN(ts)) return;
-
-        raw.push({ timestamp: ts, price: p.price, channel });
-      });
-    };
-
-    if (pricePoints && typeof pricePoints === "object") {
-      if ("whatsapp" in pricePoints && Array.isArray(pricePoints.whatsapp)) {
-        addPoints(pricePoints.whatsapp as PricePoint[], "whatsapp");
-      }
-      if ("marketplace" in pricePoints && Array.isArray(pricePoints.marketplace)) {
-        addPoints(pricePoints.marketplace as PricePoint[], "marketplace");
-      }
-      if ("international" in pricePoints && Array.isArray(pricePoints.international)) {
-        addPoints(pricePoints.international as PricePoint[], "international");
-      }
-      // Legacy structure
-      if ("b2b" in pricePoints && Array.isArray(pricePoints.b2b)) {
-        addPoints(pricePoints.b2b as PricePoint[], "whatsapp");
-      }
-      if ("endCustomer" in pricePoints && Array.isArray(pricePoints.endCustomer)) {
-        addPoints(pricePoints.endCustomer as PricePoint[], "marketplace");
-      }
-      if ("stockxGoat" in pricePoints && Array.isArray(pricePoints.stockxGoat)) {
-        addPoints(pricePoints.stockxGoat as PricePoint[], "international");
-      }
-    }
-
-    raw.sort((a, b) => a.timestamp - b.timestamp);
-
-    // Determine which timeframes have meaningful data (2+ points).
-    // Hides buttons that would otherwise render empty / near-empty views.
-    const TIMEFRAME_MS: Record<Timeframe, number> = {
-      "1D":  1   * 24 * 60 * 60 * 1000,
-      "7D":  7   * 24 * 60 * 60 * 1000,
-      "1M":  30  * 24 * 60 * 60 * 1000,
-      "3M":  90  * 24 * 60 * 60 * 1000,
-      "6M":  180 * 24 * 60 * 60 * 1000,
-      "1Y":  365 * 24 * 60 * 60 * 1000,
-      "ALL": Infinity,
-    };
-    const availableTimeframes: Timeframe[] = (Object.entries(TIMEFRAME_MS) as [Timeframe, number][])
+    const available: Timeframe[] = (Object.entries(TIMEFRAME_MS) as [Timeframe, number][])
       .filter(([tf, ms]) => {
-        if (tf === "ALL") return raw.length >= 2;
-        const tfCutoff = now - ms;
-        let count = 0;
-        for (const p of raw) {
-          if (p.timestamp >= tfCutoff) count++;
-          if (count >= 2) return true;
-        }
-        return false;
+        if (tf === "ALL") return all.length >= 2;
+        const cutoff = now - ms;
+        return all.filter((p) => p.timestamp >= cutoff).length >= 2;
       })
       .map(([tf]) => tf);
 
-    // Timeframe filtering (skip if < 10 points)
-    let filtered = raw;
-    if (raw.length >= 10) {
-      let cutoff = 0;
-      switch (timeframe) {
-        case "1D":  cutoff = now - 1 * 24 * 60 * 60 * 1000; break;
-        case "7D":  cutoff = now - 7 * 24 * 60 * 60 * 1000; break;
-        case "1M":  cutoff = now - 30 * 24 * 60 * 60 * 1000; break;
-        case "3M":  cutoff = now - 90 * 24 * 60 * 60 * 1000; break;
-        case "6M":  cutoff = now - 180 * 24 * 60 * 60 * 1000; break;
-        case "1Y":  cutoff = now - 365 * 24 * 60 * 60 * 1000; break;
-        case "ALL": cutoff = 0; break;
-      }
-      if (cutoff > 0) filtered = raw.filter((d) => d.timestamp >= cutoff);
+    let filtered = all;
+    const ms = TIMEFRAME_MS[timeframe];
+    if (ms !== Infinity) {
+      const cutoff = now - ms;
+      const windowed = all.filter((p) => p.timestamp >= cutoff);
+      if (windowed.length >= 2) filtered = windowed;
     }
 
-    // Aggregate by day: best (lowest) price per channel
-    const dayMap = new Map<string, {
-      whatsappPrices: number[];
-      marketplacePrices: number[];
-      internationalPrices: number[];
-      timestamp: number;
-    }>();
-
-    filtered.forEach((d) => {
-      const dayKey = new Date(d.timestamp).toISOString().split("T")[0];
-      if (!dayMap.has(dayKey)) {
-        dayMap.set(dayKey, { whatsappPrices: [], marketplacePrices: [], internationalPrices: [], timestamp: d.timestamp });
-      }
-      const bucket = dayMap.get(dayKey)!;
-      if (d.channel === "whatsapp") bucket.whatsappPrices.push(d.price);
-      else if (d.channel === "marketplace") bucket.marketplacePrices.push(d.price);
-      else bucket.internationalPrices.push(d.price);
-    });
-
-    const found: Set<Channel> = new Set();
-    const points: ChartDataPoint[] = Array.from(dayMap.entries())
-      .map(([day, data]) => {
-        const wp = data.whatsappPrices.length > 0 ? Math.min(...data.whatsappPrices) : undefined;
-        const mp = data.marketplacePrices.length > 0 ? Math.min(...data.marketplacePrices) : undefined;
-        const ip = data.internationalPrices.length > 0 ? Math.min(...data.internationalPrices) : undefined;
-        if (wp !== undefined) found.add("whatsapp");
-        if (mp !== undefined) found.add("marketplace");
-        if (ip !== undefined) found.add("international");
-        return {
-          timestamp: data.timestamp,
-          date: day,
-          displayDate: new Date(data.timestamp).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
-          whatsappPrice: wp,
-          marketplacePrice: mp,
-          internationalPrice: ip,
-        };
-      })
-      .sort((a, b) => a.timestamp - b.timestamp);
-
-    // Per-channel raw stats — used for the sparse fallback view.
-    const channelStats: Record<Channel, { best: number; count: number }> = {
-      whatsapp: { best: 0, count: 0 },
-      marketplace: { best: 0, count: 0 },
-      international: { best: 0, count: 0 },
+    return {
+      chartData: filtered,
+      totalPoints: all.length,
+      availableTimeframes: available,
+      hasAsk: filtered.some((p) => p.ask !== null),
+      hasBid: filtered.some((p) => p.bid !== null),
     };
-    for (const r of raw) {
-      const cs = channelStats[r.channel];
-      cs.count += 1;
-      cs.best = cs.count === 1 ? r.price : Math.min(cs.best, r.price);
-    }
+  }, [history, timeframe]);
 
-    return { chartData: points, activeChannels: found, totalPoints: raw.length, channelStats, availableTimeframes };
-  }, [pricePoints, timeframe]);
-
-  // If the active timeframe has no data (e.g. asset has only old points but timeframe is "1M"),
-  // fall back to "ALL" so the chart never renders blank.
+  // If the active timeframe has no data, fall back to ALL so it never renders blank.
   useEffect(() => {
     if (availableTimeframes.length > 0 && !availableTimeframes.includes(timeframe)) {
       setTimeframe("ALL");
@@ -241,63 +142,46 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
   }, [availableTimeframes, timeframe]);
 
   const stats = useMemo(() => {
-    const latests: Partial<Record<Channel, number>> = {};
-    const allPrices: number[] = [];
-
-    for (const ch of CHANNELS) {
-      const key = DATA_KEYS[ch] as keyof ChartDataPoint;
-      const prices = chartData.map((d) => d[key] as number | undefined).filter((p): p is number => p !== undefined);
-      allPrices.push(...prices);
-      if (prices.length > 0) latests[ch] = prices[prices.length - 1];
-    }
-
-    if (allPrices.length === 0) {
-      return { latests: {} as Partial<Record<Channel, number>>, high: 0, low: 0, change: 0, changePct: "0" };
-    }
-
-    const high = Math.max(...allPrices);
-    const low = Math.min(...allPrices);
-
-    const primaryChannel: Channel = activeChannels.has("marketplace") ? "marketplace"
-      : activeChannels.has("whatsapp") ? "whatsapp" : "international";
-    const primaryKey = DATA_KEYS[primaryChannel] as keyof ChartDataPoint;
-    const primaryPrices = chartData.map((d) => d[primaryKey] as number | undefined).filter((p): p is number => p !== undefined);
-    const first = primaryPrices[0] ?? 0;
-    const last = primaryPrices[primaryPrices.length - 1] ?? 0;
+    const marks = chartData.map((d) => d.mark);
+    if (marks.length === 0) return { latest: 0, high: 0, low: 0, change: 0, changePct: "0" };
+    const high = Math.max(...marks);
+    const low = Math.min(...marks);
+    const first = marks[0];
+    const last = marks[marks.length - 1];
     const change = last - first;
     const changePct = first !== 0 ? ((change / first) * 100).toFixed(2) : "0";
-
-    return { latests, high, low, change, changePct };
-  }, [chartData, activeChannels]);
+    return { latest: last, high, low, change, changePct };
+  }, [chartData]);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (!active || !payload || payload.length === 0) return null;
     const data = payload[0]?.payload as ChartDataPoint | undefined;
     if (!data) return null;
-
-    const rows: { channel: Channel; price: number }[] = [];
-    if (data.whatsappPrice !== undefined) rows.push({ channel: "whatsapp", price: data.whatsappPrice });
-    if (data.marketplacePrice !== undefined) rows.push({ channel: "marketplace", price: data.marketplacePrice });
-    if (data.internationalPrice !== undefined) rows.push({ channel: "international", price: data.internationalPrice });
-
-    if (rows.length === 0) return null;
-
     return (
       <div className="bg-terminal-surface border-2 border-terminal-border-strong px-3 py-2 shadow-dropdown">
         <p className="text-xs text-brand-black/60 mb-1.5">{data.displayDate}</p>
-        {rows.map((r) => (
-          <div key={r.channel} className="flex items-center gap-2 mb-0.5">
-            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: CHANNEL_META[r.channel].color }} />
-            <span className="text-xs text-brand-black/60">{CHANNEL_META[r.channel].label}</span>
-            <span className="text-sm font-mono-numeric font-bold ml-auto" style={{ color: CHANNEL_META[r.channel].color }}>
-              ₹{r.price.toLocaleString("en-IN")}
+        <div className="flex items-center gap-2 mb-0.5">
+          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: MARK_COLOR }} />
+          <span className="text-xs text-brand-black/60">Mark</span>
+          <span className="text-sm font-mono-numeric font-bold ml-auto" style={{ color: MARK_COLOR }}>
+            ₹{Math.round(data.mark).toLocaleString("en-IN")}
+          </span>
+        </div>
+        {data.ask !== null && (
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: ASK_COLOR }} />
+            <span className="text-xs text-brand-black/60">Ask</span>
+            <span className="text-sm font-mono-numeric ml-auto" style={{ color: ASK_COLOR }}>
+              ₹{Math.round(data.ask).toLocaleString("en-IN")}
             </span>
           </div>
-        ))}
-        {rows.length >= 2 && (
-          <div className="border-t border-brand-gray/20 mt-1.5 pt-1">
-            <span className="text-[10px] text-brand-black/40">
-              Spread: ₹{(Math.max(...rows.map((r) => r.price)) - Math.min(...rows.map((r) => r.price))).toLocaleString("en-IN")}
+        )}
+        {data.bid !== null && (
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: BID_COLOR }} />
+            <span className="text-xs text-brand-black/60">Bid</span>
+            <span className="text-sm font-mono-numeric ml-auto" style={{ color: BID_COLOR }}>
+              ₹{Math.round(data.bid).toLocaleString("en-IN")}
             </span>
           </div>
         )}
@@ -305,27 +189,47 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
     );
   };
 
-  if (chartData.length === 0) {
+  // Loading state
+  if (history === null) {
+    return (
+      <div className="bg-brand-background/30 border border-brand-gray/20 p-8 text-center">
+        <p className="text-sm text-brand-black/50 font-medium animate-pulse">Loading price history…</p>
+      </div>
+    );
+  }
+
+  // No history yet
+  if (totalPoints === 0) {
     return (
       <div className="bg-brand-background/30 border border-brand-gray/20 p-8 text-center">
         <svg className="w-12 h-12 mx-auto mb-3 text-brand-black/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
             d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
         </svg>
-        <p className="text-sm text-brand-black/60 font-medium">No price history available</p>
-        <p className="text-xs text-brand-black/40 mt-1">Data will appear as it's collected</p>
+        <p className="text-sm text-brand-black/60 font-medium">No price history yet</p>
+        <p className="text-xs text-brand-black/40 mt-1">A daily mark-price point is recorded each day — the series builds from here.</p>
       </div>
     );
   }
 
-  const isSparse = totalPoints < SPARSE_THRESHOLD;
-  const sparseChannels = CHANNELS.filter((ch) => channelStats[ch].count > 0);
+  // Too few dated points to draw a trustworthy line
+  if (totalPoints < MIN_CHART_POINTS) {
+    return (
+      <div className="py-6 text-center">
+        <p className="text-[10px] uppercase tracking-wider mb-1 text-brand-black/50">Mark Price</p>
+        <p className="font-mono-numeric font-bold text-2xl" style={{ color: MARK_COLOR }}>
+          {formatCompactINR(stats.latest)}
+        </p>
+        <p className="text-xs text-brand-black/40 mt-3">
+          Building price history — {totalPoints} day{totalPoints !== 1 ? "s" : ""} recorded so far. The trend appears once {MIN_CHART_POINTS}+ days accrue.
+        </p>
+      </div>
+    );
+  }
 
-  const allVisiblePrices = chartData.flatMap((d) =>
-    [d.whatsappPrice, d.marketplacePrice, d.internationalPrice].filter((p): p is number => p !== undefined)
-  );
-  const yMin = Math.floor(Math.min(...allVisiblePrices) * 0.95 / 1000) * 1000;
-  const yMax = Math.ceil(Math.max(...allVisiblePrices) * 1.05 / 1000) * 1000;
+  const allMarks = chartData.map((d) => d.mark);
+  const yMin = Math.floor(Math.min(...allMarks) * 0.95 / 1000) * 1000;
+  const yMax = Math.ceil(Math.max(...allMarks) * 1.05 / 1000) * 1000;
 
   const sharedAxisProps = {
     xAxis: {
@@ -343,15 +247,10 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
     },
   };
 
-  // Determine desktop grid layout class based on active channel count.
-  // On mobile we always use a 2-col grid so labels don't overlap.
-  const colCount = activeChannels.size + 2; // channels + high/low + change
-  const desktopGridClass = colCount <= 3 ? "sm:grid-cols-3" : colCount === 4 ? "sm:grid-cols-4" : "sm:grid-cols-5";
-
   return (
     <div className="space-y-3">
-      {/* Controls — hidden when data is sparse, or when only "ALL" is available (single-button selector is not a choice) */}
-      {!isSparse && availableTimeframes.length > 1 && (
+      {/* Controls */}
+      {availableTimeframes.length > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="inline-flex items-center gap-0.5 sm:gap-1 border border-brand-gray/30 bg-brand-background/50 p-1 flex-wrap">
             {availableTimeframes.map((tf) => (
@@ -388,166 +287,113 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
         </div>
       )}
 
-      {/* Stats Bar — hidden when sparse (the channel columns below already carry this info) */}
-      {!isSparse && (
-        <div className={`grid grid-cols-2 ${desktopGridClass} gap-x-3 gap-y-2.5 sm:gap-3 text-sm`}>
-          {CHANNELS.map((ch) =>
-            activeChannels.has(ch) && stats.latests[ch] !== undefined ? (
-              <div key={ch} className="min-w-0 text-left sm:text-center">
-                <p
-                  className="text-[10px] sm:text-xs uppercase tracking-wide mb-0.5 sm:mb-1 truncate"
-                  style={{ color: CHANNEL_META[ch].color, opacity: 0.8 }}
-                  title={CHANNEL_META[ch].label}
-                >
-                  {CHANNEL_META[ch].label}
-                </p>
-                <p
-                  className="font-mono-numeric font-semibold text-[13px] sm:text-sm truncate"
-                  style={{ color: CHANNEL_META[ch].color }}
-                >
-                  <span className="sm:hidden">{formatCompactINR(stats.latests[ch]!)}</span>
-                  <span className="hidden sm:inline">₹{stats.latests[ch]!.toLocaleString("en-IN")}</span>
-                </p>
-              </div>
-            ) : null
-          )}
-          <div className="min-w-0 text-left sm:text-center">
-            <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wide mb-0.5 sm:mb-1 whitespace-nowrap">
-              High / Low
-            </p>
-            <p className="font-mono-numeric font-semibold text-[13px] sm:text-sm text-brand-black whitespace-nowrap">
-              <span className="sm:hidden">{formatCompactINR(stats.high)} / {formatCompactINR(stats.low)}</span>
-              <span className="hidden sm:inline">₹{stats.high.toLocaleString("en-IN")} / ₹{stats.low.toLocaleString("en-IN")}</span>
-            </p>
-          </div>
-          <div className="min-w-0 text-left sm:text-center">
-            <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wide mb-0.5 sm:mb-1">Change</p>
-            <p className={`font-mono-numeric font-semibold text-[13px] sm:text-sm ${stats.change >= 0 ? "text-up" : "text-down"}`}>
-              {stats.change >= 0 ? "+" : ""}{stats.changePct}%
-            </p>
-          </div>
+      {/* Stats Bar */}
+      <div className="grid grid-cols-3 gap-x-3 gap-y-2.5 sm:gap-3 text-sm">
+        <div className="min-w-0 text-left sm:text-center">
+          <p className="text-[10px] sm:text-xs uppercase tracking-wide mb-0.5 sm:mb-1 truncate" style={{ color: MARK_COLOR, opacity: 0.8 }}>
+            Mark
+          </p>
+          <p className="font-mono-numeric font-semibold text-[13px] sm:text-sm truncate" style={{ color: MARK_COLOR }}>
+            <span className="sm:hidden">{formatCompactINR(stats.latest)}</span>
+            <span className="hidden sm:inline">₹{Math.round(stats.latest).toLocaleString("en-IN")}</span>
+          </p>
         </div>
-      )}
+        <div className="min-w-0 text-left sm:text-center">
+          <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wide mb-0.5 sm:mb-1 whitespace-nowrap">High / Low</p>
+          <p className="font-mono-numeric font-semibold text-[13px] sm:text-sm text-brand-black whitespace-nowrap">
+            <span className="sm:hidden">{formatCompactINR(stats.high)} / {formatCompactINR(stats.low)}</span>
+            <span className="hidden sm:inline">₹{Math.round(stats.high).toLocaleString("en-IN")} / ₹{Math.round(stats.low).toLocaleString("en-IN")}</span>
+          </p>
+        </div>
+        <div className="min-w-0 text-left sm:text-center">
+          <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wide mb-0.5 sm:mb-1">Change</p>
+          <p className={`font-mono-numeric font-semibold text-[13px] sm:text-sm ${stats.change >= 0 ? "text-up" : "text-down"}`}>
+            {stats.change >= 0 ? "+" : ""}{stats.changePct}%
+          </p>
+        </div>
+      </div>
 
-      {/* Sparse data advisory — only for non-sparse-but-thin-day-count cases.
-          When isSparse is true, the replacement view below carries its own line. */}
-      {!isSparse && chartData.length < 5 && chartData.length > 0 && (
+      {chartData.length < 10 && (
         <div className="flex items-start gap-2 text-xs text-brand-black/50 bg-brand-background/50 border border-brand-gray/15 p-2.5">
           <svg className="w-4 h-4 text-brand-black/30 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span>Building price history — only {chartData.length} data point{chartData.length !== 1 ? "s" : ""} collected so far. The trend will become more meaningful as more data is gathered over the coming days.</span>
+          <span>Building price history — {totalPoints} day{totalPoints !== 1 ? "s" : ""} recorded so far. The trend becomes more meaningful as more daily points accrue.</span>
         </div>
       )}
 
-      {/* Chart (or sparse-data fallback) */}
-      {isSparse ? (
-        <div className="py-4">
-          <div
-            className="grid gap-4"
-            style={{
-              gridTemplateColumns: `repeat(${Math.max(sparseChannels.length, 1)}, 1fr)`,
-            }}
-          >
-            {sparseChannels.map((ch) => {
-              const count = channelStats[ch].count;
-              return (
-                <div key={ch} className="text-center min-w-0">
-                  <p
-                    className="text-[10px] uppercase tracking-wider mb-1 truncate"
-                    style={{ color: CHANNEL_META[ch].color, opacity: 0.7 }}
-                    title={CHANNEL_META[ch].label}
-                  >
-                    {CHANNEL_META[ch].label}
-                  </p>
-                  <p
-                    className="font-mono-numeric font-bold text-lg truncate"
-                    style={{ color: CHANNEL_META[ch].color }}
-                  >
-                    {formatCompactINR(stats.latests[ch] ?? 0)}
-                  </p>
-                  <p className="text-[10px] text-brand-black/35 mt-0.5">
-                    {count} listing{count !== 1 ? "s" : ""}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-          <p className="text-[10px] text-brand-black/30 text-center mt-5">
-            Price history unavailable — {totalPoints} observation{totalPoints !== 1 ? "s" : ""} recorded
-          </p>
-        </div>
-      ) : (
-        <div className="bg-terminal-surface border border-brand-gray/20 p-2 sm:p-4">
-          <ResponsiveContainer width="100%" height={chartData.length < 10 ? 200 : 320}>
-            {chartType === "area" ? (
-              <AreaChart key="area" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
-                <defs>
-                  <linearGradient id="whatsappGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="marketplaceGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="internationalGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-                <XAxis {...sharedAxisProps.xAxis} />
-                <YAxis {...sharedAxisProps.yAxis} />
-                <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="whatsappPrice" stroke="#10b981" strokeWidth={2}
-                  fill="url(#whatsappGrad)" dot={{ r: 3, fill: "#10b981" }}
-                  connectNulls isAnimationActive={false} name="WhatsApp" />
-                <Area type="monotone" dataKey="marketplacePrice" stroke="#3b82f6" strokeWidth={2}
-                  fill="url(#marketplaceGrad)" dot={{ r: 3, fill: "#3b82f6" }}
-                  connectNulls isAnimationActive={false} name="Marketplace" />
-                <Area type="monotone" dataKey="internationalPrice" stroke="#f59e0b" strokeWidth={2}
-                  fill="url(#internationalGrad)" dot={{ r: 3, fill: "#f59e0b" }}
-                  connectNulls isAnimationActive={false} name="International" />
-              </AreaChart>
-            ) : (
-              <LineChart key="line" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-                <XAxis {...sharedAxisProps.xAxis} />
-                <YAxis {...sharedAxisProps.yAxis} />
-                <Tooltip content={<CustomTooltip />} />
-                <Line type="monotone" dataKey="whatsappPrice" stroke="#10b981" strokeWidth={2}
-                  dot={{ r: 3, fill: "#10b981", stroke: "#10b981" }}
-                  connectNulls isAnimationActive={false} name="WhatsApp" />
-                <Line type="monotone" dataKey="marketplacePrice" stroke="#3b82f6" strokeWidth={2}
-                  dot={{ r: 3, fill: "#3b82f6", stroke: "#3b82f6" }}
-                  connectNulls isAnimationActive={false} name="Marketplace" />
-                <Line type="monotone" dataKey="internationalPrice" stroke="#f59e0b" strokeWidth={2}
-                  dot={{ r: 3, fill: "#f59e0b", stroke: "#f59e0b" }}
-                  connectNulls isAnimationActive={false} name="International" />
-              </LineChart>
-            )}
-          </ResponsiveContainer>
-        </div>
-      )}
+      {/* Chart */}
+      <div className="bg-terminal-surface border border-brand-gray/20 p-2 sm:p-4">
+        <ResponsiveContainer width="100%" height={chartData.length < 10 ? 200 : 320}>
+          {chartType === "area" ? (
+            <AreaChart key="area" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+              <defs>
+                <linearGradient id="markGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={MARK_COLOR} stopOpacity={0.18} />
+                  <stop offset="95%" stopColor={MARK_COLOR} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+              <XAxis {...sharedAxisProps.xAxis} />
+              <YAxis {...sharedAxisProps.yAxis} />
+              <Tooltip content={<CustomTooltip />} />
+              {hasAsk && (
+                <Area type="monotone" dataKey="ask" stroke={ASK_COLOR} strokeWidth={1} strokeDasharray="4 3"
+                  fill="none" dot={false} connectNulls isAnimationActive={false} name="Ask" />
+              )}
+              {hasBid && (
+                <Area type="monotone" dataKey="bid" stroke={BID_COLOR} strokeWidth={1} strokeDasharray="4 3"
+                  fill="none" dot={false} connectNulls isAnimationActive={false} name="Bid" />
+              )}
+              <Area type="monotone" dataKey="mark" stroke={MARK_COLOR} strokeWidth={2}
+                fill="url(#markGrad)" dot={{ r: 2.5, fill: MARK_COLOR }}
+                connectNulls isAnimationActive={false} name="Mark" />
+            </AreaChart>
+          ) : (
+            <LineChart key="line" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+              <XAxis {...sharedAxisProps.xAxis} />
+              <YAxis {...sharedAxisProps.yAxis} />
+              <Tooltip content={<CustomTooltip />} />
+              {hasAsk && (
+                <Line type="monotone" dataKey="ask" stroke={ASK_COLOR} strokeWidth={1} strokeDasharray="4 3"
+                  dot={false} connectNulls isAnimationActive={false} name="Ask" />
+              )}
+              {hasBid && (
+                <Line type="monotone" dataKey="bid" stroke={BID_COLOR} strokeWidth={1} strokeDasharray="4 3"
+                  dot={false} connectNulls isAnimationActive={false} name="Bid" />
+              )}
+              <Line type="monotone" dataKey="mark" stroke={MARK_COLOR} strokeWidth={2}
+                dot={{ r: 2.5, fill: MARK_COLOR, stroke: MARK_COLOR }}
+                connectNulls isAnimationActive={false} name="Mark" />
+            </LineChart>
+          )}
+        </ResponsiveContainer>
+      </div>
 
-      {/* Legend (hidden when sparse — no chart line for it to describe) + Footer */}
+      {/* Legend + Footer */}
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-        {!isSparse && (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:gap-4">
-            {CHANNELS.map((ch) =>
-              activeChannels.has(ch) ? (
-                <div key={ch} className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: CHANNEL_META[ch].color }} />
-                  <span className="text-[11px] text-brand-black/60 font-medium">{CHANNEL_META[ch].label}</span>
-                </div>
-              ) : null
-            )}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:gap-4">
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: MARK_COLOR }} />
+            <span className="text-[11px] text-brand-black/60 font-medium">Mark</span>
           </div>
-        )}
+          {hasAsk && (
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: ASK_COLOR }} />
+              <span className="text-[11px] text-brand-black/60 font-medium">Ask</span>
+            </div>
+          )}
+          {hasBid && (
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: BID_COLOR }} />
+              <span className="text-[11px] text-brand-black/60 font-medium">Bid</span>
+            </div>
+          )}
+        </div>
         <p className="text-[11px] text-brand-black/40">
           {chartData.length < 10 ? (
-            <>All {chartData.length} day{chartData.length !== 1 ? "s" : ""} &bull; {totalPoints} price point{totalPoints !== 1 ? "s" : ""}</>
+            <>All {chartData.length} day{chartData.length !== 1 ? "s" : ""}</>
           ) : (
             <>{chartData.length} day{chartData.length !== 1 ? "s" : ""} &bull; {timeframe}</>
           )}

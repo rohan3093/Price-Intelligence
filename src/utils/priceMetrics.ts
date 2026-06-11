@@ -227,70 +227,16 @@ export function extractPricesByChannel(pricePoints: {
 }
 
 /**
- * Calculate percentage change between two prices
- */
-export function calculatePercentageChange(oldPrice: number, newPrice: number): string {
-  if (oldPrice === 0) return "+0.0%";
-  const change = ((newPrice - oldPrice) / oldPrice) * 100;
-  const sign = change >= 0 ? "+" : "";
-  return `${sign}${change.toFixed(1)}%`;
-}
-
-/**
- * Estimate price change based on historical anchor
- * Uses 30-day or 90-day historical data if available
- */
-export function estimatePriceChange(
-  currentPrice: number,
-  historicalMin: number | undefined,
-  historicalMax: number | undefined
-): string {
-  if (!historicalMin || !historicalMax) return "+0.0%";
-  
-  // Use midpoint of historical range as baseline
-  const historicalMidpoint = (historicalMin + historicalMax) / 2;
-  return calculatePercentageChange(historicalMidpoint, currentPrice);
-}
-
-/**
- * Calculate change30d and change90d from REAL historical anchors only.
+ * change30d / change90d are NOT derived here anymore.
  *
- * A change is genuine only when an analyst-entered historical30d / historical90d
- * series exists. There is NO retail fallback: comparing the lowest ask to retail
- * is a vs-retail discount, not a 30-day move, and mislabelling it as "30d" is the
- * defect this pass removes. Returns null (not "+0.0%") when no real history exists.
+ * They come from the REAL daily mark-price series accumulated in Firestore
+ * (priceHistory/{assetId}/days/...), computed by the scheduled snapshot Cloud
+ * Function (functions/src/priceHistory.ts) as today's mark vs the mark ~N days
+ * ago, and written back onto the asset. Manual priceAnchors.historical30d/90d
+ * and any vs-retail fallback have been removed — those mislabelled a discount as
+ * a "30d" move. Enrichment below preserves whatever real change the snapshot job
+ * has written; it never fabricates one.
  */
-export function calculatePriceChanges(
-  currentPrice: number | undefined,
-  priceAnchors: {
-    historical30d?: { min: number; max: number };
-    historical90d?: { min: number; max: number };
-    retailIndia?: number;
-    retailGlobal?: number;
-  }
-): { change30d: string | null; change90d: string | null } {
-  if (!currentPrice) {
-    return { change30d: null, change90d: null };
-  }
-
-  const change30d = priceAnchors.historical30d
-    ? estimatePriceChange(
-        currentPrice,
-        priceAnchors.historical30d.min,
-        priceAnchors.historical30d.max
-      )
-    : null;
-
-  const change90d = priceAnchors.historical90d
-    ? estimatePriceChange(
-        currentPrice,
-        priceAnchors.historical90d.min,
-        priceAnchors.historical90d.max
-      )
-    : null;
-
-  return { change30d, change90d };
-}
 
 /**
  * Calculate confidence score based on number of data points
@@ -407,8 +353,10 @@ export function calculateSizeMetrics(
     ? calculatePriceRange(allPrices)
     : size.fairRange || "";
 
-  // Calculate price changes from REAL historical anchors only (null when absent).
-  const { change30d, change90d } = calculatePriceChanges(bestAvailablePrice, priceAnchors);
+  // change30d/90d are owned by the daily snapshot job (real history). Preserve
+  // whatever it has written; treat empty strings as "no real change yet" (null).
+  const change30d = size.change30d ? size.change30d : null;
+  const change90d = size.change90d ? size.change90d : null;
 
   return {
     bestAvailablePrice,

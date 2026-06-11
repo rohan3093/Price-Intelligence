@@ -45,13 +45,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.discoverMarketplaces = exports.scraperDiagnostics = exports.getScrapersStatus = exports.scrapeAssetPrices = exports.manualScrapeMarketplaces = exports.scrapeMarketplacePrices = exports.manualSendDropReminders = exports.sendDropReminders = void 0;
+exports.discoverMarketplaces = exports.manualSnapshotPrices = exports.snapshotDailyPrices = exports.scraperDiagnostics = exports.getScrapersStatus = exports.scrapeAssetPrices = exports.manualScrapeMarketplaces = exports.scrapeMarketplacePrices = exports.manualSendDropReminders = exports.sendDropReminders = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const mail_1 = __importDefault(require("@sendgrid/mail"));
 // import { scrapeNikeSnkrsIndia } from "./scrapers/nikeSnkrsScraper"; // Disabled - scraping not in use
 const orchestrator_1 = require("./scrapers/orchestrator");
 const urlDiscovery_1 = require("./scrapers/urlDiscovery");
+const priceHistory_1 = require("./priceHistory");
 // Initialize Firebase Admin
 admin.initializeApp();
 const db = admin.firestore();
@@ -793,6 +794,70 @@ exports.scraperDiagnostics = functions
  * GET /discoverMarketplaces
  * GET /discoverMarketplaces?verify=true  — also check if each URL is Shopify
  */
+// ═══════════════════════════════════════════════════════════════════════
+// Daily Price-History Snapshot
+// ═══════════════════════════════════════════════════════════════════════
+/**
+ * Scheduled function to persist a daily mark-price snapshot per asset/size.
+ * Runs once daily at 23:30 IST so it captures the day's approved updates.
+ *
+ * Writes priceHistory/{assetId}/days/{YYYY-MM-DD} (idempotent on the date key)
+ * and back-fills change30d/90d on each asset from the accumulated history.
+ * A point is written EVEN ON FLAT DAYS — a true daily series, decoupled from
+ * scraping and from analyst approval.
+ */
+exports.snapshotDailyPrices = functions
+    .region("asia-south1")
+    .runWith({
+    timeoutSeconds: 540, // 9 minutes
+    memory: "512MB",
+})
+    .pubsub.schedule("30 23 * * *") // 11:30 PM IST daily
+    .timeZone("Asia/Kolkata")
+    .onRun(async () => {
+    console.log("Starting daily price-history snapshot...");
+    try {
+        const result = await (0, priceHistory_1.runDailySnapshot)(db);
+        console.log(`Snapshot ${result.dateKey} complete: ${result.daysWritten} day-docs, ` +
+            `${result.assetsUpdated} assets updated, ${result.durationMs}ms`);
+        return result;
+    }
+    catch (error) {
+        console.error("Daily price-history snapshot failed:", error);
+        throw error;
+    }
+});
+/**
+ * HTTP trigger to run the daily snapshot on-demand (analyst auth).
+ * Useful to seed today's point immediately after deploy, and for testing.
+ * Idempotent: re-running the same day overwrites, never duplicates.
+ *
+ * GET /manualSnapshotPrices
+ */
+exports.manualSnapshotPrices = functions
+    .region("asia-south1")
+    .runWith({
+    timeoutSeconds: 540,
+    memory: "512MB",
+})
+    .https.onRequest(async (req, res) => {
+    if (handleCors(req, res))
+        return;
+    const uid = await verifyAnalystFromRequest(req);
+    if (!uid) {
+        res.status(403).json({ error: "Analyst auth required" });
+        return;
+    }
+    console.log(`Manual price-history snapshot triggered by uid=${uid}`);
+    try {
+        const result = await (0, priceHistory_1.runDailySnapshot)(db);
+        res.json(Object.assign({ success: true }, result));
+    }
+    catch (error) {
+        console.error("Manual price-history snapshot failed:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 exports.discoverMarketplaces = functions
     .region("asia-south1")
     .runWith({

@@ -70,6 +70,13 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Price history — public read (powers the chart), writes only via Admin SDK
+    // (the scheduled snapshot function bypasses these rules; client writes denied).
+    match /priceHistory/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // Scraped prices — analyst-only read/update
     match /scraped_prices/{document=**} {
       allow read: if isAnalyst();
