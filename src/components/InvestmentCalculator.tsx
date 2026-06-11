@@ -43,7 +43,7 @@ export const InvestmentCalculator: React.FC<InvestmentCalculatorProps> = ({
     {
       label: 'Expected',
       return: expectedReturn,
-      color: 'text-emerald-400',
+      color: 'text-up',
     },
     {
       label: 'Optimistic',
@@ -68,7 +68,7 @@ export const InvestmentCalculator: React.FC<InvestmentCalculatorProps> = ({
             type="number"
             value={investmentAmount}
             onChange={(e) => setInvestmentAmount(parseInt(e.target.value) || 0)}
-            className="w-full bg-brand-white border border-brand-gray/20 rounded-none py-2.5 px-4 text-xs text-brand-black focus:outline-none focus:border-emerald-500"
+            className="w-full bg-brand-white border border-brand-gray/20 rounded-none py-2.5 px-4 text-xs text-brand-black focus:outline-none focus:border-up/40"
           />
         </div>
 
@@ -126,14 +126,14 @@ export const InvestmentCalculator: React.FC<InvestmentCalculatorProps> = ({
             </div>
             <div className="border border-brand-gray/20 rounded-none p-4">
               <p className="text-xs text-brand-black mb-1">Final Value</p>
-              <p className="text-lg font-semibold text-green-500">
+              <p className="text-lg font-semibold text-up">
                 ₹{returns.finalValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </p>
             </div>
             <div className="border border-brand-gray/20 rounded-none p-4">
               <p className="text-xs text-brand-black mb-1">Total Profit</p>
               <p className={`text-lg font-semibold ${
-                returns.profit > 0 ? "text-green-500" : returns.profit < 0 ? "text-red-500" : "text-brand-black"
+                returns.profit > 0 ? "text-up" : returns.profit < 0 ? "text-down" : "text-brand-black"
               }`}>
                 ₹{returns.profit.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </p>
@@ -141,7 +141,7 @@ export const InvestmentCalculator: React.FC<InvestmentCalculatorProps> = ({
             <div className="border border-brand-gray/20 rounded-none p-4">
               <p className="text-xs text-brand-black mb-1">ROI</p>
               <p className={`text-lg font-semibold ${
-                returns.roi > 0 ? "text-green-500" : returns.roi < 0 ? "text-red-500" : "text-brand-black"
+                returns.roi > 0 ? "text-up" : returns.roi < 0 ? "text-down" : "text-brand-black"
               }`}>
                 {returns.roi > 0 ? "+" : ""}{returns.roi.toFixed(1)}%
               </p>
@@ -177,11 +177,11 @@ export const InvestmentCalculator: React.FC<InvestmentCalculatorProps> = ({
         </h3>
         <ul className="space-y-2 text-xs text-brand-black">
           <li className="flex items-start gap-2">
-            <span className="text-emerald-400">•</span>
+            <span className="text-up">•</span>
             <span>Average monthly profit: ₹{returns.monthlyProfit.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-emerald-400">•</span>
+            <span className="text-up">•</span>
             <span>This assumes you reinvest profits and maintain consistent returns</span>
           </li>
           <li className="flex items-start gap-2">
@@ -200,7 +200,7 @@ export const InvestmentCalculator: React.FC<InvestmentCalculatorProps> = ({
         </button>
         <button
           onClick={onNext}
-          className="flex-1 px-6 py-3 rounded-none bg-emerald-500 text-brand-white font-medium text-xs hover:bg-emerald-400"
+          className="flex-1 px-6 py-3 rounded-none bg-up text-brand-white font-medium text-xs hover:bg-up/90"
         >
           Get Recommendations →
         </button>

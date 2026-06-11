@@ -407,7 +407,7 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
             <main id="main-content" className="flex-1 bg-brand-white pb-20 md:pb-0 w-full overflow-y-auto flex flex-col">
               {assetsError && !assetsLoading && (
                 <div className={`px-2 md:px-3 py-2 border-b flex items-center justify-between gap-3 ${
-                  assets.length > 0 ? "border-yellow-300 bg-yellow-50" : "border-red-300 bg-red-50"
+                  assets.length > 0 ? "border-yellow-300 bg-yellow-50" : "border-down/40 bg-down/10"
                 }`}>
                   <div className="flex items-center gap-2">
                     {assets.length > 0 ? (
@@ -415,11 +415,11 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                       </svg>
                     ) : (
-                      <svg className="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-down flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     )}
-                    <p className={`text-xs ${assets.length > 0 ? "text-yellow-800" : "text-red-800"}`}>
+                    <p className={`text-xs ${assets.length > 0 ? "text-yellow-800" : "text-down"}`}>
                       {assetsError}
                     </p>
                   </div>
@@ -428,10 +428,10 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
                     disabled={isRetrying}
                     className={`px-3 py-1 text-xs font-medium border whitespace-nowrap transition-colors ${
                       isRetrying
-                        ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                        ? "border-terminal-border bg-terminal-surface-raised text-terminal-text-faint cursor-not-allowed"
                         : assets.length > 0
                         ? "border-yellow-600 text-yellow-700 hover:bg-yellow-100 active:scale-95"
-                        : "border-red-600 bg-red-600 text-white hover:bg-red-700 active:scale-95"
+                        : "border-down/40 bg-down text-white hover:bg-down/90 active:scale-95"
                     }`}
                   >
                     {isRetrying ? "Retrying..." : "Refresh"}
@@ -557,7 +557,7 @@ export const AppShell: React.FC<AppShellProps> = ({ currentUser, authInitialized
                   <p className="text-xs text-brand-black/70 mb-4 leading-tight">Create an account or sign in to save your inventory, track value, and see portfolio-level insights.</p>
                   <button
                     onClick={() => setShowSignInModal(true)}
-                    className="px-4 py-2 border border-brand-black bg-brand-black text-brand-white text-xs font-medium hover:bg-brand-black/90 transition leading-tight"
+                    className="px-4 py-2 border border-accent bg-accent text-terminal-bg text-xs font-medium hover:bg-accent/90 transition leading-tight"
                   >
                     Sign In to Access Portfolio
                   </button>

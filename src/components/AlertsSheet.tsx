@@ -50,7 +50,7 @@ export const AlertsSheet: React.FC<AlertsSheetProps> = ({ open, onClose }) => {
                 key={f}
                 className={`px-3 py-1 rounded-none border text-sm ${
                   idx === 0
-                    ? "border-brand-black bg-brand-black text-brand-white"
+                    ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
                     : "border-brand-gray/20 text-brand-black hover:bg-brand-gray/10"
                 }`}
               >
@@ -59,7 +59,7 @@ export const AlertsSheet: React.FC<AlertsSheetProps> = ({ open, onClose }) => {
             ))}
           </div>
         </div>
-        <button className="mt-4 w-full py-2 rounded border border-brand-black bg-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90">
+        <button className="mt-4 w-full py-2 rounded border border-accent bg-accent text-terminal-bg text-sm font-medium hover:bg-accent/90">
           Save alert preferences
         </button>
       </div>

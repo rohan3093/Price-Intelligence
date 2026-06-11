@@ -326,8 +326,8 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                 onClick={() => setEntryMode("csv")}
                 className={`px-3 py-1.5 border text-xs font-semibold uppercase tracking-wide transition ${
                   entryMode === "csv"
-                    ? "border-brand-black bg-brand-black text-white"
-                    : "border-brand-gray/30 bg-white text-brand-black hover:bg-brand-gray/10"
+                    ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
+                    : "border-brand-gray/30 bg-terminal-surface text-brand-black hover:bg-brand-gray/10"
                 }`}
               >
                 CSV Paste
@@ -337,8 +337,8 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                 onClick={() => setEntryMode("form")}
                 className={`px-3 py-1.5 border text-xs font-semibold uppercase tracking-wide transition ${
                   entryMode === "form"
-                    ? "border-brand-black bg-brand-black text-white"
-                    : "border-brand-gray/30 bg-white text-brand-black hover:bg-brand-gray/10"
+                    ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
+                    : "border-brand-gray/30 bg-terminal-surface text-brand-black hover:bg-brand-gray/10"
                 }`}
               >
                 Form Entry
@@ -348,7 +348,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
             {/* Size Display */}
             <div>
               <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                Size <span className="text-red-600 font-normal">*</span>
+                Size <span className="text-down font-normal">*</span>
               </label>
               <input
                 type="text"
@@ -363,7 +363,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
               <div className="space-y-3">
                 <div>
                   <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                    CSV Data <span className="text-red-600 font-normal">*</span>
+                    CSV Data <span className="text-down font-normal">*</span>
                   </label>
                   <textarea
                     value={csvText}
@@ -371,7 +371,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                       setCsvText(e.target.value);
                       setErrors([]);
                     }}
-                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-mono text-brand-black focus:outline-none focus:border-brand-black leading-tight resize-none"
+                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-mono text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight resize-none"
                     rows={10}
                     placeholder="Paste CSV data here..."
                   />
@@ -399,7 +399,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                         <button
                           type="button"
                           onClick={() => removeFormEntry(index)}
-                          className="text-red-600 text-xs hover:text-red-700"
+                          className="text-down text-xs hover:text-down"
                         >
                           Remove
                         </button>
@@ -409,12 +409,12 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                          Channel <span className="text-red-600 font-normal">*</span>
+                          Channel <span className="text-down font-normal">*</span>
                         </label>
                         <select
                           value={entry.channel}
                           onChange={(e) => updateFormEntry(index, "channel", e.target.value as MarketChannel)}
-                          className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                          className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                         >
                           <option value="whatsapp">WhatsApp & Reseller</option>
                           <option value="marketplace">Indian Marketplaces</option>
@@ -425,26 +425,26 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                       {entry.channel === "international" ? (
                         <div>
                           <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                            Price ($) <span className="text-red-600 font-normal">*</span>
+                            Price ($) <span className="text-down font-normal">*</span>
                           </label>
                           <input
                             type="number"
                             value={entry.priceUSD}
                             onChange={(e) => updateFormEntry(index, "priceUSD", e.target.value)}
-                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                             placeholder="150"
                           />
                         </div>
                       ) : (
                         <div>
                           <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                            Price (₹) <span className="text-red-600 font-normal">*</span>
+                            Price (₹) <span className="text-down font-normal">*</span>
                           </label>
                           <input
                             type="number"
                             value={entry.price}
                             onChange={(e) => updateFormEntry(index, "price", e.target.value)}
-                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                             placeholder="12000"
                           />
                         </div>
@@ -452,13 +452,13 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
 
                       <div>
                         <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                          Quantity <span className="text-red-600 font-normal">*</span>
+                          Quantity <span className="text-down font-normal">*</span>
                         </label>
                         <input
                           type="number"
                           value={entry.listingCount}
                           onChange={(e) => updateFormEntry(index, "listingCount", e.target.value)}
-                          className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                          className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                           placeholder="2"
                         />
                       </div>
@@ -471,7 +471,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                           <select
                             value={entry.transactionType}
                             onChange={(e) => updateFormEntry(index, "transactionType", e.target.value)}
-                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                           >
                             <option value="buy">WTS (Want to Sell)</option>
                             <option value="sell">WTB (Want to Buy)</option>
@@ -487,7 +487,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                           <select
                             value={entry.marketplaceName}
                             onChange={(e) => updateFormEntry(index, "marketplaceName", e.target.value)}
-                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                           >
                             {marketplaceOptions.map(opt => (
                               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -505,7 +505,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                             <select
                               value={entry.platform}
                               onChange={(e) => updateFormEntry(index, "platform", e.target.value)}
-                              className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                              className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                             >
                               {platformOptions.map(opt => (
                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -520,7 +520,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                               type="number"
                               value={entry.reshippingCost}
                               onChange={(e) => updateFormEntry(index, "reshippingCost", e.target.value)}
-                              className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                              className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                               placeholder="2000"
                             />
                           </div>
@@ -538,7 +538,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                             type="text"
                             value={entry.sellerName}
                             onChange={(e) => updateFormEntry(index, "sellerName", e.target.value)}
-                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                             placeholder="John Doe"
                           />
                         </div>
@@ -550,7 +550,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                             type="text"
                             value={entry.sellerLocation}
                             onChange={(e) => updateFormEntry(index, "sellerLocation", e.target.value)}
-                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                             placeholder="Delhi"
                           />
                         </div>
@@ -562,7 +562,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                             type="text"
                             value={entry.sellerContact}
                             onChange={(e) => updateFormEntry(index, "sellerContact", e.target.value)}
-                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                             placeholder="+91 98765 43210"
                           />
                         </div>
@@ -574,7 +574,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                             type="text"
                             value={entry.source}
                             onChange={(e) => updateFormEntry(index, "source", e.target.value)}
-                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                            className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                             placeholder="whatsapp-group-mumbai"
                           />
                         </div>
@@ -590,7 +590,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
                           type="url"
                           value={entry.url}
                           onChange={(e) => updateFormEntry(index, "url", e.target.value)}
-                          className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                          className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                           placeholder="https://..."
                         />
                       </div>
@@ -610,11 +610,11 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
 
             {/* Errors */}
             {errors.length > 0 && (
-              <div className="border border-red-500/30 bg-red-500/5 p-3">
-                <h3 className="text-[10px] font-semibold text-red-700 mb-1.5 uppercase leading-tight">Errors <span className="font-mono-numeric">({errors.length})</span></h3>
+              <div className="border border-down/30 bg-down/5 p-3">
+                <h3 className="text-[10px] font-semibold text-down mb-1.5 uppercase leading-tight">Errors <span className="font-mono-numeric">({errors.length})</span></h3>
                 <ul className="list-disc list-inside space-y-0.5">
                   {errors.map((error, i) => (
-                    <li key={i} className="text-[10px] text-red-600 leading-tight">{error}</li>
+                    <li key={i} className="text-[10px] text-down leading-tight">{error}</li>
                   ))}
                 </ul>
               </div>
@@ -624,7 +624,7 @@ international,150,1,,,stockx,,https://stockx.com,2000`;
             <div className="flex gap-2 pt-3 border-t border-brand-gray/20">
               <button
                 type="submit"
-                className="px-3 py-1.5 border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition leading-tight"
+                className="px-3 py-1.5 border border-accent bg-accent text-terminal-bg text-xs font-semibold uppercase tracking-wide hover:bg-accent/90 transition leading-tight"
               >
                 Add {entryMode === "csv" ? "All Listings" : `${formEntries.filter(e => e.price || e.priceUSD).length} Listing(s)`}
               </button>

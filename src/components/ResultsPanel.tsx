@@ -119,7 +119,7 @@ function formatSizeRange(asset: Asset): string {
 
 // Loading skeleton for asset card - more compact with shimmer
 const AssetCardSkeleton: React.FC = () => (
-  <div className="border border-brand-gray/20 p-3 flex gap-3 bg-white">
+  <div className="border border-brand-gray/20 p-3 flex gap-3 bg-terminal-surface">
     <div className="h-12 w-12 bg-brand-gray/10 flex-shrink-0 relative overflow-hidden">
       <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
     </div>
@@ -192,12 +192,12 @@ const AssetRow: React.FC<AssetRowProps> = React.memo(({
                 }}
         className={`border cursor-pointer transition-all duration-200 flex items-start gap-3 p-3 active:scale-[0.98] focus:outline-none focus:ring-2 ${
                   isSelected 
-                    ? "border-brand-black bg-brand-black text-brand-white" 
-                    : "border-brand-gray/20 bg-white hover:border-brand-gray/40"
+                    ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text" 
+                    : "border-brand-gray/20 bg-terminal-surface hover:border-brand-gray/40"
                 }`}
               >
                 {/* Asset image */}
-                <div className="h-12 w-12 bg-white flex items-center justify-center flex-shrink-0 border border-brand-gray/20">
+                <div className="h-12 w-12 bg-terminal-surface flex items-center justify-center flex-shrink-0 border border-brand-gray/20">
                   <img
                     src={asset.image}
                     alt={asset.name}
@@ -234,8 +234,8 @@ const AssetRow: React.FC<AssetRowProps> = React.memo(({
                     {isBestDeal(asset) && (
                       <span className={`flex-shrink-0 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide leading-none mt-0.5 ${
                         isSelected 
-                          ? "bg-green-500 text-white" 
-                          : "bg-green-500/10 text-green-700 border border-green-500/30"
+                          ? "bg-up text-terminal-bg" 
+                          : "bg-up/10 text-up border border-up/30"
                       }`}>
                         DEAL
                       </span>
@@ -284,9 +284,9 @@ const AssetRow: React.FC<AssetRowProps> = React.memo(({
                         <span
                           className={`text-xs font-mono-numeric font-semibold ${
                             asset.change30d.startsWith("-")
-                              ? "text-red-600"
+                              ? "text-down"
                               : asset.change30d.startsWith("+")
-                              ? "text-green-600"
+                              ? "text-up"
                               : isSelected ? "text-brand-white/70" : "text-brand-black/60"
                           }`}
                           title={`30d change: ${asset.change30d}`}
@@ -434,7 +434,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
   const watchlistSet = useMemo(() => new Set(watchlistIds), [watchlistIds]);
 
   return (
-    <section className="border border-brand-gray/20 p-4 bg-white flex-1 flex flex-col min-h-0">
+    <section className="border border-brand-gray/20 p-4 bg-terminal-surface flex-1 flex flex-col min-h-0">
       <div className="flex items-center justify-between mb-3 pb-3 border-b border-brand-gray/20 flex-shrink-0">
         <div className="flex items-center gap-2">
           <h2 className="text-xs font-semibold text-brand-black uppercase tracking-wider">
@@ -452,8 +452,8 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
               onClick={() => setShowSortMenu(!showSortMenu)}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium border transition-all ${
                 sortBy !== "default"
-                  ? "border-brand-black bg-brand-black text-white"
-                  : "border-brand-gray/30 text-brand-black/70 hover:border-brand-black"
+                  ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
+                  : "border-brand-gray/30 text-brand-black/70 hover:border-terminal-border-strong"
               }`}
               aria-label="Sort assets"
               title="Sort assets"
@@ -465,7 +465,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
             </button>
             {showSortMenu && (
               <div
-                className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-brand-gray/20 shadow-dropdown z-50 py-1"
+                className="absolute right-0 top-full mt-1.5 w-48 bg-terminal-surface border border-brand-gray/20 shadow-dropdown z-50 py-1"
               >
                 {(Object.keys(sortLabels) as SortOption[]).map((option) => (
                   <button
@@ -473,7 +473,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
                     onClick={() => { setSortBy(option); setShowSortMenu(false); }}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                       sortBy === option
-                        ? "bg-brand-black text-white font-semibold"
+                        ? "bg-terminal-surface-raised text-terminal-text font-semibold"
                         : "text-brand-black hover:bg-brand-background/50"
                     }`}
                   >

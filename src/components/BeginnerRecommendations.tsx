@@ -69,7 +69,7 @@ export const BeginnerRecommendations: React.FC<BeginnerRecommendationsProps> = (
           {recommendations.map((rec) => (
             <div
               key={rec.id}
-              className="border border-brand-gray/20 rounded-none p-4 bg-brand-white hover:border-brand-black transition"
+              className="border border-brand-gray/20 rounded-none p-4 bg-brand-white hover:border-terminal-border-strong transition"
             >
               <div className="flex items-start gap-4 mb-3">
                 <div className="h-16 w-16 rounded-none bg-brand-gray/10 overflow-hidden flex-shrink-0">
@@ -86,10 +86,10 @@ export const BeginnerRecommendations: React.FC<BeginnerRecommendationsProps> = (
                     </h3>
                     <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                       rec.riskLevel === 'low' 
-                        ? 'bg-emerald-500/20 text-emerald-400'
+                        ? 'bg-up/20 text-up'
                         : rec.riskLevel === 'medium'
                         ? 'bg-amber-500/20 text-amber-400'
-                        : 'bg-red-500/20 text-red-400'
+                        : 'bg-down/20 text-down'
                     }`}>
                       {rec.riskLevel.toUpperCase()} RISK
                     </span>
@@ -112,7 +112,7 @@ export const BeginnerRecommendations: React.FC<BeginnerRecommendationsProps> = (
                 <ul className="space-y-1">
                   {rec.whyGoodForBeginners.map((reason, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-xs text-brand-black">
-                      <span className="text-emerald-400 mt-0.5">✓</span>
+                      <span className="text-up mt-0.5">✓</span>
                       <span>{reason}</span>
                     </li>
                   ))}
@@ -125,7 +125,7 @@ export const BeginnerRecommendations: React.FC<BeginnerRecommendationsProps> = (
                 </p>
               </div>
 
-              <button className="mt-3 w-full py-2 rounded-none border border-emerald-500/50 bg-emerald-500/10 text-emerald-400 text-xs font-medium hover:bg-emerald-500/20">
+              <button className="mt-3 w-full py-2 rounded-none border border-up/50 bg-up/10 text-up text-xs font-medium hover:bg-up/20">
                 View Details & Add to Watchlist
               </button>
             </div>
@@ -140,7 +140,7 @@ export const BeginnerRecommendations: React.FC<BeginnerRecommendationsProps> = (
         </h3>
         <ol className="space-y-3 text-xs text-brand-black">
           <li className="flex items-start gap-3">
-            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-medium">
+            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-up/20 text-up flex items-center justify-center text-xs font-medium">
               1
             </span>
             <div>
@@ -149,7 +149,7 @@ export const BeginnerRecommendations: React.FC<BeginnerRecommendationsProps> = (
             </div>
           </li>
           <li className="flex items-start gap-3">
-            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-medium">
+            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-up/20 text-up flex items-center justify-center text-xs font-medium">
               2
             </span>
             <div>
@@ -158,7 +158,7 @@ export const BeginnerRecommendations: React.FC<BeginnerRecommendationsProps> = (
             </div>
           </li>
           <li className="flex items-start gap-3">
-            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-medium">
+            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-up/20 text-up flex items-center justify-center text-xs font-medium">
               3
             </span>
             <div>
@@ -167,7 +167,7 @@ export const BeginnerRecommendations: React.FC<BeginnerRecommendationsProps> = (
             </div>
           </li>
           <li className="flex items-start gap-3">
-            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-medium">
+            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-up/20 text-up flex items-center justify-center text-xs font-medium">
               4
             </span>
             <div>

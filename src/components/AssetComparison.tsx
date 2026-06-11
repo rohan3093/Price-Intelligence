@@ -137,7 +137,7 @@ export const AssetComparison: React.FC<AssetComparisonProps> = ({ assets, onClos
                   const bestPrice = getBestPrice(asset);
                   return (
                     <td key={asset.id} className="p-3">
-                      <p className="text-lg font-semibold text-green-600">
+                      <p className="text-lg font-semibold text-up">
                         {bestPrice ? `₹${bestPrice.toLocaleString('en-IN')}` : '—'}
                       </p>
                     </td>
@@ -167,9 +167,9 @@ export const AssetComparison: React.FC<AssetComparisonProps> = ({ assets, onClos
                       <p
                         className={`text-base font-semibold ${
                           change30d?.startsWith("-")
-                            ? "text-red-600"
+                            ? "text-down"
                             : change30d?.startsWith("+")
-                            ? "text-green-600"
+                            ? "text-up"
                             : "text-brand-black"
                         }`}
                       >
@@ -204,7 +204,7 @@ export const AssetComparison: React.FC<AssetComparisonProps> = ({ assets, onClos
                         <p className="text-base font-semibold text-brand-black">{confidence}/100</p>
                         <div className="flex-1 bg-brand-gray/20 h-2">
                           <div 
-                            className="h-full bg-brand-black transition-all"
+                            className="h-full bg-terminal-text-dim transition-all"
                             style={{ width: `${confidence}%` }}
                           ></div>
                         </div>

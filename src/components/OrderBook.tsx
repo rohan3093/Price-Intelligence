@@ -149,7 +149,7 @@ export const OrderBook: React.FC<OrderBookProps> = ({
           <div className="text-xs text-brand-black/50 mt-1">{asks.length} selling</div>
         </div>
         {(bids.length > 0 && asks.length > 0) && (
-          <div className={`border p-3 text-center ${spread < 0 ? 'bg-green-50/50 border-green-200/50' : 'bg-brand-background/30 border-brand-gray/20'}`}>
+          <div className={`border p-3 text-center ${spread < 0 ? 'bg-up/10 border-up/40' : 'bg-brand-background/30 border-brand-gray/20'}`}>
             <div className="text-[10px] text-brand-black/60 uppercase tracking-wider font-semibold mb-1">Spread</div>
             {spread > 0 ? (
               <>
@@ -158,8 +158,8 @@ export const OrderBook: React.FC<OrderBookProps> = ({
               </>
             ) : spread < 0 ? (
               <>
-                <div className="text-lg font-bold font-mono-numeric text-green-700">Crossed</div>
-                <div className="text-xs text-green-600/80 mt-1" title="Highest bid exceeds lowest ask — buyers are willing to pay more than sellers are asking. This typically signals an arbitrage opportunity across channels.">
+                <div className="text-lg font-bold font-mono-numeric text-up">Crossed</div>
+                <div className="text-xs text-up/80 mt-1" title="Highest bid exceeds lowest ask — buyers are willing to pay more than sellers are asking. This typically signals an arbitrage opportunity across channels.">
                   Bid exceeds ask by {formatPrice(Math.abs(spread))}
                 </div>
               </>
@@ -177,13 +177,13 @@ export const OrderBook: React.FC<OrderBookProps> = ({
 
       {/* Crossed market notice */}
       {spread < 0 && bids.length > 0 && asks.length > 0 && (
-        <div className="flex items-start gap-2 text-xs bg-green-50/50 border border-green-200/50 p-3">
-          <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex items-start gap-2 text-xs bg-up/10 border border-up/40 p-3">
+          <svg className="w-4 h-4 text-up flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
           <div>
-            <p className="font-semibold text-green-800">Crossed market — arbitrage opportunity</p>
-            <p className="text-green-700/70 mt-0.5">The highest bid ({formatPrice(bestBid)}) exceeds the lowest ask ({formatPrice(bestAsk)}). In a traditional exchange these would auto-match, but since these are across different channels (WhatsApp, marketplaces, international), the price gap represents a potential arbitrage opportunity. Check the Arbitrage tab for actionable strategies.</p>
+            <p className="font-semibold text-up">Crossed market — arbitrage opportunity</p>
+            <p className="text-up/70 mt-0.5">The highest bid ({formatPrice(bestBid)}) exceeds the lowest ask ({formatPrice(bestAsk)}). In a traditional exchange these would auto-match, but since these are across different channels (WhatsApp, marketplaces, international), the price gap represents a potential arbitrage opportunity. Check the Arbitrage tab for actionable strategies.</p>
           </div>
         </div>
       )}

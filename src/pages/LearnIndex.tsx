@@ -41,13 +41,13 @@ const LearnIndex: React.FC = () => {
           <div className="flex items-center gap-3">
             <Link
               to="/learn"
-              className="px-4 py-1.5 text-xs font-semibold text-brand-black/70 border-b-2 border-brand-black"
+              className="px-4 py-1.5 text-xs font-semibold text-brand-black/70 border-b-2 border-terminal-border-strong"
             >
               Learn
             </Link>
             <Link
               to="/app"
-              className="px-4 py-1.5 text-xs font-semibold bg-brand-black text-white hover:bg-brand-black/90 transition-colors"
+              className="px-4 py-1.5 text-xs font-semibold bg-accent text-terminal-bg hover:bg-accent/90 transition-colors"
             >
               Open App
             </Link>
@@ -76,8 +76,8 @@ const LearnIndex: React.FC = () => {
               onClick={() => setSelectedCategory(cat)}
               className={`px-4 py-2 text-xs font-medium transition-all ${
                 selectedCategory === cat
-                  ? "bg-brand-black text-white"
-                  : "border border-brand-gray/30 bg-white text-brand-black hover:border-brand-black"
+                  ? "bg-terminal-surface-raised text-terminal-text"
+                  : "border border-brand-gray/30 bg-terminal-surface text-brand-black hover:border-terminal-border-strong"
               }`}
             >
               {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -93,13 +93,13 @@ const LearnIndex: React.FC = () => {
             <Link
               key={guide.id}
               to={`/learn/${guide.slug}`}
-              className="group border border-brand-gray/20 p-5 bg-white hover:border-brand-black text-left transition-all block"
+              className="group border border-brand-gray/20 p-5 bg-terminal-surface hover:border-terminal-border-strong text-left transition-all block"
             >
               <div className="flex items-start justify-between mb-3">
                 <span
                   className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wide leading-tight ${
                     guide.difficulty === "beginner"
-                      ? "bg-green-500/10 text-green-700 border border-green-500/30"
+                      ? "bg-up/10 text-up border border-up/30"
                       : guide.difficulty === "intermediate"
                         ? "bg-yellow-500/10 text-yellow-700 border border-yellow-500/30"
                         : "bg-brand-gray/10 text-brand-black border border-brand-gray/30"
@@ -139,7 +139,7 @@ const LearnIndex: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-brand-gray/30 bg-white">
+      <footer className="border-t border-brand-gray/30 bg-terminal-surface">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <Link to="/">
             <img

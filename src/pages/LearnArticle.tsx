@@ -64,7 +64,7 @@ const LearnArticle: React.FC = () => {
             </Link>
             <Link
               to="/app"
-              className="px-4 py-1.5 text-xs font-semibold bg-brand-black text-white hover:bg-brand-black/90 transition-colors"
+              className="px-4 py-1.5 text-xs font-semibold bg-accent text-terminal-bg hover:bg-accent/90 transition-colors"
             >
               Open App
             </Link>
@@ -93,7 +93,7 @@ const LearnArticle: React.FC = () => {
             <span
               className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wide leading-tight ${
                 guide.difficulty === "beginner"
-                  ? "bg-green-500/10 text-green-700 border border-green-500/30"
+                  ? "bg-up/10 text-up border border-up/30"
                   : guide.difficulty === "intermediate"
                     ? "bg-yellow-500/10 text-yellow-700 border border-yellow-500/30"
                     : "bg-brand-gray/10 text-brand-black border border-brand-gray/30"
@@ -133,7 +133,7 @@ const LearnArticle: React.FC = () => {
 
         {/* CTA */}
         <div
-          className="mt-12 p-6 bg-brand-black text-white"
+          className="mt-12 p-6 bg-terminal-surface-raised text-terminal-text"
         >
           <h3 className="text-sm font-semibold mb-1.5">
             Ready to put this into practice?
@@ -145,7 +145,7 @@ const LearnArticle: React.FC = () => {
           </p>
           <Link
             to="/app"
-            className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold bg-white text-brand-black hover:bg-white/90 transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold bg-terminal-surface text-brand-black hover:bg-white/90 transition-colors"
           >
             Open Sentria
             <svg
@@ -169,7 +169,7 @@ const LearnArticle: React.FC = () => {
           {prevGuide ? (
             <Link
               to={`/learn/${prevGuide.slug}`}
-              className="group p-4 border border-brand-gray/20 bg-white hover:border-brand-black transition-colors text-left"
+              className="group p-4 border border-brand-gray/20 bg-terminal-surface hover:border-terminal-border-strong transition-colors text-left"
             >
               <span className="text-[10px] text-brand-black/40 uppercase tracking-wider">
                 Previous
@@ -184,7 +184,7 @@ const LearnArticle: React.FC = () => {
           {nextGuide ? (
             <Link
               to={`/learn/${nextGuide.slug}`}
-              className="group p-4 border border-brand-gray/20 bg-white hover:border-brand-black transition-colors text-right"
+              className="group p-4 border border-brand-gray/20 bg-terminal-surface hover:border-terminal-border-strong transition-colors text-right"
             >
               <span className="text-[10px] text-brand-black/40 uppercase tracking-wider">
                 Next
@@ -200,7 +200,7 @@ const LearnArticle: React.FC = () => {
       </article>
 
       {/* Footer */}
-      <footer className="border-t border-brand-gray/30 bg-white">
+      <footer className="border-t border-brand-gray/30 bg-terminal-surface">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <Link to="/">
             <img src="/sentria-logo.svg" alt="Sentria" className="h-4 opacity-40" />
@@ -255,19 +255,19 @@ const MarkdownSection: React.FC<{ content: string }> = ({ content }) => (
         <strong className="font-semibold text-brand-black">{children}</strong>
       ),
       blockquote: ({ children }) => (
-        <div className="my-5 pl-4 py-3 pr-4 border-l-4 border-brand-black bg-brand-black/[0.02] rounded-r-lg">
+        <div className="my-5 pl-4 py-3 pr-4 border-l-4 border-terminal-border-strong bg-terminal-surface-raised rounded-r-lg">
           <div className="text-[13px] text-brand-black/80 leading-relaxed [&>p]:mb-0">
             {children}
           </div>
         </div>
       ),
       table: ({ children }) => (
-        <div className="my-6 overflow-x-auto border border-brand-gray/20 rounded-lg bg-white">
+        <div className="my-6 overflow-x-auto border border-brand-gray/20 rounded-lg bg-terminal-surface">
           <table className="w-full text-[12px] leading-relaxed">{children}</table>
         </div>
       ),
       thead: ({ children }) => (
-        <thead className="bg-brand-black/[0.03] border-b border-brand-gray/20">
+        <thead className="bg-terminal-surface-raised border-b border-brand-gray/20">
           {children}
         </thead>
       ),
@@ -279,7 +279,7 @@ const MarkdownSection: React.FC<{ content: string }> = ({ content }) => (
       tbody: ({ children }) => (
         <tbody className="divide-y divide-brand-gray/10">{children}</tbody>
       ),
-      tr: ({ children }) => <tr className="hover:bg-brand-black/[0.01]">{children}</tr>,
+      tr: ({ children }) => <tr className="hover:bg-terminal-surface-raised">{children}</tr>,
       td: ({ children }) => (
         <td className="px-3 py-2.5 text-[12px] text-brand-black/80">{children}</td>
       ),

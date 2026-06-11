@@ -189,7 +189,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
   const activeFilterCount = (selectedBrand ? 1 : 0) + (priceRange.min !== null || priceRange.max !== null ? 1 : 0);
 
   return (
-    <section className="border border-brand-gray/20 p-4 space-y-4 bg-white">
+    <section className="border border-brand-gray/20 p-4 space-y-4 bg-terminal-surface">
       {/* Market Stats - more compact */}
       <div className="pb-3 border-b border-brand-gray/20">
         <div className="flex items-baseline gap-2">
@@ -240,7 +240,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
             aria-describedby="search-hint"
             aria-autocomplete="list"
             aria-expanded={showSuggestions || showHistory}
-            className="w-full bg-white border border-brand-gray/30 py-3 pl-10 pr-10 text-sm font-body text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-brand-black transition-all"
+            className="w-full bg-terminal-surface border border-brand-gray/30 py-3 pl-10 pr-10 text-sm font-body text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-terminal-border-strong transition-all"
           />
           <span id="search-hint" className="sr-only">
             Type to search assets. Use arrow keys to navigate suggestions, Enter to select.
@@ -249,7 +249,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           {showSuggestions && suggestions.length > 0 && (
             <div 
               ref={suggestionsRef}
-              className="absolute z-50 w-full mt-2 bg-white border border-brand-gray/20 shadow-dropdown max-h-60 overflow-hidden"
+              className="absolute z-50 w-full mt-2 bg-terminal-surface border border-brand-gray/20 shadow-dropdown max-h-60 overflow-hidden"
               role="listbox"
               aria-label="Search suggestions"
             >
@@ -275,7 +275,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           {/* Search History Dropdown */}
           {showHistory && !query.trim() && searchHistory.length > 0 && (
             <div 
-              className="absolute z-50 w-full mt-2 bg-white border border-brand-gray/20 shadow-dropdown max-h-60 overflow-hidden"
+              className="absolute z-50 w-full mt-2 bg-terminal-surface border border-brand-gray/20 shadow-dropdown max-h-60 overflow-hidden"
               role="listbox"
               aria-label="Recent searches"
             >
@@ -333,7 +333,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
             {selectedBrand && onBrandChange && (
               <button
                 onClick={() => onBrandChange(null)}
-                className="px-3 py-1.5 bg-brand-black text-white text-xs font-medium hover:bg-brand-black/90 transition-all flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-accent text-terminal-bg text-xs font-medium hover:bg-accent/90 transition-all flex items-center gap-1.5"
               >
                 {selectedBrand}
                 <span className="text-sm">✕</span>
@@ -342,7 +342,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
             {(priceRange.min !== null || priceRange.max !== null) && onPriceRangeChange && (
               <button
                 onClick={() => onPriceRangeChange({ min: null, max: null })}
-                className="px-3 py-1.5 bg-brand-black text-white text-xs font-medium hover:bg-brand-black/90 transition-all flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-accent text-terminal-bg text-xs font-medium hover:bg-accent/90 transition-all flex items-center gap-1.5"
               >
                 ₹{priceRange.min?.toLocaleString("en-IN") || "0"} - ₹{priceRange.max?.toLocaleString("en-IN") || "∞"}
                 <span className="text-sm">✕</span>
@@ -355,7 +355,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
         {(onBrandChange || onPriceRangeChange) && (
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="w-full px-4 py-2.5 border border-brand-gray/30 bg-white hover:bg-brand-background/50 text-sm font-semibold text-brand-black transition-all flex items-center justify-between"
+            className="w-full px-4 py-2.5 border border-brand-gray/30 bg-terminal-surface hover:bg-brand-background/50 text-sm font-semibold text-brand-black transition-all flex items-center justify-between"
           >
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -363,7 +363,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
               </svg>
               <span>Filters</span>
               {activeFilterCount > 0 && (
-                <span className="px-2 py-0.5 bg-brand-black text-white text-xs font-bold">
+                <span className="px-2 py-0.5 bg-terminal-surface-raised text-terminal-text text-xs font-bold">
                   {activeFilterCount}
                 </span>
               )}
@@ -394,8 +394,8 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                   onClick={() => onBrandChange(null)}
                   className={`px-4 py-2 text-xs font-medium transition-all ${
                     !selectedBrand
-                      ? "bg-brand-black text-white"
-                      : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+                      ? "bg-terminal-surface-raised text-terminal-text"
+                      : "bg-terminal-surface text-brand-black border border-brand-gray/30 hover:border-terminal-border-strong"
                   }`}
                 >
                   All
@@ -406,8 +406,8 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                     onClick={() => onBrandChange(brand)}
                     className={`px-4 py-2 text-xs font-medium transition-all ${
                       selectedBrand === brand
-                        ? "bg-brand-black text-white"
-                        : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+                        ? "bg-terminal-surface-raised text-terminal-text"
+                        : "bg-terminal-surface text-brand-black border border-brand-gray/30 hover:border-terminal-border-strong"
                     }`}
                   >
                     {brand}
@@ -428,8 +428,8 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                   onClick={() => onPriceRangeChange({ min: null, max: null })}
                   className={`px-4 py-2 text-xs font-medium transition-all ${
                     !priceRange.min && !priceRange.max
-                      ? "bg-brand-black text-white"
-                      : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+                      ? "bg-terminal-surface-raised text-terminal-text"
+                      : "bg-terminal-surface text-brand-black border border-brand-gray/30 hover:border-terminal-border-strong"
                   }`}
                 >
                   All
@@ -442,8 +442,8 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                       onClick={() => onPriceRangeChange({ min: preset.min, max: preset.max })}
                       className={`px-4 py-2 text-xs font-medium transition-all ${
                         isActive
-                          ? "bg-brand-black text-white"
-                          : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+                          ? "bg-terminal-surface-raised text-terminal-text"
+                          : "bg-terminal-surface text-brand-black border border-brand-gray/30 hover:border-terminal-border-strong"
                       }`}
                     >
                       {preset.label}
@@ -466,8 +466,8 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
                   disabled={!cat.available}
                   className={`px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-all ${
                     cat.available
-                      ? "bg-brand-black text-white hover:bg-brand-black/90"
-                      : "bg-white border border-brand-gray/30 text-brand-black/40 cursor-not-allowed"
+                      ? "bg-terminal-surface-raised text-terminal-text"
+                      : "bg-terminal-surface border border-brand-gray/30 text-brand-black/40 cursor-not-allowed"
                   }`}
                   title={!cat.available ? `${cat.name} tracking is coming soon — stay tuned!` : undefined}
                 >

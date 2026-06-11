@@ -224,7 +224,7 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
         <div className="flex gap-2">
           <button
             onClick={() => setShowAddForm(true)}
-            className="px-4 py-2 bg-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90 transition-all"
+            className="px-4 py-2 bg-accent text-terminal-bg text-sm font-medium hover:bg-accent/90 transition-all"
           >
             + Add Drop
           </button>
@@ -299,7 +299,7 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
               key={`drop-${drop.id}-${drop.name}-${index}`}
               className={`border p-4 bg-brand-white hover:border-brand-gray/40 transition-all ${
                 drop.status === "pending_review"
-                  ? "border-brand-black/20 bg-brand-black/[0.02]"
+                  ? "border-terminal-border-strong bg-terminal-surface-raised"
                   : "border-brand-gray/20"
               }`}
             >
@@ -326,7 +326,7 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
                         {drop.brand}
                       </span>
                       {drop.source.type === "nike-snkrs-scrape" && (
-                        <span className="text-[10px] px-2 py-0.5 bg-brand-black/5 text-brand-black/60">
+                        <span className="text-[10px] px-2 py-0.5 bg-terminal-surface-raised text-brand-black/60">
                           Scraped
                         </span>
                       )}
@@ -379,13 +379,13 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
                     <>
                       <button
                         onClick={() => handleVerifyDrop(drop)}
-                        className="flex-1 px-3 py-1.5 bg-green-600 text-white text-xs font-medium hover:bg-green-700 transition-all"
+                        className="flex-1 px-3 py-1.5 bg-up text-terminal-bg text-xs font-medium hover:bg-up/90 transition-all"
                       >
                         Verify
                       </button>
                       <button
                         onClick={() => handleRejectDrop(drop)}
-                        className="flex-1 px-3 py-1.5 bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-all"
+                        className="flex-1 px-3 py-1.5 bg-down text-white text-xs font-medium hover:bg-down/90 transition-all"
                       >
                         Reject
                       </button>
@@ -399,7 +399,7 @@ export const DropsManagement: React.FC<DropsManagementProps> = ({
                   </button>
                   <button
                     onClick={() => handleDeleteDrop(drop.id)}
-                    className="px-3 py-1.5 border border-brand-gray/20 bg-brand-white text-xs font-medium text-brand-black hover:border-red-400 hover:text-red-600 transition-all"
+                    className="px-3 py-1.5 border border-brand-gray/20 bg-brand-white text-xs font-medium text-brand-black hover:border-down/40 hover:text-down transition-all"
                   >
                     Delete
                   </button>
@@ -617,7 +617,7 @@ const DropFormModal: React.FC<DropFormModalProps> = ({
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90 transition-all"
+              className="flex-1 px-4 py-2.5 bg-accent text-terminal-bg text-sm font-medium hover:bg-accent/90 transition-all"
             >
               Save
             </button>

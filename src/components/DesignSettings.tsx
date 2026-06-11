@@ -82,7 +82,7 @@ export const DesignSettings: React.FC = () => {
             {hasChanges && (
               <button
                 onClick={handleSave}
-                className="px-4 py-2 bg-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90 transition-all"
+                className="px-4 py-2 bg-accent text-terminal-bg text-sm font-medium hover:bg-accent/90 transition-all"
               >
                 Save Changes
               </button>

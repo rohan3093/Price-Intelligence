@@ -13,12 +13,12 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   isAnalyst,
 }) => {
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-brand-gray/30 bg-brand-white px-0.5 py-1.5 flex items-stretch justify-around safe-area-inset-bottom">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-brand-gray bg-brand-white px-0.5 py-1.5 flex items-stretch justify-around safe-area-inset-bottom">
       {/* Market */}
       <button
         onClick={() => setView("home")}
         className={`flex flex-col items-center gap-0.5 flex-1 min-w-0 px-0.5 py-0.5 transition-colors ${
-          view === "home" ? "text-brand-black" : "text-brand-black/60"
+          view === "home" ? "text-accent" : "text-brand-black/55"
         }`}
       >
         <svg
@@ -42,7 +42,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={() => setView("portfolio")}
         className={`flex flex-col items-center gap-0.5 flex-1 min-w-0 px-0.5 py-0.5 transition-colors ${
-          view === "portfolio" ? "text-brand-black" : "text-brand-black/60"
+          view === "portfolio" ? "text-accent" : "text-brand-black/55"
         }`}
       >
         <svg
@@ -66,7 +66,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={() => setView("connections")}
         className={`flex flex-col items-center gap-0.5 flex-1 min-w-0 px-0.5 py-0.5 transition-colors ${
-          view === "connections" ? "text-brand-black" : "text-brand-black/60"
+          view === "connections" ? "text-accent" : "text-brand-black/55"
         }`}
       >
         <svg
@@ -92,7 +92,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={() => setView("watchlist")}
         className={`flex flex-col items-center gap-0.5 flex-1 min-w-0 px-0.5 py-0.5 transition-colors ${
-          view === "watchlist" ? "text-brand-black" : "text-brand-black/60"
+          view === "watchlist" ? "text-accent" : "text-brand-black/55"
         }`}
       >
         <svg
@@ -115,7 +115,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={() => setView("drops")}
         className={`flex flex-col items-center gap-0.5 flex-1 min-w-0 px-0.5 py-0.5 transition-colors ${
-          view === "drops" ? "text-brand-black" : "text-brand-black/60"
+          view === "drops" ? "text-accent" : "text-brand-black/55"
         }`}
       >
         <svg
@@ -139,7 +139,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={() => setView("education")}
         className={`flex flex-col items-center gap-0.5 flex-1 min-w-0 px-0.5 py-0.5 transition-colors ${
-          view === "education" ? "text-brand-black" : "text-brand-black/60"
+          view === "education" ? "text-accent" : "text-brand-black/55"
         }`}
       >
         <svg
@@ -163,7 +163,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         <button
           onClick={() => setView("analyst")}
           className={`flex flex-col items-center gap-0.5 flex-1 min-w-0 px-0.5 py-0.5 transition-colors ${
-            view === "analyst" ? "text-brand-black" : "text-brand-black/60"
+            view === "analyst" ? "text-accent" : "text-brand-black/55"
           }`}
         >
           <svg

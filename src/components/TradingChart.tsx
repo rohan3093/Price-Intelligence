@@ -60,7 +60,7 @@ const TimeframeButton: React.FC<{
     onClick={onClick}
     className={`px-2 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold transition-all ${
       active
-        ? "bg-brand-black text-white"
+        ? "bg-terminal-surface-raised text-terminal-text"
         : "bg-transparent text-brand-black/60 hover:text-brand-black hover:bg-brand-gray/10"
     }`}
     title={`Show ${label} data`}
@@ -283,7 +283,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
     if (rows.length === 0) return null;
 
     return (
-      <div className="bg-white border-2 border-brand-black px-3 py-2 shadow-dropdown">
+      <div className="bg-terminal-surface border-2 border-terminal-border-strong px-3 py-2 shadow-dropdown">
         <p className="text-xs text-brand-black/60 mb-1.5">{data.displayDate}</p>
         {rows.map((r) => (
           <div key={r.channel} className="flex items-center gap-2 mb-0.5">
@@ -363,7 +363,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
             <button
               onClick={() => setChartType("area")}
               className={`px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                chartType === "area" ? "bg-brand-black text-white" : "bg-transparent text-brand-black/60 hover:text-brand-black"
+                chartType === "area" ? "bg-terminal-surface-raised text-terminal-text" : "bg-transparent text-brand-black/60 hover:text-brand-black"
               }`}
               title="Area Chart"
             >
@@ -375,7 +375,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
             <button
               onClick={() => setChartType("line")}
               className={`px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                chartType === "line" ? "bg-brand-black text-white" : "bg-transparent text-brand-black/60 hover:text-brand-black"
+                chartType === "line" ? "bg-terminal-surface-raised text-terminal-text" : "bg-transparent text-brand-black/60 hover:text-brand-black"
               }`}
               title="Line Chart"
             >
@@ -422,7 +422,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
           </div>
           <div className="min-w-0 text-left sm:text-center">
             <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wide mb-0.5 sm:mb-1">Change</p>
-            <p className={`font-mono-numeric font-semibold text-[13px] sm:text-sm ${stats.change >= 0 ? "text-green-600" : "text-red-600"}`}>
+            <p className={`font-mono-numeric font-semibold text-[13px] sm:text-sm ${stats.change >= 0 ? "text-up" : "text-down"}`}>
               {stats.change >= 0 ? "+" : ""}{stats.changePct}%
             </p>
           </div>
@@ -478,7 +478,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ pricePoints }) => {
           </p>
         </div>
       ) : (
-        <div className="bg-white border border-brand-gray/20 p-2 sm:p-4">
+        <div className="bg-terminal-surface border border-brand-gray/20 p-2 sm:p-4">
           <ResponsiveContainer width="100%" height={chartData.length < 10 ? 200 : 320}>
             {chartType === "area" ? (
               <AreaChart key="area" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>

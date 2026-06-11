@@ -347,16 +347,16 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({
 
   const healthTone =
     snapshot.healthIndex >= 65
-      ? "text-green-600"
+      ? "text-up"
       : snapshot.healthIndex <= 40
-      ? "text-red-500"
+      ? "text-down"
       : "text-brand-black";
 
   const changeTone =
     snapshot.averageChange30d > 0
-      ? "text-green-600"
+      ? "text-up"
       : snapshot.averageChange30d < 0
-      ? "text-red-500"
+      ? "text-down"
       : "text-brand-black";
 
   const pulseLine = `${snapshot.totalAssets} ${
@@ -370,7 +370,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({
   const maxSpread = widest ? widest.averageSpreadPct : 0;
 
   return (
-    <section className="border-b border-brand-gray/20 bg-white">
+    <section className="border-b border-brand-gray/20 bg-terminal-surface">
       {/* Collapsed header — always visible. Tap/click to toggle. */}
       <button
         type="button"
@@ -432,7 +432,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({
 
       {/* Expanded body */}
       {isExpanded && (
-        <div className="border-t border-brand-gray/20 px-3 md:px-4 py-4 space-y-5 bg-white">
+        <div className="border-t border-brand-gray/20 px-3 md:px-4 py-4 space-y-5 bg-terminal-surface">
           {/* Section 1: Market Pulse */}
           <div>
             <h3 className="font-heading text-sm tracking-wide text-brand-black mb-2">
@@ -453,7 +453,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({
                 hint="positive 30d"
                 valueClassName={
                   snapshot.marketBreadthPct >= 50
-                    ? "text-green-600"
+                    ? "text-up"
                     : "text-brand-black"
                 }
               />
@@ -479,9 +479,9 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({
                 {snapshot.topMovers.map((m) => {
                   const tone =
                     m.changePercent > 0
-                      ? "text-green-600"
+                      ? "text-up"
                       : m.changePercent < 0
-                      ? "text-red-500"
+                      ? "text-down"
                       : "text-brand-black";
                   return (
                     <button
@@ -554,7 +554,7 @@ export const MarketOverview: React.FC<MarketOverviewProps> = ({
                         </div>
                         <div className="hidden sm:block w-24 h-1 bg-brand-gray/30 flex-shrink-0">
                           <div
-                            className="h-full bg-brand-black"
+                            className="h-full bg-terminal-text-dim"
                             style={{ width: `${widthPct}%` }}
                           />
                         </div>
@@ -599,7 +599,7 @@ const StatTile: React.FC<StatTileProps> = ({
   valueClassName,
   isText,
 }) => (
-  <div className="bg-white px-3 py-3">
+  <div className="bg-terminal-surface px-3 py-3">
     <div className="text-xs text-brand-black/50 uppercase tracking-wide">
       {label}
     </div>

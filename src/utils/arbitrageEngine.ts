@@ -188,9 +188,9 @@ export function liquidityToScore(liq?: string): number {
 /** Liquidity display color */
 export function liquidityColor(liq?: string): string {
   const score = liquidityToScore(liq);
-  if (score >= 70) return "text-green-700";
+  if (score >= 70) return "text-up";
   if (score >= 50) return "text-yellow-600";
-  return "text-red-600";
+  return "text-down";
 }
 
 /** Sell reliability label for display */
@@ -631,24 +631,24 @@ export function strategyLabel(s: Strategy): string {
 
 export function riskColor(r: RiskLevel): string {
   switch (r) {
-    case "low": return "text-green-700";
+    case "low": return "text-up";
     case "medium": return "text-yellow-600";
-    case "high": return "text-red-600";
+    case "high": return "text-down";
   }
 }
 
 export function riskBgColor(r: RiskLevel): string {
   switch (r) {
-    case "low": return "bg-green-50";
+    case "low": return "bg-up/10";
     case "medium": return "bg-yellow-50";
-    case "high": return "bg-red-50";
+    case "high": return "bg-down/10";
   }
 }
 
 export function confidenceColor(c: number): string {
-  if (c >= 70) return "text-green-700";
+  if (c >= 70) return "text-up";
   if (c >= 40) return "text-yellow-600";
-  return "text-red-600";
+  return "text-down";
 }
 
 export function strategyIcon(s: Strategy): string {
@@ -664,9 +664,9 @@ export function strategyIcon(s: Strategy): string {
 /** Color for turnaround time display */
 export function turnaroundColor(days: { min: number; max: number }): string {
   const avg = (days.min + days.max) / 2;
-  if (avg <= 3) return "text-green-700";
+  if (avg <= 3) return "text-up";
   if (avg <= 7) return "text-yellow-600";
-  return "text-red-600";
+  return "text-down";
 }
 
 /** Human-readable time horizon label */

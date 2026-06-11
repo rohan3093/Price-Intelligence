@@ -43,7 +43,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
     >
       {/* Bottom Sheet for Mobile, Centered Modal for Desktop */}
       <div 
-        className="relative w-full md:max-w-5xl md:max-h-[90vh] bg-brand-white border-t-2 md:border-2 border-brand-black shadow-modal md:m-8 overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh]"
+        className="relative w-full md:max-w-5xl md:max-h-[90vh] bg-brand-white border-t-2 md:border-2 border-terminal-border-strong shadow-modal md:m-8 overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Bar — combined drag handle + brand/SKU + close. flex-shrink-0 keeps it always visible regardless of scroll. */}
@@ -59,7 +59,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="flex-shrink-0 text-brand-black hover:text-brand-white hover:bg-brand-black border-2 border-brand-gray text-xl min-w-[40px] min-h-[40px] md:min-w-[44px] md:min-h-[44px] flex items-center justify-center transition-all duration-200 active:scale-95"
+              className="flex-shrink-0 text-brand-black hover:text-terminal-bg hover:bg-accent border-2 border-brand-gray text-xl min-w-[40px] min-h-[40px] md:min-w-[44px] md:min-h-[44px] flex items-center justify-center transition-all duration-200 active:scale-95"
               aria-label="Close"
             >
               ✕

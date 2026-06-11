@@ -57,9 +57,9 @@ export const Toast: React.FC<ToastProps> = ({
   const getColors = () => {
     switch (type) {
       case "success":
-        return "border-green-500 bg-green-50 text-green-800";
+        return "border-up/40 bg-up/10 text-up";
       case "error":
-        return "border-red-500 bg-red-50 text-red-800";
+        return "border-down/40 bg-down/10 text-down";
       case "warning":
         return "border-yellow-500 bg-yellow-50 text-yellow-800";
       case "info":

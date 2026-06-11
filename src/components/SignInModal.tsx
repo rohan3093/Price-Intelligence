@@ -109,8 +109,8 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
             </button>
 
             {/* Success Icon */}
-            <div className="w-16 h-16 mx-auto mb-4 bg-green-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 mx-auto mb-4 bg-up/10 flex items-center justify-center">
+              <svg className="w-8 h-8 text-up" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
@@ -131,13 +131,13 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
             <div className="space-y-3">
               <button
                 onClick={() => setEmailSent(false)}
-                className="w-full py-2.5 px-4 border border-brand-gray/30 text-brand-black text-xs font-medium hover:border-brand-black hover:bg-brand-gray/5 transition-colors"
+                className="w-full py-2.5 px-4 border border-brand-gray/30 text-brand-black text-xs font-medium hover:border-terminal-border-strong hover:bg-brand-gray/5 transition-colors"
               >
                 Use a different email
               </button>
               <button
                 onClick={onClose}
-                className="w-full py-2.5 px-4 bg-brand-black border border-brand-black text-brand-white text-xs font-medium hover:bg-brand-black/90 transition-colors"
+                className="w-full py-2.5 px-4 bg-accent border border-accent text-terminal-bg text-xs font-medium hover:bg-accent/90 transition-colors"
               >
                 Done
               </button>
@@ -185,7 +185,7 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
           <button
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="w-full py-3 px-4 border border-brand-gray/30 bg-brand-white text-brand-black text-sm font-medium hover:border-brand-black hover:bg-brand-gray/5 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+            className="w-full py-3 px-4 border border-brand-gray/30 bg-brand-white text-brand-black text-sm font-medium hover:border-terminal-border-strong hover:bg-brand-gray/5 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed mb-4"
           >
             {/* Google Icon */}
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -226,7 +226,7 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-brand-white border border-brand-gray/30 px-4 py-2.5 text-sm text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-brand-black focus:ring-2 focus:ring-brand-black/10 transition-all"
+                className="w-full bg-brand-white border border-brand-gray/30 px-4 py-2.5 text-sm text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-terminal-border-strong focus:ring-2 focus:ring-brand-black/10 transition-all"
                 placeholder="you@example.com"
                 autoComplete="email"
                 disabled={isLoading}
@@ -234,15 +234,15 @@ export const SignInModal: React.FC<SignInModalProps> = ({ onClose, onSignIn }) =
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200">
-                <p className="text-xs text-red-600">{error}</p>
+              <div className="p-3 bg-down/10 border border-down/40">
+                <p className="text-xs text-down">{error}</p>
               </div>
             )}
 
             <button
               type="submit"
               disabled={isLoading || !email.trim()}
-              className="w-full py-3 px-4 bg-brand-black border border-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 bg-accent border border-accent text-terminal-bg text-sm font-medium hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>

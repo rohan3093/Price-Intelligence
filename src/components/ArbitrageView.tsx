@@ -32,7 +32,7 @@ const HighlightCard: React.FC<{
 }> = ({ title, icon, opp, metric, subtitle }) => {
   if (!opp) return null;
   return (
-    <div className="border border-brand-gray/20 bg-white p-4 flex-1 min-w-[240px]">
+    <div className="border border-brand-gray/20 bg-terminal-surface p-4 flex-1 min-w-[240px]">
       <div className="flex items-center gap-2 mb-3 pb-2 border-b border-brand-gray/15">
         <span className="text-lg">{icon}</span>
         <span className="text-xs font-semibold uppercase tracking-wider text-brand-black/60">{title}</span>
@@ -68,8 +68,8 @@ const StrategyPill: React.FC<{
     onClick={onClick}
     className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold uppercase tracking-wide border transition-all ${
       active
-        ? "border-brand-black bg-brand-black text-white"
-        : "border-brand-gray/30 bg-white text-brand-black hover:border-brand-black"
+        ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
+        : "border-brand-gray/30 bg-terminal-surface text-brand-black hover:border-terminal-border-strong"
     }`}
   >
     <span>{icon}</span>
@@ -91,7 +91,7 @@ const OpportunityRow: React.FC<{
   const isEven = idx % 2 === 0;
 
   return (
-    <tr className={`border-b border-brand-gray/10 ${isEven ? 'bg-white' : 'bg-brand-gray/5'} hover:bg-brand-background/50 transition-colors`}>
+    <tr className={`border-b border-brand-gray/10 ${isEven ? 'bg-terminal-surface' : 'bg-brand-gray/5'} hover:bg-brand-background/50 transition-colors`}>
       {/* Asset + Size */}
       <td className="px-3 py-2.5">
         <div className="text-sm font-semibold text-brand-black truncate max-w-[160px]">{opp.assetName}</div>
@@ -190,7 +190,7 @@ const OpportunityCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
   const roiPct = opp.netPct * 100;
 
   return (
-    <div className="border border-brand-gray/20 bg-white p-4">
+    <div className="border border-brand-gray/20 bg-terminal-surface p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-3 pb-2 border-b border-brand-gray/15">
         <div>
@@ -261,7 +261,7 @@ const OpportunityCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
       </div>
 
       {/* Profit row */}
-      <div className="bg-brand-black text-white p-3 flex items-center justify-between">
+      <div className="bg-terminal-surface-raised text-terminal-text p-3 flex items-center justify-between">
         <div>
           <div className="text-[10px] uppercase font-semibold tracking-wider opacity-70">Net Profit</div>
           <div className="text-xl font-bold font-mono-numeric">₹{opp.netProfit.toLocaleString("en-IN")}</div>
@@ -409,8 +409,8 @@ export const ArbitrageView: React.FC<ArbitrageViewProps> = ({ assets }) => {
               onClick={() => opt.setter(!opt.value)}
               className={`px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide border transition ${
                 opt.value
-                  ? "border-brand-black bg-brand-black text-white"
-                  : "border-brand-gray/30 bg-white text-brand-black hover:border-brand-black"
+                  ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
+                  : "border-brand-gray/30 bg-terminal-surface text-brand-black hover:border-terminal-border-strong"
               }`}
             >
               {opt.label}
@@ -427,7 +427,7 @@ export const ArbitrageView: React.FC<ArbitrageViewProps> = ({ assets }) => {
             type="number"
             value={(minNetPct * 100).toFixed(1)}
             onChange={(e) => setMinNetPct(Math.max(0, Number(e.target.value) / 100))}
-            className="w-16 border border-brand-gray/30 px-2 py-1.5 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-brand-black bg-white"
+            className="w-16 border border-brand-gray/30 px-2 py-1.5 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-terminal-border-strong bg-terminal-surface"
             step="0.5"
           />
           <span className="text-brand-black/40">%</span>
@@ -438,7 +438,7 @@ export const ArbitrageView: React.FC<ArbitrageViewProps> = ({ assets }) => {
             type="number"
             value={minNetRs}
             onChange={(e) => setMinNetRs(Math.max(0, Number(e.target.value)))}
-            className="w-20 border border-brand-gray/30 px-2 py-1.5 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-brand-black bg-white"
+            className="w-20 border border-brand-gray/30 px-2 py-1.5 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-terminal-border-strong bg-terminal-surface"
             step="500"
           />
         </div>
@@ -448,7 +448,7 @@ export const ArbitrageView: React.FC<ArbitrageViewProps> = ({ assets }) => {
             type="number"
             value={minConfidence}
             onChange={(e) => setMinConfidence(Math.max(0, Math.min(100, Number(e.target.value))))}
-            className="w-14 border border-brand-gray/30 px-2 py-1.5 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-brand-black bg-white"
+            className="w-14 border border-brand-gray/30 px-2 py-1.5 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-terminal-border-strong bg-terminal-surface"
             step="10"
           />
         </div>
@@ -461,7 +461,7 @@ export const ArbitrageView: React.FC<ArbitrageViewProps> = ({ assets }) => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="border border-brand-gray/30 px-2 py-1.5 text-xs text-brand-black focus:outline-none focus:border-brand-black bg-white"
+            className="border border-brand-gray/30 px-2 py-1.5 text-xs text-brand-black focus:outline-none focus:border-terminal-border-strong bg-terminal-surface"
           >
             <option value="confidence">Confidence</option>
             <option value="netPct">ROI %</option>
@@ -486,7 +486,7 @@ export const ArbitrageView: React.FC<ArbitrageViewProps> = ({ assets }) => {
 
       {/* ─── Results ─── */}
       {opportunities.length === 0 ? (
-        <div className="border border-brand-gray/15 bg-white p-12 text-center">
+        <div className="border border-brand-gray/15 bg-terminal-surface p-12 text-center">
           <svg className="w-12 h-12 mx-auto mb-3 text-brand-gray/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>

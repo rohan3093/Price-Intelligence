@@ -127,8 +127,8 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
             onClick={() => setActiveTab(tab.key)}
             className={`px-4 py-2 text-xs font-semibold transition-all ${
               activeTab === tab.key
-                ? "bg-brand-black text-white"
-                : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+                ? "bg-terminal-surface-raised text-terminal-text"
+                : "bg-terminal-surface text-brand-black border border-brand-gray/30 hover:border-terminal-border-strong"
             }`}
           >
             {tab.label}
@@ -137,7 +137,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
       </div>
 
       {/* Content area */}
-      <div className="bg-white border border-brand-gray/20 p-4 md:p-5">
+      <div className="bg-terminal-surface border border-brand-gray/20 p-4 md:p-5">
         {activeTab === "market-data" ? (
           <DailyPriceUpdates
             assets={assets}
@@ -195,7 +195,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Asset List */}
             <div className="lg:col-span-1">
-              <div className="border border-brand-gray/20 bg-white p-4">
+              <div className="border border-brand-gray/20 bg-terminal-surface p-4">
               <div className="mb-4 pb-3 border-b border-brand-gray/20">
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -211,7 +211,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                       onClick={() => {
                         setShowBulkAddForm(true);
                       }}
-                      className="px-3 py-1.5 border border-brand-gray/30 bg-white text-brand-black text-xs font-semibold hover:border-brand-black transition-all flex-shrink-0"
+                      className="px-3 py-1.5 border border-brand-gray/30 bg-terminal-surface text-brand-black text-xs font-semibold hover:border-terminal-border-strong transition-all flex-shrink-0"
                     >
                       Bulk
                     </button>
@@ -221,7 +221,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                         setIsEditing(false);
                         setSelectedAsset(null);
                       }}
-                      className="px-3 py-1.5 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition-all flex-shrink-0"
+                      className="px-3 py-1.5 bg-accent text-terminal-bg text-xs font-semibold hover:bg-accent/90 transition-all flex-shrink-0"
                     >
                       + Add
                     </button>
@@ -233,7 +233,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by name, SKU, or brand..."
-                  className="w-full border border-brand-gray/20 px-3 py-2 text-sm text-brand-black focus:outline-none focus:border-brand-black bg-brand-background"
+                  className="w-full border border-brand-gray/20 px-3 py-2 text-sm text-brand-black focus:outline-none focus:border-terminal-border-strong bg-brand-background"
                 />
               </div>
               <div className="space-y-1.5 max-h-[600px] overflow-y-auto custom-scrollbar">
@@ -263,8 +263,8 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                     key={asset.id}
                     className={`border p-3 cursor-pointer transition-all ${
                       selectedAsset?.id === asset.id
-                        ? "border-brand-black bg-brand-black text-white"
-                        : "border-brand-gray/20 hover:border-brand-gray/40 bg-white"
+                        ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
+                        : "border-brand-gray/20 hover:border-brand-gray/40 bg-terminal-surface"
                     }`}
                     onClick={() => {
                       setSelectedAsset(asset);
@@ -296,7 +296,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                           className={`text-xs px-2 py-1 border transition-all ${
                             selectedAsset?.id === asset.id
                               ? "border-white/30 text-white hover:bg-white/10"
-                              : "border-brand-gray/30 text-brand-black hover:border-brand-black"
+                              : "border-brand-gray/30 text-brand-black hover:border-terminal-border-strong"
                           }`}
                         >
                           Edit
@@ -306,7 +306,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
                             e.stopPropagation();
                             handleDeleteAsset(asset.id);
                           }}
-                          className="text-xs px-2 py-1 border border-red-200 text-red-600 hover:border-red-500 hover:bg-red-50 transition-all"
+                          className="text-xs px-2 py-1 border border-down/40 text-down hover:border-down/40 hover:bg-down/10 transition-all"
                         >
                           Del
                         </button>
@@ -324,7 +324,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
               {selectedAsset ? (
                 <AssetDetailsView asset={selectedAsset} />
               ) : (
-                <div className="border border-brand-gray/20 p-8 bg-white text-center">
+                <div className="border border-brand-gray/20 p-8 bg-terminal-surface text-center">
                   <p className="text-sm font-medium text-brand-black/60 mb-1">
                     No Instrument Selected
                   </p>
@@ -342,7 +342,7 @@ export const AnalystDashboard: React.FC<AnalystDashboardProps> = ({
         ) : (
           <div className="space-y-6">
             {/* Data Maintenance Section */}
-            <div className="border border-brand-gray/20 bg-white p-5">
+            <div className="border border-brand-gray/20 bg-terminal-surface p-5">
               <h3 className="text-sm font-semibold text-brand-black mb-3">
                 Data Maintenance
               </h3>
@@ -414,8 +414,8 @@ interface AssetFormModalProps {
 const AssetFormModal: React.FC<AssetFormModalProps> = ({ asset, assets, onSave, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-4">
-      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-brand-gray/20 shadow-modal">
-        <div className="sticky top-0 z-10 flex justify-between items-center px-5 py-3.5 bg-white border-b border-brand-gray/20">
+      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-terminal-surface border border-brand-gray/20 shadow-modal">
+        <div className="sticky top-0 z-10 flex justify-between items-center px-5 py-3.5 bg-terminal-surface border-b border-brand-gray/20">
           <h2 className="text-lg font-heading font-normal text-brand-black">
             {asset ? "Edit Instrument" : "New Instrument"}
           </h2>
@@ -547,7 +547,7 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-brand-black mb-1.5">
-                Name <span className="text-red-500">*</span>
+                Name <span className="text-down">*</span>
               </label>
               <input
                 type="text"
@@ -555,20 +555,20 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className={`w-full border px-3 py-2.5 text-sm text-brand-black focus:outline-none ${
                   duplicateAssets && duplicateAssets.some(d => d.name.toLowerCase() === formData.name?.toLowerCase())
-                    ? "border-red-400 focus:border-red-500"
-                    : "border-brand-gray/30 focus:border-brand-black"
+                    ? "border-down/40 focus:border-down/40"
+                    : "border-brand-gray/30 focus:border-terminal-border-strong"
                 }`}
                 required
               />
               {duplicateAssets && duplicateAssets.some(d => d.name.toLowerCase() === formData.name?.toLowerCase()) && (
-                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                <p className="text-xs text-down mt-1 flex items-center gap-1">
                   <span>⚠</span> Duplicate name found
                 </p>
               )}
             </div>
             <div>
               <label className="block text-xs font-medium text-brand-black mb-1.5">
-                SKU <span className="text-red-500">*</span>
+                SKU <span className="text-down">*</span>
               </label>
               <input
                 type="text"
@@ -576,26 +576,26 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
                 onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                 className={`w-full border px-3 py-2.5 text-sm text-brand-black focus:outline-none ${
                   duplicateAssets && duplicateAssets.some(d => d.sku.toLowerCase() === formData.sku?.toLowerCase())
-                    ? "border-red-400 focus:border-red-500"
-                    : "border-brand-gray/30 focus:border-brand-black"
+                    ? "border-down/40 focus:border-down/40"
+                    : "border-brand-gray/30 focus:border-terminal-border-strong"
                 }`}
                 required
               />
               {duplicateAssets && duplicateAssets.some(d => d.sku.toLowerCase() === formData.sku?.toLowerCase()) && (
-                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                <p className="text-xs text-down mt-1 flex items-center gap-1">
                   <span>⚠</span> Duplicate SKU found
                 </p>
               )}
             </div>
             <div>
               <label className="block text-xs font-medium text-brand-black mb-1.5">
-                Brand <span className="text-red-500">*</span>
+                Brand <span className="text-down">*</span>
               </label>
               <input
                 type="text"
                 value={formData.brand || ""}
                 onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black"
+                className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-terminal-border-strong"
                 required
               />
             </div>
@@ -606,7 +606,7 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
               <select
                 value={formData.category || "Sneakers"}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black"
+                className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-terminal-border-strong"
               >
                 <option value="Sneakers">Sneakers</option>
                 <option value="Watches">Watches</option>
@@ -622,7 +622,7 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
                 type="url"
                 value={formData.image || ""}
                 onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black"
+                className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-terminal-border-strong"
                 placeholder="https://..."
               />
             </div>
@@ -674,7 +674,7 @@ const AssetForm: React.FC<AssetFormProps> = ({ asset, assets, onSave, onCancel }
         <div className="flex gap-3 pt-4 border-t border-brand-gray/20">
           <button
             type="submit"
-            className="px-5 py-2.5 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition"
+            className="px-5 py-2.5 bg-accent text-terminal-bg text-sm font-semibold hover:bg-accent/90 transition"
           >
             {asset ? "Update" : "Create"}
           </button>
@@ -785,7 +785,7 @@ const PriceAnchorsForm: React.FC<PriceAnchorsFormProps> = ({ priceAnchors, onCha
             type="number"
             value={anchors.retailIndia || ""}
             onChange={(e) => updateRetailIndia(parseFloat(e.target.value) || 0)}
-            className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-brand-black focus:outline-none focus:border-brand-black"
+            className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-brand-black focus:outline-none focus:border-terminal-border-strong"
             placeholder="e.g., 12,999"
           />
         </div>
@@ -802,7 +802,7 @@ const PriceAnchorsForm: React.FC<PriceAnchorsFormProps> = ({ priceAnchors, onCha
             type="number"
             value={retailGlobalUSD}
             onChange={(e) => updateRetailGlobal(e.target.value)}
-            className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-brand-black focus:outline-none focus:border-brand-black"
+            className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-brand-black focus:outline-none focus:border-terminal-border-strong"
             placeholder="e.g., 150"
             disabled={isLoadingRate}
           />
@@ -890,7 +890,7 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
     <div className="space-y-4">
       <div className="border-b border-brand-gray/20 pb-2">
         <h3 className="text-sm font-semibold text-brand-black mb-1">
-          Size Variants <span className="font-mono-numeric text-brand-black/50">({sizes.length})</span> <span className="text-red-500 font-normal">*</span>
+          Size Variants <span className="font-mono-numeric text-brand-black/50">({sizes.length})</span> <span className="text-down font-normal">*</span>
         </h3>
         <p className="text-xs text-brand-black/50">
           Define size-specific pricing ranges for each market channel. At least one size is required.
@@ -900,7 +900,7 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
       <div className="border border-brand-gray/20 p-4 bg-brand-background">
         <div className="mb-3">
           <label className="block text-xs font-medium text-brand-black mb-1.5">
-            Add Sizes <span className="text-red-500">*</span>
+            Add Sizes <span className="text-down">*</span>
           </label>
           <p className="text-xs text-brand-black/50 mb-2">
             Enter sizes separated by commas or new lines. You can edit individual sizes later.
@@ -914,7 +914,7 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
                 handleQuickAddSubmit();
               }
             }}
-            className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black resize-none bg-white"
+            className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-terminal-border-strong resize-none bg-terminal-surface"
             placeholder="UK 7, UK 8, UK 9, UK 10"
             rows={2}
           />
@@ -923,7 +923,7 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
           <button
             type="button"
             onClick={handleQuickAddSubmit}
-            className="px-4 py-2 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition"
+            className="px-4 py-2 bg-accent text-terminal-bg text-sm font-semibold hover:bg-accent/90 transition"
           >
             Add Sizes
           </button>
@@ -954,7 +954,7 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
           return (
           <div
             key={size.size}
-            className="border border-brand-gray/20 p-3 bg-white"
+            className="border border-brand-gray/20 p-3 bg-terminal-surface"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -998,14 +998,14 @@ const SizeVariantsManager: React.FC<SizeVariantsManagerProps> = ({ sizes, defaul
                     setEditingIndex(originalIndex);
                     setShowForm(true);
                   }}
-                  className="text-xs px-2.5 py-1 border border-brand-gray/30 hover:border-brand-black text-brand-black transition"
+                  className="text-xs px-2.5 py-1 border border-brand-gray/30 hover:border-terminal-border-strong text-brand-black transition"
                 >
                   Edit
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDeleteSize(originalIndex)}
-                  className="text-xs px-2.5 py-1 border border-red-200 hover:border-red-500 hover:bg-red-50 text-red-600 transition"
+                  className="text-xs px-2.5 py-1 border border-down/40 hover:border-down/40 hover:bg-down/10 text-down transition"
                 >
                   Del
                 </button>
@@ -1070,7 +1070,7 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
   };
 
   return (
-    <div className="border border-brand-gray/20 p-4 bg-white size-variant-form-container" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+    <div className="border border-brand-gray/20 p-4 bg-terminal-surface size-variant-form-container" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
       <div className="mb-4 pb-2 border-b border-brand-gray/20">
         <h4 className="text-sm font-semibold text-brand-black mb-1">
           {sizeVariant ? "Edit Size Variant" : "New Size Variant"}
@@ -1083,7 +1083,7 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
       <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
         <div>
           <label className="block text-xs font-medium text-brand-black mb-1.5">
-            Size <span className="text-red-500">*</span>
+            Size <span className="text-down">*</span>
           </label>
           <input
             type="text"
@@ -1100,7 +1100,7 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
                 handleSubmit();
               }
             }}
-            className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black"
+            className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-terminal-border-strong"
             placeholder="e.g., UK 9"
             required
             autoFocus
@@ -1118,7 +1118,7 @@ const SizeVariantForm: React.FC<SizeVariantFormProps> = ({ sizeVariant, onSave, 
               e.stopPropagation();
               handleSubmit();
             }}
-            className="px-4 py-2 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition"
+            className="px-4 py-2 bg-accent text-terminal-bg text-sm font-semibold hover:bg-accent/90 transition"
           >
             Save Size
           </button>
@@ -1146,7 +1146,7 @@ const AssetDetailsView: React.FC<AssetDetailsViewProps> = ({ asset }) => {
     : 'Never';
 
   return (
-    <div className="border border-brand-gray/20 bg-white p-5">
+    <div className="border border-brand-gray/20 bg-terminal-surface p-5">
       <div className="mb-4 pb-3 border-b border-brand-gray/20">
         <h2 className="text-base font-semibold text-brand-black mb-1">
           {asset.name}
@@ -1507,8 +1507,8 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-start md:items-center justify-center overflow-y-auto p-4">
-      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-brand-gray/20 shadow-modal">
-        <div className="sticky top-0 z-10 flex justify-between items-center px-5 py-3.5 bg-white border-b border-brand-gray/20">
+      <div className="relative w-full md:max-w-4xl max-h-[90vh] overflow-y-auto bg-terminal-surface border border-brand-gray/20 shadow-modal">
+        <div className="sticky top-0 z-10 flex justify-between items-center px-5 py-3.5 bg-terminal-surface border-b border-brand-gray/20">
           <h2 className="text-lg font-heading font-normal text-brand-black">
             Bulk Add Instruments
           </h2>
@@ -1537,7 +1537,7 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
                   Upload CSV File
                 </label>
                 <div className="flex items-center gap-3">
-                  <label className="px-4 py-2 border border-brand-gray/30 bg-white text-brand-black text-xs font-semibold hover:border-brand-black transition cursor-pointer">
+                  <label className="px-4 py-2 border border-brand-gray/30 bg-terminal-surface text-brand-black text-xs font-semibold hover:border-terminal-border-strong transition cursor-pointer">
                     Choose File
                     <input
                       type="file"
@@ -1562,14 +1562,14 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
                 <textarea
                   value={bulkInput}
                   onChange={(e) => setBulkInput(e.target.value)}
-                  className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono text-brand-black focus:outline-none focus:border-brand-black resize-none"
+                  className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono text-brand-black focus:outline-none focus:border-terminal-border-strong resize-none"
                   placeholder="Name, SKU, Brand, Category, Image URL, Retail India (₹), Retail Global ($), Sizes&#10;Nike Dunk Low Panda, DN1234, Nike, Sneakers, https://example.com/image.jpg, 12999, 150, UK 7, UK 8, UK 9"
                   rows={8}
                 />
                 <button
                   type="button"
                   onClick={() => parseBulkInput()}
-                  className="mt-3 px-4 py-2 border border-brand-gray/30 bg-white text-brand-black text-sm font-semibold hover:border-brand-black transition"
+                  className="mt-3 px-4 py-2 border border-brand-gray/30 bg-terminal-surface text-brand-black text-sm font-semibold hover:border-terminal-border-strong transition"
                 >
                   Parse & Validate
                 </button>
@@ -1577,11 +1577,11 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
             </div>
 
             {errors.length > 0 && (
-              <div className="border border-red-200 bg-red-50 p-4">
-                <h3 className="text-xs font-semibold text-red-800 mb-2">Errors <span className="font-mono-numeric">({errors.length})</span></h3>
+              <div className="border border-down/40 bg-down/10 p-4">
+                <h3 className="text-xs font-semibold text-down mb-2">Errors <span className="font-mono-numeric">({errors.length})</span></h3>
                 <ul className="space-y-1">
                   {errors.map((error, index) => (
-                    <li key={index} className="text-xs text-red-600">{error}</li>
+                    <li key={index} className="text-xs text-down">{error}</li>
                   ))}
                 </ul>
               </div>
@@ -1647,14 +1647,14 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
             {isCreating && (
               <div className="border border-brand-gray/20 bg-brand-background p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-brand-black border-t-transparent"></div>
+                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-terminal-border-strong border-t-transparent"></div>
                   <span className="text-sm font-semibold text-brand-black">
                     Creating Assets...
                   </span>
                 </div>
                 <div className="w-full bg-brand-gray/20 h-2 mb-2">
                   <div 
-                    className="bg-brand-black h-2 transition-all duration-300"
+                    className="bg-terminal-text-dim h-2 transition-all duration-300"
                     style={{ 
                       width: `${creationProgress.total > 0 ? (creationProgress.created / creationProgress.total) * 100 : 0}%`
                     }}
@@ -1670,7 +1670,7 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ existingAssets, onSave, onC
               <button
                 type="submit"
                 disabled={parsedAssets.length === 0 || isCreating}
-                className="px-5 py-2.5 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-5 py-2.5 bg-accent text-terminal-bg text-sm font-semibold hover:bg-accent/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isCreating ? (
                   <>
@@ -1782,7 +1782,7 @@ const BackfillMetricsButton: React.FC<BackfillMetricsButtonProps> = ({
         type="button"
         onClick={handleBackfill}
         disabled={isProcessing || assets.length === 0}
-        className="px-5 py-2.5 bg-brand-black text-white text-sm font-semibold hover:bg-brand-black/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        className="px-5 py-2.5 bg-accent text-terminal-bg text-sm font-semibold hover:bg-accent/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
       >
         {isProcessing ? (
           <>
@@ -1801,11 +1801,11 @@ const BackfillMetricsButton: React.FC<BackfillMetricsButtonProps> = ({
 
       {/* Progress Bar */}
       {isProcessing && progress.total > 0 && (
-        <div className="border border-brand-gray/20 bg-white p-4">
+        <div className="border border-brand-gray/20 bg-terminal-surface p-4">
           <div className="mb-2">
             <div className="w-full bg-brand-gray/20 h-2">
               <div
-                className="bg-brand-black h-2 transition-all duration-300"
+                className="bg-terminal-text-dim h-2 transition-all duration-300"
                 style={{
                   width: `${(progress.current / progress.total) * 100}%`,
                 }}
@@ -1823,13 +1823,13 @@ const BackfillMetricsButton: React.FC<BackfillMetricsButtonProps> = ({
         <div
           className={`border p-4 ${
             result.success
-              ? "border-green-200 bg-green-50"
-              : "border-red-200 bg-red-50"
+              ? "border-up/40 bg-up/10"
+              : "border-down/40 bg-down/10"
           }`}
         >
           <p
             className={`text-xs font-medium ${
-              result.success ? "text-green-700" : "text-red-700"
+              result.success ? "text-up" : "text-down"
             }`}
           >
             {result.success ? "✓ " : "✗ "}

@@ -27,32 +27,33 @@ export default {
     },
     extend: {
       colors: {
-        // Terminal palette (institutional dark theme)
+        // Terminal palette (institutional dark theme). rgb(var(--x-rgb) / <alpha-value>)
+        // so Tailwind opacity modifiers (e.g. bg-up/10) render correctly.
         terminal: {
-          bg: 'var(--terminal-bg, #0A0E14)',
-          surface: 'var(--terminal-surface, #11161F)',
-          'surface-raised': 'var(--terminal-surface-raised, #161C27)',
-          border: 'var(--terminal-border, #222A37)',
-          'border-strong': 'var(--terminal-border-strong, #2E3847)',
-          text: 'var(--terminal-text, #E6EAF0)',
-          'text-dim': 'var(--terminal-text-dim, #8A95A6)',
-          'text-faint': 'var(--terminal-text-faint, #5A6575)',
+          bg: 'rgb(var(--terminal-bg-rgb) / <alpha-value>)',
+          surface: 'rgb(var(--terminal-surface-rgb) / <alpha-value>)',
+          'surface-raised': 'rgb(var(--terminal-surface-raised-rgb) / <alpha-value>)',
+          border: 'rgb(var(--terminal-border-rgb) / <alpha-value>)',
+          'border-strong': 'rgb(var(--terminal-border-strong-rgb) / <alpha-value>)',
+          text: 'rgb(var(--terminal-text-rgb) / <alpha-value>)',
+          'text-dim': 'rgb(var(--terminal-text-dim-rgb) / <alpha-value>)',
+          'text-faint': 'rgb(var(--terminal-text-faint-rgb) / <alpha-value>)',
         },
-        up: 'var(--up, #1FC77B)',
-        down: 'var(--down, #F0556B)',
-        accent: 'var(--accent, #F7F126)',
+        up: 'rgb(var(--up-rgb) / <alpha-value>)',
+        down: 'rgb(var(--down-rgb) / <alpha-value>)',
+        accent: 'rgb(var(--accent-rgb) / <alpha-value>)',
         // Legacy brand-* tokens remapped onto the terminal palette so existing
-        // class usage inherits the dark theme automatically.
+        // class usage (incl. opacity modifiers) inherits the dark theme.
         brand: {
-          black: 'var(--terminal-text, #E6EAF0)',            // was near-black; now light text
-          'black-light': 'var(--terminal-surface-raised, #161C27)',
-          gray: 'var(--terminal-border, #222A37)',
-          'gray-dark': 'var(--terminal-text-dim, #8A95A6)',
-          'gray-medium': 'var(--terminal-text-faint, #5A6575)',
-          'gray-light': 'var(--terminal-surface-raised, #161C27)',
-          white: 'var(--terminal-surface, #11161F)',
-          background: 'var(--terminal-bg, #0A0E14)',
-          yellow: 'var(--accent, #F7F126)',
+          black: 'rgb(var(--terminal-text-rgb) / <alpha-value>)',            // was near-black; now light text
+          'black-light': 'rgb(var(--terminal-surface-raised-rgb) / <alpha-value>)',
+          gray: 'rgb(var(--terminal-border-rgb) / <alpha-value>)',
+          'gray-dark': 'rgb(var(--terminal-text-dim-rgb) / <alpha-value>)',
+          'gray-medium': 'rgb(var(--terminal-text-faint-rgb) / <alpha-value>)',
+          'gray-light': 'rgb(var(--terminal-surface-raised-rgb) / <alpha-value>)',
+          white: 'rgb(var(--terminal-surface-rgb) / <alpha-value>)',
+          background: 'rgb(var(--terminal-bg-rgb) / <alpha-value>)',
+          yellow: 'rgb(var(--accent-rgb) / <alpha-value>)',
         },
       },
       fontFamily: {

@@ -77,7 +77,7 @@ export const AnalystLogin: React.FC<AnalystLoginProps> = ({ onLogin, onClose }) 
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-brand-white border border-brand-gray/20 rounded-none px-4 py-2.5 text-xs font-body text-brand-black placeholder:text-brand-gray focus:outline-none focus:border-brand-black"
+                className="w-full bg-brand-white border border-brand-gray/20 rounded-none px-4 py-2.5 text-xs font-body text-brand-black placeholder:text-brand-gray focus:outline-none focus:border-terminal-border-strong"
                 placeholder="Enter your email"
                 required
                 autoFocus
@@ -92,22 +92,22 @@ export const AnalystLogin: React.FC<AnalystLoginProps> = ({ onLogin, onClose }) 
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-brand-white border border-brand-gray/20 rounded-none px-4 py-2.5 text-xs font-body text-brand-black placeholder:text-brand-gray focus:outline-none focus:border-brand-black"
+                className="w-full bg-brand-white border border-brand-gray/20 rounded-none px-4 py-2.5 text-xs font-body text-brand-black placeholder:text-brand-gray focus:outline-none focus:border-terminal-border-strong"
                 placeholder="Enter your password"
                 required
               />
             </div>
 
             {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-none">
-                <p className="text-xs text-red-600">{error}</p>
+              <div className="p-3 bg-down/10 border border-down/30 rounded-none">
+                <p className="text-xs text-down">{error}</p>
               </div>
             )}
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 px-4 bg-brand-black text-brand-white border border-brand-black rounded-none text-xs font-body font-medium hover:bg-brand-gray/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 px-4 bg-accent text-terminal-bg border border-accent rounded-none text-xs font-body font-medium hover:bg-accent/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Logging in..." : "Login"}
             </button>

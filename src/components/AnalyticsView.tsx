@@ -136,13 +136,13 @@ export const AnalyticsView: React.FC = () => {
           <div className="flex gap-3">
             <button
               onClick={handleExport}
-              className="px-4 py-2 bg-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90 transition-all"
+              className="px-4 py-2 bg-accent text-terminal-bg text-sm font-medium hover:bg-accent/90 transition-all"
             >
               Export Data
             </button>
             <button
               onClick={handleClear}
-              className="px-4 py-2 border border-red-200 text-red-600 text-sm font-medium hover:border-red-400 transition-all"
+              className="px-4 py-2 border border-down/40 text-down text-sm font-medium hover:border-down/40 transition-all"
             >
               Clear Data
             </button>

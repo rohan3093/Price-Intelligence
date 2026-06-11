@@ -190,8 +190,8 @@ export const B2BListings: React.FC = () => {
                         <span
                           className={`px-1.5 py-0.5 text-xs rounded-none border font-medium ${
                             listing.side === "WTS"
-                              ? "border-red-500/40 text-red-600"
-                              : "border-emerald-500/40 text-emerald-600"
+                              ? "border-down/40 text-down"
+                              : "border-up/40 text-up"
                           }`}
                         >
                           {listing.side}
@@ -313,7 +313,7 @@ export const B2BListings: React.FC = () => {
 
           <button
             type="submit"
-            className="mt-1 w-full py-2 rounded-none border border-brand-black bg-brand-black text-brand-white text-sm font-medium hover:bg-brand-black/90"
+            className="mt-1 w-full py-2 rounded-none border border-accent bg-accent text-terminal-bg text-sm font-medium hover:bg-accent/90"
           >
             Save listing
           </button>

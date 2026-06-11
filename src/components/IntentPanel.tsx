@@ -83,7 +83,7 @@ export const IntentPanel: React.FC<IntentPanelProps> = ({
 
   return (
     <div
-      className="bg-white border border-brand-gray/20"
+      className="bg-terminal-surface border border-brand-gray/20"
     >
       {/* Header */}
       <div className="px-5 py-4 border-b border-brand-gray/10">
@@ -138,7 +138,7 @@ export const IntentPanel: React.FC<IntentPanelProps> = ({
               value={limitPrice}
               onChange={(e) => setLimitPrice(e.target.value)}
               placeholder="Enter price"
-              className="w-full px-3 py-2.5 bg-white border-2 border-brand-gray text-sm font-mono-numeric font-semibold text-brand-black placeholder:text-brand-black/30 focus:border-brand-black focus:outline-none transition-colors"
+              className="w-full px-3 py-2.5 bg-terminal-surface border-2 border-brand-gray text-sm font-mono-numeric font-semibold text-brand-black placeholder:text-brand-black/30 focus:border-terminal-border-strong focus:outline-none transition-colors"
             />
             {suggestedPrice > 0 && (
               <button
@@ -167,7 +167,7 @@ export const IntentPanel: React.FC<IntentPanelProps> = ({
             onChange={(e) => setUrgency(Number(e.target.value))}
             className="w-full h-2 bg-brand-gray/20 rounded-full appearance-none cursor-pointer slider"
             style={{
-              background: `linear-gradient(to right, #000 0%, #000 ${urgency}%, #e5e7eb ${urgency}%, #e5e7eb 100%)`,
+              background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${urgency}%, var(--terminal-border) ${urgency}%, var(--terminal-border) 100%)`,
             }}
           />
           <p className="text-xs text-brand-black/50 mt-2">
@@ -180,7 +180,7 @@ export const IntentPanel: React.FC<IntentPanelProps> = ({
           <button
             onClick={handleSubmit}
             disabled={!selectedSize || !limitPrice}
-            className="flex-1 bg-brand-black text-white px-4 py-3 text-sm font-bold uppercase tracking-wide hover:bg-brand-black/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+            className="flex-1 bg-accent text-terminal-bg px-4 py-3 text-sm font-bold uppercase tracking-wide hover:bg-accent/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
           >
             Post Intent
           </button>

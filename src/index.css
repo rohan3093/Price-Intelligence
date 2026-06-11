@@ -23,6 +23,8 @@
 :root {
   /* ============================================
      TERMINAL palette (institutional dark theme)
+     Hex vars are for direct CSS use; *-rgb channel vars feed Tailwind's
+     <alpha-value> so opacity modifiers (e.g. text-brand-black/70) render.
      ============================================ */
   --terminal-bg: #0A0E14;            /* page background */
   --terminal-surface: #11161F;       /* panels, cards, header */
@@ -35,6 +37,18 @@
   --up: #1FC77B;
   --down: #F0556B;
   --accent: #F7F126;                 /* brand-yellow; use SPARINGLY */
+
+  --terminal-bg-rgb: 10 14 20;
+  --terminal-surface-rgb: 17 22 31;
+  --terminal-surface-raised-rgb: 22 28 39;
+  --terminal-border-rgb: 34 42 55;
+  --terminal-border-strong-rgb: 46 56 71;
+  --terminal-text-rgb: 230 234 240;
+  --terminal-text-dim-rgb: 138 149 166;
+  --terminal-text-faint-rgb: 90 101 117;
+  --up-rgb: 31 199 123;
+  --down-rgb: 240 85 107;
+  --accent-rgb: 247 241 38;
 
   /* Legacy brand-* tokens remapped onto the terminal palette so existing
      class usage inherits the new theme automatically. */
@@ -75,8 +89,9 @@ body {
   }
 
   /* Enhanced button styles with better spacing */
+  /* Primary CTA -> accent fill with dark text (use sparingly) */
   .btn-primary {
-    @apply px-5 py-2.5 rounded-none border-2 border-brand-black bg-brand-black text-brand-white text-sm font-semibold hover:bg-brand-black-light transition-all;
+    @apply px-5 py-2.5 rounded-none border-2 border-accent bg-accent text-terminal-bg text-sm font-semibold hover:bg-accent/90 transition-all;
   }
   
   .btn-secondary {

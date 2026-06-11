@@ -354,7 +354,7 @@ export const ScrapedPricesReview: React.FC<ScrapedPricesReviewProps> = ({
             Scraped Prices
           </h2>
           {pendingCount > 0 && (
-            <span className="px-2.5 py-1 bg-brand-black text-brand-white text-xs font-medium">
+            <span className="px-2.5 py-1 bg-terminal-surface-raised text-terminal-text text-xs font-medium">
               {pendingCount.toLocaleString()} to review
             </span>
           )}
@@ -364,7 +364,7 @@ export const ScrapedPricesReview: React.FC<ScrapedPricesReviewProps> = ({
             onClick={() => setShowHistory(!showHistory)}
             className={`px-3 py-1.5 text-xs font-medium border transition-all ${
               showHistory
-                ? "border-brand-black bg-brand-black text-brand-white"
+                ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
                 : "border-brand-gray/20 text-brand-black/50 hover:border-brand-black/40"
             }`}
           >
@@ -373,7 +373,7 @@ export const ScrapedPricesReview: React.FC<ScrapedPricesReviewProps> = ({
           <button
             onClick={handleTriggerScrape}
             disabled={triggeringScrape}
-            className="px-4 py-1.5 bg-brand-black text-brand-white text-xs font-medium hover:bg-brand-black/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-1.5 bg-accent text-terminal-bg text-xs font-medium hover:bg-accent/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {triggeringScrape ? (
               <span className="flex items-center gap-1.5">
@@ -394,14 +394,14 @@ export const ScrapedPricesReview: React.FC<ScrapedPricesReviewProps> = ({
 
       {/* Result banner */}
       {scrapeResult && (
-        <div className="bg-green-50 border border-green-200 px-4 py-2.5 text-sm text-green-700">
+        <div className="bg-up/10 border border-up/40 px-4 py-2.5 text-sm text-up">
           {scrapeResult}
         </div>
       )}
 
       {/* Error banner */}
       {errorMsg && (
-        <div className="bg-red-50 border border-red-200 px-4 py-2.5 text-sm text-red-700">
+        <div className="bg-down/10 border border-down/40 px-4 py-2.5 text-sm text-down">
           {errorMsg}
         </div>
       )}
@@ -572,7 +572,7 @@ const AssetCard: React.FC<{
                 e.stopPropagation();
                 onSkip();
               }}
-              className="px-3 py-1.5 text-xs font-medium border border-brand-gray/20 text-brand-black/40 hover:border-brand-black/30 transition-all"
+              className="px-3 py-1.5 text-xs font-medium border border-brand-gray/20 text-brand-black/40 hover:border-terminal-border-strong transition-all"
             >
               Skip
             </button>
@@ -582,7 +582,7 @@ const AssetCard: React.FC<{
                 onApproveAll();
               }}
               disabled={isApproving}
-              className="px-3 py-1.5 text-xs font-medium bg-green-600 text-white hover:bg-green-700 transition-all disabled:opacity-50"
+              className="px-3 py-1.5 text-xs font-medium bg-up text-terminal-bg hover:bg-up/90 transition-all disabled:opacity-50"
             >
               {isApproving ? (
                 <span className="flex items-center gap-1">
@@ -637,7 +637,7 @@ const AssetCard: React.FC<{
                             {listing.size}
                           </span>
                           {listing.inStock === true && (
-                            <span className="text-[9px] px-1 py-px rounded bg-green-100 text-green-700 font-medium leading-none whitespace-nowrap">
+                            <span className="text-[9px] px-1 py-px rounded bg-up/10 text-up font-medium leading-none whitespace-nowrap">
                               In Stock
                             </span>
                           )}
@@ -660,12 +660,12 @@ const AssetCard: React.FC<{
                                 if (e.key === "Enter") onEditSave(listing);
                                 if (e.key === "Escape") onEditCancel();
                               }}
-                              className="w-20 border border-brand-black/20 px-2 py-1 text-xs font-mono-numeric focus:outline-none focus:border-brand-black/40"
+                              className="w-20 border border-terminal-border-strong px-2 py-1 text-xs font-mono-numeric focus:outline-none focus:border-brand-black/40"
                               autoFocus
                             />
                             <button
                               onClick={() => onEditSave(listing)}
-                              className="text-xs text-green-700 font-medium hover:underline"
+                              className="text-xs text-up font-medium hover:underline"
                             >
                               Save
                             </button>
@@ -715,7 +715,7 @@ const AssetCard: React.FC<{
                               <>
                                 <button
                                   onClick={() => onApproveSingle(listing)}
-                                  className="w-6 h-6 flex items-center justify-center text-green-600 hover:bg-green-50 transition-all text-xs"
+                                  className="w-6 h-6 flex items-center justify-center text-up hover:bg-up/10 transition-all text-xs"
                                   title="Approve"
                                 >
                                   ✓
@@ -729,7 +729,7 @@ const AssetCard: React.FC<{
                                 </button>
                                 <button
                                   onClick={() => onRejectSingle(listing)}
-                                  className="w-6 h-6 flex items-center justify-center text-red-500 hover:bg-red-50 transition-all text-xs"
+                                  className="w-6 h-6 flex items-center justify-center text-down hover:bg-down/10 transition-all text-xs"
                                   title="Reject"
                                 >
                                   ✕
@@ -795,7 +795,7 @@ const ProgressBar: React.FC<{ progress: ScrapeProgress }> = ({ progress }) => {
 
       <div className="w-full h-1.5 bg-brand-gray/15 overflow-hidden">
         <div
-          className="h-full bg-brand-black transition-all duration-500 ease-out"
+          className="h-full bg-terminal-text-dim transition-all duration-500 ease-out"
           style={{ width: `${Math.max(pct, 2)}%` }}
         />
       </div>
@@ -852,7 +852,7 @@ const HistoryPanel: React.FC<{ runs: ScrapeRun[] }> = ({ runs }) => {
                 {(run.durationMs / 1000).toFixed(0)}s
               </span>
               {run.errors.length > 0 && (
-                <span className="text-red-500">
+                <span className="text-down">
                   {run.errors.length} error{run.errors.length !== 1 ? "s" : ""}
                 </span>
               )}

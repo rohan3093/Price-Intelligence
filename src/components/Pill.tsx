@@ -31,17 +31,17 @@ export const Pill: React.FC<PillProps> = ({
 
   const variantClasses = {
     default: active
-      ? "bg-brand-black text-white border-brand-black"
-      : "bg-white text-brand-black border-brand-gray hover:border-brand-black",
+      ? "bg-terminal-surface-raised text-terminal-text border-terminal-border-strong"
+      : "bg-terminal-surface text-brand-black border-brand-gray hover:border-terminal-border-strong",
     primary: active
       ? "bg-blue-600 text-white border-blue-600"
-      : "bg-white text-blue-600 border-blue-200 hover:border-blue-600",
+      : "bg-terminal-surface text-blue-600 border-blue-200 hover:border-blue-600",
     success: active
-      ? "bg-green-600 text-white border-green-600"
-      : "bg-white text-green-600 border-green-200 hover:border-green-600",
+      ? "bg-up text-terminal-bg border-up/40"
+      : "bg-terminal-surface text-up border-up/40 hover:border-up/40",
     danger: active
-      ? "bg-red-600 text-white border-red-600"
-      : "bg-white text-red-600 border-red-200 hover:border-red-600",
+      ? "bg-down text-white border-down/40"
+      : "bg-terminal-surface text-down border-down/40 hover:border-down/40",
   };
 
   return (

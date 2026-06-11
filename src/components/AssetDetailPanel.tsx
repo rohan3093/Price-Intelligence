@@ -58,7 +58,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({
   noPadding = false,
 }, ref) => {
   return (
-    <div ref={ref} className={`bg-white border border-brand-gray/20 ${className}`}>
+    <div ref={ref} className={`bg-terminal-surface border border-brand-gray/20 ${className}`}>
       {title && (
         <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-brand-gray/10">
           {/* Header: stack title + action vertically on mobile, side-by-side on sm+ */}
@@ -214,8 +214,8 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
 
   const getChannelDot = (channel: string) => {
     switch (channel) {
-      case 'Sentria':       return 'bg-emerald-600';
-      case 'WhatsApp':      return 'bg-green-600';
+      case 'Sentria':       return 'bg-up';
+      case 'WhatsApp':      return 'bg-up';
       case 'Marketplace':   return 'bg-blue-600';
       case 'International': return 'bg-purple-600';
       default:              return 'bg-brand-gray';
@@ -224,8 +224,8 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
 
   const getSideColor = (side: string) => {
     switch (side) {
-      case 'Buy':  return 'bg-green-50 text-green-700';
-      case 'Sell': return 'bg-red-50 text-red-700';
+      case 'Buy':  return 'bg-up/10 text-up';
+      case 'Sell': return 'bg-down/10 text-down';
       default:     return ''; // No badge for generic "Listing"
     }
   };
@@ -243,7 +243,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
 
   return (
     <div
-      className={`bg-white border border-brand-gray/20 border-l-4 ${getChannelAccent(listing.channel)} p-3 mb-2.5`}
+      className={`bg-terminal-surface border border-brand-gray/20 border-l-4 ${getChannelAccent(listing.channel)} p-3 mb-2.5`}
     >
       {/* Header: Channel dot + label, optional side badge, price (right) */}
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -310,7 +310,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
         ) : (
           <button
             onClick={handleAction}
-            className="w-full min-h-[40px] px-4 py-2 bg-brand-black text-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-colors active:scale-[0.98]"
+            className="w-full min-h-[40px] px-4 py-2 bg-accent text-terminal-bg text-xs font-semibold uppercase tracking-wide hover:bg-accent/90 transition-colors active:scale-[0.98]"
           >
             {listing.side === 'Sell' ? 'Sell To' : 'Buy From'} →
           </button>
@@ -325,7 +325,7 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
   const roiPct = opp.netPct * 100;
 
   return (
-    <div className="border border-brand-gray/20 bg-white p-4">
+    <div className="border border-brand-gray/20 bg-terminal-surface p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-3 pb-2 border-b border-brand-gray/15">
         <span className="text-xs text-brand-black/50">{channelPairLabel(opp)}</span>
@@ -386,7 +386,7 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
       </div>
 
       {/* Spread */}
-      <div className="bg-brand-black text-white p-3 flex items-center justify-between">
+      <div className="bg-terminal-surface-raised text-terminal-text p-3 flex items-center justify-between">
         <div>
           <div className="text-[10px] uppercase font-semibold tracking-wider opacity-70">Spread</div>
           <div className="text-xl font-bold font-mono-numeric">₹{opp.netProfit.toLocaleString('en-IN')}</div>
@@ -403,7 +403,7 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
             href={`https://wa.me/${opp.buy.sellerContact.replace(/[^0-9]/g, '')}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-up text-terminal-bg hover:bg-up/90 transition-colors"
           >
             Contact Seller
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -415,7 +415,7 @@ const ArbCard: React.FC<{ opp: ArbitrageOpportunity }> = ({ opp }) => {
             href={opp.buy.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-brand-black text-white hover:bg-brand-black/80 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-accent text-terminal-bg hover:bg-accent/80 transition-colors"
           >
             View Listing
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -999,7 +999,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-xs font-semibold uppercase text-brand-black/50 tracking-wide">Size</label>
                     {cheapestPrice !== null && pricedSizes.length > 1 && (
-                      <span className="text-[10px] text-green-600 font-semibold">
+                      <span className="text-[10px] text-up font-semibold">
                         Best: {pricedSizes.find(([, p]) => p === cheapestPrice)?.[0]} at ₹{cheapestPrice.toLocaleString('en-IN')}
                       </span>
                     )}
@@ -1016,16 +1016,16 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                           onClick={() => setSelectedSize(sv.size)}
                           className={`px-2.5 py-1.5 text-center transition-all min-w-[60px] ${
                             isSelected
-                              ? 'bg-brand-black text-white'
+                              ? 'bg-terminal-surface-raised text-terminal-text'
                               : isCheapest
-                              ? 'bg-green-50 border border-green-300 text-brand-black hover:border-green-500'
-                              : 'bg-white border border-brand-gray/30 text-brand-black hover:border-brand-black'
+                              ? 'bg-up/10 border border-up/40 text-brand-black hover:border-up/40'
+                              : 'bg-terminal-surface border border-brand-gray/30 text-brand-black hover:border-terminal-border-strong'
                           }`}
                         >
                           <span className="block text-xs font-semibold leading-tight">{sv.size}</span>
                           {hasPrice ? (
                             <span className={`block text-[10px] font-mono-numeric font-bold mt-0.5 leading-tight tabular-nums ${
-                              isSelected ? 'text-white/80' : isCheapest ? 'text-green-600' : 'text-brand-black/60'
+                              isSelected ? 'text-white/80' : isCheapest ? 'text-up' : 'text-brand-black/60'
                             }`}>
                               {(() => {
                                 const v = best!;
@@ -1052,7 +1052,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               <div className="flex items-baseline justify-between gap-3 mb-2">
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-brand-black/50 uppercase tracking-wider mb-1">Best Price</p>
-                  <p className="text-xl sm:text-2xl md:text-3xl font-mono-numeric font-bold text-green-600 leading-tight break-words">
+                  <p className="text-xl sm:text-2xl md:text-3xl font-mono-numeric font-bold text-up leading-tight break-words">
                     {bestPrice ? `₹${bestPrice.toLocaleString("en-IN")}` : "—"}
                   </p>
                 </div>
@@ -1123,7 +1123,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       return (
                         <div
                           key={ch.label}
-                          className={`px-1.5 sm:px-2.5 py-2 text-center relative group/ch min-w-0 ${isBest ? "bg-green-50 border border-green-200" : "bg-white border border-brand-gray/15"}`}
+                          className={`px-1.5 sm:px-2.5 py-2 text-center relative group/ch min-w-0 ${isBest ? "bg-up/10 border border-up/40" : "bg-terminal-surface border border-brand-gray/15"}`}
                           title={tooltip}
                         >
                           <p className="text-[9px] sm:text-[10px] text-brand-black/50 uppercase tracking-wider mb-0.5 leading-tight flex items-center justify-center gap-1">
@@ -1131,7 +1131,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                             <span className="hidden sm:inline">{fullDisplayLabel}</span>
                             <span className="hidden sm:inline cursor-help text-brand-black/30 hover:text-brand-black/60 transition-colors flex-shrink-0">ⓘ</span>
                           </p>
-                          <p className={`text-[13px] sm:text-sm font-mono-numeric font-bold leading-tight truncate ${isBest ? "text-green-600" : "text-brand-black"}`}>
+                          <p className={`text-[13px] sm:text-sm font-mono-numeric font-bold leading-tight truncate ${isBest ? "text-up" : "text-brand-black"}`}>
                             {ch.price !== undefined ? `₹${ch.price.toLocaleString("en-IN")}` : "—"}
                           </p>
                           <p className="text-[9px] sm:text-[10px] text-brand-black/40 mt-0.5 leading-tight">{ch.count} listing{ch.count !== 1 ? "s" : ""}</p>
@@ -1152,8 +1152,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     <span>30d</span>
                   </div>
                   <p className={`text-sm font-semibold ${
-                    currentData.change30d?.startsWith("-") ? "text-red-600" : 
-                    currentData.change30d?.startsWith("+") ? "text-green-600" : "text-brand-black"
+                    currentData.change30d?.startsWith("-") ? "text-down" : 
+                    currentData.change30d?.startsWith("+") ? "text-up" : "text-brand-black"
                   }`}>
                     {currentData.change30d || "—"}
                   </p>
@@ -1174,7 +1174,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     </svg>
                     <span>Stock</span>
                   </div>
-                  <p className="text-sm font-semibold text-green-600">
+                  <p className="text-sm font-semibold text-up">
                     {(whatsappPrices.buy.length + marketplacePrices.length + internationalPrices.length) > 0 ? "Available" : "Limited"}
                   </p>
                 </div>
@@ -1304,7 +1304,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => { setShowBuyModal(true); setBuyModalExpandWhatsapp(false); setBuyModalExpandMarketplace(false); setBuyModalExpandIntl(false); }}
-                  className="px-4 py-3 bg-brand-black text-white text-center hover:bg-brand-black/80 transition-all duration-200 active:scale-95"
+                  className="px-4 py-3 bg-accent text-terminal-bg text-center hover:bg-accent/80 transition-all duration-200 active:scale-95"
                   title="See verified sources for this asset"
                 >
                   <span className="text-[10px] font-normal opacity-70 block leading-tight">
@@ -1314,7 +1314,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 </button>
                 <button
                   onClick={() => setShowSellModal(true)}
-                  className="px-4 py-3 border-2 border-brand-black text-brand-black bg-transparent text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
+                  className="px-4 py-3 border-2 border-terminal-border-strong text-brand-black bg-transparent text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
                   title="Post a listing for this asset"
                 >
                   <span className="text-[10px] font-normal opacity-50 block leading-tight">Your Ask Price</span>
@@ -1352,8 +1352,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             onClick={() => setMainTab('overview')}
             className={`flex-1 min-w-0 px-2 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
               mainTab === 'overview'
-                ? 'bg-brand-black text-white'
-                : 'bg-white text-brand-black border-2 border-brand-gray/30 hover:border-brand-black'
+                ? 'bg-terminal-surface-raised text-terminal-text'
+                : 'bg-terminal-surface text-brand-black border-2 border-brand-gray/30 hover:border-terminal-border-strong'
             }`}
           >
             Overview
@@ -1365,12 +1365,12 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             onClick={() => setMainTab('listings')}
             className={`flex-1 min-w-0 px-2 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
               mainTab === 'listings'
-                ? 'bg-brand-black text-white'
-                : 'bg-white text-brand-black border-2 border-brand-gray/30 hover:border-brand-black'
+                ? 'bg-terminal-surface-raised text-terminal-text'
+                : 'bg-terminal-surface text-brand-black border-2 border-brand-gray/30 hover:border-terminal-border-strong'
             }`}
           >
             Listings {unifiedListings.length > 0 && (
-              <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'listings' ? 'bg-white/20' : 'bg-brand-black/10'}`}>
+              <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'listings' ? 'bg-white/20' : 'bg-terminal-surface-raised'}`}>
                 {unifiedListings.length}
               </span>
             )}
@@ -1379,12 +1379,12 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             onClick={() => setMainTab('arbitrage')}
             className={`flex-1 min-w-0 px-2 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
               mainTab === 'arbitrage'
-                ? 'bg-brand-black text-white'
-                : 'bg-white text-brand-black border-2 border-brand-gray/30 hover:border-brand-black'
+                ? 'bg-terminal-surface-raised text-terminal-text'
+                : 'bg-terminal-surface text-brand-black border-2 border-brand-gray/30 hover:border-terminal-border-strong'
             }`}
           >
             Discrepancies {arbitrageOpps.length > 0 && (
-              <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'arbitrage' ? 'bg-white/20' : 'bg-brand-black/10'}`}>
+              <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'arbitrage' ? 'bg-white/20' : 'bg-terminal-surface-raised'}`}>
                 {arbitrageOpps.length}
               </span>
             )}
@@ -1456,10 +1456,10 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
 
               const getPriceStability = () => {
                 if (priceRangePct === 0) return { level: 'N/A', label: 'No Data', color: 'text-brand-black/40' };
-                if (priceRangePct <= 5) return { level: 'Tight', label: 'Very Stable', color: 'text-green-600' };
+                if (priceRangePct <= 5) return { level: 'Tight', label: 'Very Stable', color: 'text-up' };
                 if (priceRangePct <= 15) return { level: 'Moderate', label: 'Stable', color: 'text-yellow-600' };
                 if (priceRangePct <= 50) return { level: 'Wide', label: 'Volatile', color: 'text-orange-600' };
-                return { level: 'Very Wide', label: 'Highly Volatile', color: 'text-red-600' };
+                return { level: 'Very Wide', label: 'Highly Volatile', color: 'text-down' };
               };
               const priceStability = getPriceStability();
 
@@ -1482,7 +1482,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   <div className="border border-brand-gray/20 p-3" title="Based on price fluctuation patterns across data points.">
                     <p className="text-xs text-brand-black/50 uppercase tracking-wider mb-1">Volatility</p>
                     <p className={`text-lg font-semibold capitalize ${
-                      asset.volatility === 'low' ? 'text-green-600' : asset.volatility === 'high' ? 'text-red-600' : 'text-yellow-600'
+                      asset.volatility === 'low' ? 'text-up' : asset.volatility === 'high' ? 'text-down' : 'text-yellow-600'
                     }`}>{asset.volatility ? `${asset.volatility[0].toUpperCase()}${asset.volatility.slice(1)}` : "—"}</p>
                     {asset.volatility && (
                       <p className="text-[9px] text-brand-black/40 mt-0.5 leading-tight">
@@ -1523,7 +1523,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     {avgEfficiency > 0 ? (
                       <>
                         <p className={`text-lg font-mono-numeric font-bold ${
-                          avgEfficiency <= 5 ? 'text-green-600' : 'text-brand-black'
+                          avgEfficiency <= 5 ? 'text-up' : 'text-brand-black'
                         }`}>{avgEfficiency.toFixed(1)}%</p>
                         <p className="text-[9px] text-brand-black/40 mt-0.5 leading-tight">
                           {avgEfficiency <= 5
@@ -1544,7 +1544,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     </p>
                     <p className={`text-lg font-semibold ${
                       priceRangePct <= 5
-                        ? 'text-green-600'
+                        ? 'text-up'
                         : priceRangePct <= 15
                         ? 'text-yellow-600'
                         : 'text-brand-black'
@@ -1577,12 +1577,12 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 </div>
                 <div className={`px-2.5 py-1 text-xs font-bold uppercase tracking-wider border ${
                   currentData.insight.recommendation === 'buy'
-                    ? 'border-green-600 text-green-700'
+                    ? 'border-up/40 text-up'
                     : currentData.insight.recommendation === 'sell'
-                    ? 'border-red-500 text-red-600'
+                    ? 'border-down/40 text-down'
                     : currentData.insight.recommendation === 'hold'
-                    ? 'border-brand-black/30 text-brand-black/60'
-                    : 'border-brand-black/20 text-brand-black/50'
+                    ? 'border-terminal-border-strong text-brand-black/60'
+                    : 'border-terminal-border-strong text-brand-black/50'
                 }`}>
                   {currentData.insight.recommendation.toUpperCase()}
                 </div>
@@ -1595,7 +1595,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 </div>
                 <div className="h-1.5 bg-brand-gray/20 overflow-hidden">
                   <div
-                    className="h-full bg-brand-black/40 transition-all"
+                    className="h-full bg-terminal-text-dim transition-all"
                     style={{ width: `${currentData.insight.confidence}%` }}
                   />
                 </div>
@@ -1620,12 +1620,12 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       {mainTab === 'listings' && (
         <div className="space-y-4">
       {/* View Mode Toggle */}
-      <div className="inline-flex items-center gap-1 bg-white border border-brand-gray/30 p-1 w-full sm:w-fit">
+      <div className="inline-flex items-center gap-1 bg-terminal-surface border border-brand-gray/30 p-1 w-full sm:w-fit">
         <button
           onClick={() => setListingsViewMode('individual')}
           className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-semibold transition-all whitespace-nowrap ${
             listingsViewMode === 'individual'
-              ? 'bg-brand-black text-white'
+              ? 'bg-terminal-surface-raised text-terminal-text'
               : 'text-brand-black/60 hover:text-brand-black'
           }`}
         >
@@ -1636,7 +1636,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
           onClick={() => setListingsViewMode('aggregated')}
           className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-semibold transition-all whitespace-nowrap ${
             listingsViewMode === 'aggregated'
-              ? 'bg-brand-black text-white'
+              ? 'bg-terminal-surface-raised text-terminal-text'
               : 'text-brand-black/60 hover:text-brand-black'
           }`}
         >
@@ -1686,7 +1686,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as 'price' | 'quantity' | 'newest')}
-                  className="text-[11px] border border-brand-gray/30 bg-white px-2 py-1 text-brand-black focus:outline-none focus:border-brand-black"
+                  className="text-[11px] border border-brand-gray/30 bg-terminal-surface px-2 py-1 text-brand-black focus:outline-none focus:border-terminal-border-strong"
                   aria-label="Sort listings"
                 >
                   <option value="price">Sort: Price ↑</option>
@@ -1714,8 +1714,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                     }
                     className={`flex-shrink-0 px-3 py-1.5 text-[11px] font-medium transition-all whitespace-nowrap ${
                       unifiedChannelFilter === opt.key
-                        ? 'bg-brand-black text-white'
-                        : 'bg-white text-brand-black/70 border border-brand-gray/30'
+                        ? 'bg-terminal-surface-raised text-terminal-text'
+                        : 'bg-terminal-surface text-brand-black/70 border border-brand-gray/30'
                     }`}
                     style={{ borderRadius: '999px' }}
                   >
@@ -1744,7 +1744,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       }
                       className={`flex-shrink-0 px-2 py-0.5 text-[10px] font-medium transition-all whitespace-nowrap ${
                         unifiedSideFilter === opt.key
-                          ? 'bg-brand-black text-white'
+                          ? 'bg-terminal-surface-raised text-terminal-text'
                           : 'bg-transparent text-brand-black/60 border border-brand-gray/25'
                       }`}
                       style={{ borderRadius: '999px' }}
@@ -1762,7 +1762,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   <select
                     value={filterLocation || ''}
                     onChange={(e) => setFilterLocation(e.target.value || null)}
-                    className="flex-1 min-w-0 text-[11px] border border-brand-gray/30 bg-white px-2 py-1 text-brand-black focus:outline-none focus:border-brand-black"
+                    className="flex-1 min-w-0 text-[11px] border border-brand-gray/30 bg-terminal-surface px-2 py-1 text-brand-black focus:outline-none focus:border-terminal-border-strong"
                   >
                     <option value="">All locations</option>
                     {Array.from(new Set(unifiedListings.map(row => row.location).filter((loc): loc is string => Boolean(loc)))).map((loc: string) => (
@@ -1797,8 +1797,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       }
                       className={`px-4 py-1.5 text-xs font-medium transition-all ${
                         unifiedChannelFilter === opt.key
-                          ? 'bg-brand-black text-white'
-                          : 'bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black'
+                          ? 'bg-terminal-surface-raised text-terminal-text'
+                          : 'bg-terminal-surface text-brand-black border border-brand-gray/30 hover:border-terminal-border-strong'
                       }`}
                     >
                       {opt.label}
@@ -1825,8 +1825,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       }
                       className={`px-4 py-1.5 text-xs font-medium transition-all ${
                         unifiedSideFilter === opt.key
-                          ? 'bg-brand-black text-white'
-                          : 'bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black'
+                          ? 'bg-terminal-surface-raised text-terminal-text'
+                          : 'bg-terminal-surface text-brand-black border border-brand-gray/30 hover:border-terminal-border-strong'
                       }`}
                     >
                       {opt.label}
@@ -1844,7 +1844,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   <select
                     value={filterLocation || ''}
                     onChange={(e) => setFilterLocation(e.target.value || null)}
-                    className="flex-1 text-sm border border-brand-gray/30 bg-white px-3 py-1.5 text-brand-black focus:outline-none focus:border-brand-black"
+                    className="flex-1 text-sm border border-brand-gray/30 bg-terminal-surface px-3 py-1.5 text-brand-black focus:outline-none focus:border-terminal-border-strong"
                   >
                     <option value="">All Locations</option>
                     {Array.from(new Set(unifiedListings.map(row => row.location).filter((loc): loc is string => Boolean(loc)))).map((loc: string) => (
@@ -1858,7 +1858,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as 'price' | 'quantity' | 'newest')}
-                    className="flex-1 text-sm border border-brand-gray/30 bg-white px-3 py-1.5 text-brand-black focus:outline-none focus:border-brand-black"
+                    className="flex-1 text-sm border border-brand-gray/30 bg-terminal-surface px-3 py-1.5 text-brand-black focus:outline-none focus:border-terminal-border-strong"
                   >
                     <option value="price">Price: Low to High</option>
                     <option value="quantity">Quantity: High to Low</option>
@@ -2011,8 +2011,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               {/* Channel color legend */}
               <div className="flex items-center gap-3 mb-2 text-[10px] text-brand-black/50">
                 <span className="font-semibold uppercase tracking-wider">Channels:</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span> Sentria</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-600 inline-block"></span> WhatsApp</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-up inline-block"></span> Sentria</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-up inline-block"></span> WhatsApp</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span> Marketplace</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-600 inline-block"></span> International</span>
               </div>
@@ -2056,8 +2056,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                              row.channel === 'Sentria' ? 'bg-emerald-600' :
-                              row.channel === 'WhatsApp' ? 'bg-green-600' :
+                              row.channel === 'Sentria' ? 'bg-up' :
+                              row.channel === 'WhatsApp' ? 'bg-up' :
                               row.channel === 'Marketplace' ? 'bg-blue-600' :
                               row.channel === 'International' ? 'bg-purple-600' :
                               'bg-brand-gray'
@@ -2069,9 +2069,9 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                         </td>
                         <td className="px-3 py-2.5">
                           <span className={`inline-flex items-center px-2 py-1 text-xs font-medium ${
-                            row.side === 'Buy' ? 'bg-green-50 text-green-700' :
-                            row.side === 'Sell' ? 'bg-red-50 text-red-700' :
-                            'bg-gray-50 text-gray-700'
+                            row.side === 'Buy' ? 'bg-up/10 text-up' :
+                            row.side === 'Sell' ? 'bg-down/10 text-down' :
+                            'bg-terminal-surface-raised text-terminal-text-dim'
                           }`}>
                             {row.side}
                           </span>
@@ -2132,7 +2132,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                     toast.warning('Please sign in to request introductions');
                                   }
                                 }}
-                                className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors whitespace-nowrap"
+                                className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold bg-up text-terminal-bg hover:bg-up/90 transition-colors whitespace-nowrap"
                               >
                                 Request Intro
                               </button>
@@ -2143,7 +2143,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                 href={`https://wa.me/${row.contactValue.replace(/[^0-9]/g, '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors whitespace-nowrap"
+                                className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold bg-up text-terminal-bg hover:bg-up/90 transition-colors whitespace-nowrap"
                               >
                                 {row.side === 'Sell' ? 'Sell to' : 'Buy from'}
                               </a>
@@ -2152,7 +2152,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                 href={row.contactValue}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold border border-brand-gray/30 text-brand-black hover:bg-brand-black hover:text-white hover:border-brand-black transition-colors whitespace-nowrap"
+                                className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold border border-brand-gray/30 text-brand-black hover:bg-accent hover:text-terminal-bg hover:border-terminal-border-strong transition-colors whitespace-nowrap"
                               >
                                 {row.side === 'Sell' ? 'Sell to' : 'Buy from'}
                               </a>
@@ -2208,20 +2208,20 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       {showBestSizeArb && bestSizeArb && (
         <button
           onClick={() => setSelectedSize(bestSizeArb.size)}
-          className="w-full flex items-center gap-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 p-3 text-left hover:border-green-500 transition-colors"
+          className="w-full flex items-center gap-3 bg-gradient-to-r from-up to-up border border-up/40 p-3 text-left hover:border-up/40 transition-colors"
         >
-          <div className="w-8 h-8 bg-green-600 text-white flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 bg-up text-terminal-bg flex items-center justify-center flex-shrink-0">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-green-800 uppercase tracking-wide">Larger spread in {bestSizeArb.size}</p>
-            <p className="text-sm text-green-700 mt-0.5">
+            <p className="text-xs font-bold text-up uppercase tracking-wide">Larger spread in {bestSizeArb.size}</p>
+            <p className="text-sm text-up mt-0.5">
               ₹{bestSizeArb.opp.netProfit.toLocaleString('en-IN')} ({(bestSizeArb.opp.netPct * 100).toFixed(1)}%) — tap to switch
             </p>
           </div>
-          <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-up flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -2245,8 +2245,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             ? { type: 'link' as const, href: top.buy.url }
             : null;
           return (
-            <Card className="border-2 border-brand-black" noPadding>
-              <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-brand-black text-white flex items-center justify-between gap-2 flex-wrap">
+            <Card className="border-2 border-terminal-border-strong" noPadding>
+              <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-terminal-surface-raised text-terminal-text flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="text-sm font-bold uppercase tracking-wide whitespace-nowrap">Largest Spread</span>
                   <span className="text-xs text-white/50 whitespace-nowrap truncate">
@@ -2271,15 +2271,15 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   </div>
 
                   {/* Spread (center on desktop, prominent banner on mobile) */}
-                  <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:gap-1 bg-green-50 sm:bg-transparent border sm:border-0 border-green-200 p-2.5 sm:p-0">
+                  <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:gap-1 bg-up/10 sm:bg-transparent border sm:border-0 border-up/40 p-2.5 sm:p-0">
                     <svg className="hidden sm:block w-5 h-5 text-brand-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                     <div className="sm:text-center">
-                      <p className="text-[10px] text-green-700 sm:hidden uppercase font-semibold tracking-wider">Spread</p>
-                      <p className="text-lg sm:text-xl font-bold font-mono-numeric text-green-600">₹{top.netProfit.toLocaleString('en-IN')}</p>
+                      <p className="text-[10px] text-up sm:hidden uppercase font-semibold tracking-wider">Spread</p>
+                      <p className="text-lg sm:text-xl font-bold font-mono-numeric text-up">₹{top.netProfit.toLocaleString('en-IN')}</p>
                     </div>
-                    <p className="text-xs font-semibold text-green-600 whitespace-nowrap">{topRoi.toFixed(1)}%</p>
+                    <p className="text-xs font-semibold text-up whitespace-nowrap">{topRoi.toFixed(1)}%</p>
                     <p className={`hidden sm:block text-[10px] font-semibold ${turnaroundColor(top.turnaroundDays)}`}>{turnaroundLabel(top.turnaroundDays)}</p>
                   </div>
 
@@ -2308,8 +2308,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       href={buyAction.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors ${
-                        buyAction.type === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-brand-black hover:bg-brand-black/80'
+                      className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-xs font-bold uppercase tracking-wide text-terminal-bg transition-colors ${
+                        buyAction.type === 'whatsapp' ? 'bg-up hover:bg-up/90' : 'bg-accent hover:bg-accent/90'
                       }`}
                     >
                       {buyAction.type === 'whatsapp' ? 'Contact Seller on WhatsApp' : 'View Buy Listing'}
@@ -2354,7 +2354,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   type="number"
                   value={(minArbNetPct * 100).toFixed(1)}
                   onChange={(e) => setMinArbNetPct(Math.max(0, Number(e.target.value) / 100))}
-                  className="w-16 border border-brand-gray/30 px-2 py-1 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-brand-black bg-brand-white"
+                  className="w-16 border border-brand-gray/30 px-2 py-1 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-terminal-border-strong bg-brand-white"
                   step="0.5"
                 />
                 <span className="text-[10px] text-brand-black/50">%</span>
@@ -2365,7 +2365,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   type="number"
                   value={minArbNetRs}
                   onChange={(e) => setMinArbNetRs(Math.max(0, Number(e.target.value)))}
-                  className="w-20 border border-brand-gray/30 px-2 py-1 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-brand-black bg-brand-white"
+                  className="w-20 border border-brand-gray/30 px-2 py-1 text-xs text-brand-black font-mono-numeric focus:outline-none focus:border-terminal-border-strong bg-brand-white"
                   step="500"
                 />
               </div>
@@ -2407,7 +2407,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                       return (
                         <tr
                           key={idx}
-                          className={`border-b border-brand-gray/10 ${isEven ? 'bg-white' : 'bg-brand-gray/5'} hover:bg-brand-background/50 transition-colors`}
+                          className={`border-b border-brand-gray/10 ${isEven ? 'bg-terminal-surface' : 'bg-brand-gray/5'} hover:bg-brand-background/50 transition-colors`}
                         >
                           <td className="px-3 py-2.5">
                             <span className="text-xs text-brand-black/50 whitespace-nowrap">
@@ -2466,8 +2466,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                 href={buyAction.href}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white transition-colors whitespace-nowrap ${
-                                  buyAction.type === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-brand-black hover:bg-brand-black/80'
+                                className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-terminal-bg transition-colors whitespace-nowrap ${
+                                  buyAction.type === 'whatsapp' ? 'bg-up hover:bg-up/90' : 'bg-accent hover:bg-accent/90'
                                 }`}
                               >
                                 {buyAction.type === 'whatsapp' ? 'Contact' : 'View'}
@@ -2541,16 +2541,16 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 animate-fade-in backdrop-blur-sm" onClick={() => setShowBuyModal(false)} />
           
-          <div className="relative bg-brand-white border-2 border-brand-black w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-modal animate-fade-in">
+          <div className="relative bg-brand-white border-2 border-terminal-border-strong w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-modal animate-fade-in">
             {/* Header */}
-            <div className="sticky top-0 bg-brand-white border-b-2 border-brand-black px-4 md:px-6 py-4 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-brand-white border-b-2 border-terminal-border-strong px-4 md:px-6 py-4 flex items-center justify-between z-10">
               <div>
                 <h2 className="text-base font-bold uppercase tracking-wide text-brand-black">Source Options</h2>
                 <p className="text-xs text-brand-black/60 mt-1">Size: {selectedSize}</p>
               </div>
               <button
                 onClick={() => setShowBuyModal(false)}
-                className="w-10 h-10 flex items-center justify-center border-2 border-brand-gray hover:border-brand-black hover:bg-brand-gray/10 transition-all active:scale-95"
+                className="w-10 h-10 flex items-center justify-center border-2 border-brand-gray hover:border-terminal-border-strong hover:bg-brand-gray/10 transition-all active:scale-95"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -2561,9 +2561,9 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             <div className="p-4 md:p-6 space-y-6">
               {/* Sentria Network - Priority */}
               {tradeListings.length > 0 && (
-                <div className="border-2 border-green-600 bg-green-50/20 p-4">
+                <div className="border-2 border-up/40 bg-up/20 p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 rounded-full bg-green-600 animate-pulse" />
+                    <div className="w-2 h-2 rounded-full bg-up animate-pulse" />
                     <h3 className="text-sm font-bold uppercase tracking-wide text-brand-black">Sentria Network</h3>
                     <span className="text-xs text-brand-black/60">({tradeListings.length} seller{tradeListings.length > 1 ? 's' : ''})</span>
                   </div>
@@ -2571,7 +2571,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   
                   <div className="space-y-2">
                     {tradeListings.map((listing) => (
-                      <div key={listing.id} className="bg-white border border-brand-gray/30 p-3 hover:border-brand-black transition-colors">
+                      <div key={listing.id} className="bg-terminal-surface border border-brand-gray/30 p-3 hover:border-terminal-border-strong transition-colors">
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex-1">
                             <p className="text-sm font-semibold text-brand-black">{listing.userName || 'Anonymous Seller'}</p>
@@ -2585,7 +2585,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                             )}
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-mono-numeric font-bold text-green-600">
+                            <p className="text-xl font-mono-numeric font-bold text-up">
                               ₹{listing.askingPrice.toLocaleString('en-IN')}
                             </p>
                             {currentUser?.uid === listing.userId ? (
@@ -2607,7 +2607,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                                     toast.warning('Please sign in to request introductions');
                                   }
                                 }}
-                                className="mt-2 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold uppercase tracking-wide hover:bg-green-700 transition-all whitespace-nowrap"
+                                className="mt-2 px-3 py-1.5 bg-up text-terminal-bg text-xs font-semibold uppercase tracking-wide hover:bg-up/90 transition-all whitespace-nowrap"
                               >
                                 Request Intro
                               </button>
@@ -2667,7 +2667,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   {whatsappPrices.buy.length > 3 && (
                     <button
                       onClick={() => setBuyModalExpandWhatsapp(!buyModalExpandWhatsapp)}
-                      className="mt-2 w-full py-2 text-xs font-semibold text-brand-black/70 hover:text-brand-black border border-brand-gray/20 hover:border-brand-black/30 transition-colors bg-white"
+                      className="mt-2 w-full py-2 text-xs font-semibold text-brand-black/70 hover:text-brand-black border border-brand-gray/20 hover:border-terminal-border-strong transition-colors bg-terminal-surface"
                     >
                       {buyModalExpandWhatsapp ? 'Show less' : `Show all ${whatsappPrices.buy.length} sellers`}
                     </button>
@@ -2712,7 +2712,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   {marketplacePrices.length > 3 && (
                     <button
                       onClick={() => setBuyModalExpandMarketplace(!buyModalExpandMarketplace)}
-                      className="mt-2 w-full py-2 text-xs font-semibold text-brand-black/70 hover:text-brand-black border border-brand-gray/20 hover:border-brand-black/30 transition-colors bg-white"
+                      className="mt-2 w-full py-2 text-xs font-semibold text-brand-black/70 hover:text-brand-black border border-brand-gray/20 hover:border-terminal-border-strong transition-colors bg-terminal-surface"
                     >
                       {buyModalExpandMarketplace ? 'Show less' : `Show all ${marketplacePrices.length} listings`}
                     </button>
@@ -2764,7 +2764,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   {internationalPrices.length > 2 && (
                     <button
                       onClick={() => setBuyModalExpandIntl(!buyModalExpandIntl)}
-                      className="mt-2 w-full py-2 text-xs font-semibold text-brand-black/70 hover:text-brand-black border border-brand-gray/20 hover:border-brand-black/30 transition-colors bg-white"
+                      className="mt-2 w-full py-2 text-xs font-semibold text-brand-black/70 hover:text-brand-black border border-brand-gray/20 hover:border-terminal-border-strong transition-colors bg-terminal-surface"
                     >
                       {buyModalExpandIntl ? 'Show less' : `Show all ${internationalPrices.length} listings`}
                     </button>
@@ -2890,16 +2890,16 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 animate-fade-in backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative bg-brand-white border-2 border-brand-black w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-modal animate-fade-in">
+      <div className="relative bg-brand-white border-2 border-terminal-border-strong w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-modal animate-fade-in">
         {/* Header */}
-        <div className="sticky top-0 bg-brand-white border-b-2 border-brand-black px-4 md:px-6 py-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-brand-white border-b-2 border-terminal-border-strong px-4 md:px-6 py-4 flex items-center justify-between z-10">
           <div>
             <h2 className="text-base font-bold uppercase tracking-wide text-brand-black">Post a Listing</h2>
             <p className="text-xs text-brand-black/60 mt-1">Size: {selectedSize}</p>
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center border-2 border-brand-gray hover:border-brand-black hover:bg-brand-gray/10 transition-all active:scale-95"
+            className="w-10 h-10 flex items-center justify-center border-2 border-brand-gray hover:border-terminal-border-strong hover:bg-brand-gray/10 transition-all active:scale-95"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -2910,9 +2910,9 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
         <div className="p-4 md:p-6 space-y-4">
           {/* Portfolio Status */}
           {userPosition ? (
-            <div className="border-l-4 border-green-600 bg-green-50 p-4">
-              <p className="text-sm font-semibold text-green-900 mb-2">✓ You own this item</p>
-              <p className="text-xs text-green-800">
+            <div className="border-l-4 border-up/40 bg-up/10 p-4">
+              <p className="text-sm font-semibold text-up mb-2">✓ You own this item</p>
+              <p className="text-xs text-up">
                 Quantity in portfolio: {userPosition.quantity}
                 {userPosition.acquisitionPrice && ` • Cost: ₹${userPosition.acquisitionPrice.toLocaleString('en-IN')}`}
               </p>
@@ -2949,7 +2949,7 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
                 value={askingPrice}
                 onChange={(e) => setAskingPrice(e.target.value)}
                 placeholder="e.g., 12500"
-                className="w-full pl-8 pr-3 py-3 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black"
+                className="w-full pl-8 pr-3 py-3 border border-brand-gray/30 text-sm focus:outline-none focus:border-terminal-border-strong"
               />
             </div>
             {bestPrice && (
@@ -2971,7 +2971,7 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
               max={userPosition?.quantity || 99}
               value={quantity}
               onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-              className="w-full px-3 py-3 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black"
+              className="w-full px-3 py-3 border border-brand-gray/30 text-sm focus:outline-none focus:border-terminal-border-strong"
             />
           </div>
 
@@ -2987,7 +2987,7 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
                   onClick={() => setCondition(cond)}
                   className={`px-4 py-2.5 border text-xs font-semibold uppercase tracking-wide transition-all ${
                     condition === cond
-                      ? 'border-brand-black bg-brand-black text-white'
+                      ? 'border-terminal-border-strong bg-terminal-surface-raised text-terminal-text'
                       : 'border-brand-gray text-brand-black hover:bg-brand-gray/10'
                   }`}
                 >
@@ -3008,7 +3008,7 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
               placeholder="Add details about condition, location, authenticity, shipping, etc..."
               rows={4}
               maxLength={500}
-              className="w-full px-3 py-3 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black resize-none"
+              className="w-full px-3 py-3 border border-brand-gray/30 text-sm focus:outline-none focus:border-terminal-border-strong resize-none"
             />
             <p className="text-xs text-brand-black/60 mt-1">{description.length}/500 characters</p>
           </div>
@@ -3025,7 +3025,7 @@ const SellModalContent: React.FC<SellModalContentProps> = ({
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || !askingPrice || parseFloat(askingPrice) <= 0}
-              className="flex-1 px-6 py-3 bg-brand-black text-white text-sm font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 bg-accent text-terminal-bg text-sm font-semibold uppercase tracking-wide hover:bg-accent/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Creating...' : 'Create Listing'}
             </button>

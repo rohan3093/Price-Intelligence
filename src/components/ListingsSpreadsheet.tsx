@@ -369,8 +369,8 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                 }}
                 className={`px-2 py-1 text-[10px] border uppercase tracking-wide transition ${
                   channelFilter.has(channel)
-                    ? "border-brand-black bg-brand-black text-brand-white"
-                    : "border-brand-gray/30 bg-brand-white text-brand-black hover:border-brand-black"
+                    ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
+                    : "border-brand-gray/30 bg-brand-white text-brand-black hover:border-terminal-border-strong"
                 }`}
               >
                 {getChannelLabel(channel)}
@@ -398,7 +398,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
               </button>
               <button
                 onClick={handleDeleteSelected}
-                className="px-2 py-1 text-[10px] border border-red-500/30 bg-red-500/10 text-red-600 hover:bg-red-500/20 transition uppercase tracking-wide"
+                className="px-2 py-1 text-[10px] border border-down/30 bg-down/10 text-down hover:bg-down/20 transition uppercase tracking-wide"
               >
                 Delete
               </button>
@@ -462,7 +462,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                   <tr
                     key={row.id}
                     className={`group border-b border-brand-gray/20 hover:bg-brand-gray/5 ${
-                      isSelected ? "bg-brand-black/5" : ""
+                      isSelected ? "bg-terminal-surface-raised" : ""
                     }`}
                   >
                     <td className="p-1.5">
@@ -539,7 +539,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                                   handleCancelEdit(row.id);
                                 }
                               }}
-                              className="w-full border-0 border-b-2 border-brand-black px-1 py-0.5 text-xs focus:outline-none bg-transparent"
+                              className="w-full border-0 border-b-2 border-terminal-border-strong px-1 py-0.5 text-xs focus:outline-none bg-transparent"
                               autoFocus
                               onClick={(e) => e.stopPropagation()}
                             />
@@ -568,7 +568,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                                 e.stopPropagation();
                                 handleSaveRow(row);
                               }}
-                              className="px-1.5 py-0.5 text-[10px] border border-brand-black bg-brand-black text-brand-white hover:bg-brand-black/90 transition uppercase"
+                              className="px-1.5 py-0.5 text-[10px] border border-accent bg-accent text-terminal-bg hover:bg-accent/90 transition uppercase"
                               title="Save"
                             >
                               ✓
@@ -603,8 +603,8 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                               }}
                               className={`px-1.5 py-0.5 text-[10px] border transition uppercase ${
                                 deleteConfirmRowId === row.id
-                                  ? "border-red-600 bg-red-600 text-white"
-                                  : "border-red-500/30 text-red-600 hover:bg-red-500/10"
+                                  ? "border-down/40 bg-down text-white"
+                                  : "border-down/30 text-down hover:bg-down/10"
                               }`}
                               title={deleteConfirmRowId === row.id ? "Click again to confirm delete" : "Delete"}
                             >
@@ -644,7 +644,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
             
             {/* New Row */}
             {newRow && (
-              <tr className="border-b-2 border-brand-black bg-brand-black/5">
+              <tr className="border-b-2 border-terminal-border-strong bg-terminal-surface-raised">
                 <td className="p-1.5"></td>
                 {columns.map((col, colIndex) => {
                   const rawNewValue = newRow[col.key as keyof ListingRow];
@@ -670,7 +670,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                             // Clear marketplaceName when channel changes
                             handleNewRowFieldChange('marketplaceName', undefined);
                           }}
-                          className="w-full border-0 border-b-2 border-brand-black px-1 py-0.5 text-xs focus:outline-none bg-transparent"
+                          className="w-full border-0 border-b-2 border-terminal-border-strong px-1 py-0.5 text-xs focus:outline-none bg-transparent"
                           autoFocus
                           onClick={(e) => e.stopPropagation()}
                         >
@@ -693,7 +693,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                                 }
                               }
                             }}
-                            className="w-full border-0 border-b-2 border-brand-black px-1 py-0.5 text-xs focus:outline-none bg-transparent"
+                            className="w-full border-0 border-b-2 border-terminal-border-strong px-1 py-0.5 text-xs focus:outline-none bg-transparent"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <option value="buy">Buy</option>
@@ -720,7 +720,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                                 // Focus next field
                               }
                             }}
-                            className="w-full border-0 border-b-2 border-brand-black px-1 py-0.5 text-xs focus:outline-none bg-transparent"
+                            className="w-full border-0 border-b-2 border-terminal-border-strong px-1 py-0.5 text-xs focus:outline-none bg-transparent"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {(newRow.channel === 'marketplace' ? marketplaceOptions : platformOptions).map(opt => (
@@ -755,7 +755,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                               handleCancelNewRow();
                             }
                           }}
-                          className="w-full border-0 border-b-2 border-brand-black px-1 py-0.5 text-xs focus:outline-none bg-transparent"
+                          className="w-full border-0 border-b-2 border-terminal-border-strong px-1 py-0.5 text-xs focus:outline-none bg-transparent"
                           placeholder={col.key === 'price' ? '0' : col.key === 'listingCount' ? '1' : ''}
                           onClick={(e) => e.stopPropagation()}
                           autoFocus={colIndex === 0}
@@ -773,7 +773,7 @@ export const ListingsSpreadsheet: React.FC<ListingsSpreadsheetProps> = ({
                         e.stopPropagation();
                         handleSaveNewRow();
                       }}
-                      className="px-1.5 py-0.5 text-[10px] border border-brand-black bg-brand-black text-brand-white hover:bg-brand-black/90 transition uppercase"
+                      className="px-1.5 py-0.5 text-[10px] border border-accent bg-accent text-terminal-bg hover:bg-accent/90 transition uppercase"
                       title="Save (Enter)"
                     >
                       ✓

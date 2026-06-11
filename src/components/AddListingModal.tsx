@@ -154,12 +154,12 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
             {/* Channel Selector */}
             <div>
               <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                Channel <span className="text-red-600 font-normal">*</span>
+                Channel <span className="text-down font-normal">*</span>
               </label>
               <select
                 value={channel}
                 onChange={(e) => setChannel(e.target.value as MarketChannel)}
-                className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
               >
                 <option value="whatsapp">WhatsApp & Reseller</option>
                 <option value="marketplace">Indian Marketplaces</option>
@@ -170,7 +170,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
             {/* Size */}
             <div>
               <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                Size <span className="text-red-600 font-normal">*</span>
+                Size <span className="text-down font-normal">*</span>
               </label>
               <input
                 type="text"
@@ -184,13 +184,13 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
             {channel === "international" ? (
               <div>
                 <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                  Platform Price ($) <span className="text-red-600 font-normal">*</span>
+                  Platform Price ($) <span className="text-down font-normal">*</span>
                 </label>
                 <input
                   type="number"
                   value={priceUSD}
                   onChange={(e) => setPriceUSD(e.target.value)}
-                  className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                  className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                   placeholder="e.g., 150"
                   required
                   disabled={isLoadingRate}
@@ -209,13 +209,13 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
             ) : (
               <div>
                 <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                  Price (₹) <span className="text-red-600 font-normal">*</span>
+                  Price (₹) <span className="text-down font-normal">*</span>
                 </label>
                 <input
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                  className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                   placeholder="e.g., 12000"
                   required
                 />
@@ -225,13 +225,13 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
             {/* Quantity */}
             <div>
               <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                Quantity <span className="text-red-600 font-normal">*</span>
+                Quantity <span className="text-down font-normal">*</span>
               </label>
               <input
                 type="number"
                 value={listingCount}
                 onChange={(e) => setListingCount(e.target.value)}
-                className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                 placeholder="e.g., 2"
                 required
               />
@@ -242,7 +242,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
               <>
                 <div>
                   <label className="block text-[10px] font-semibold text-brand-black uppercase tracking-wide mb-1 leading-tight">
-                    Transaction Type <span className="text-red-600 font-normal">*</span>
+                    Transaction Type <span className="text-down font-normal">*</span>
                   </label>
                   <div className="flex gap-2">
                     <button
@@ -250,8 +250,8 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                       onClick={() => setTransactionType("buy")}
                       className={`flex-1 px-3 py-1.5 border text-xs font-semibold uppercase tracking-wide transition ${
                         transactionType === "buy"
-                          ? "border-green-600 bg-green-600 text-white"
-                          : "border-green-600 bg-white text-green-600 hover:bg-green-50"
+                          ? "border-up/40 bg-up text-terminal-bg"
+                          : "border-up/40 bg-terminal-surface text-up hover:bg-up/10"
                       }`}
                     >
                       WTS (Want to Sell)
@@ -261,8 +261,8 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                       onClick={() => setTransactionType("sell")}
                       className={`flex-1 px-3 py-1.5 border text-xs font-semibold uppercase tracking-wide transition ${
                         transactionType === "sell"
-                          ? "border-red-600 bg-red-600 text-white"
-                          : "border-red-600 bg-white text-red-600 hover:bg-red-50"
+                          ? "border-down/40 bg-down text-white"
+                          : "border-down/40 bg-terminal-surface text-down hover:bg-down/10"
                       }`}
                     >
                       WTB (Want to Buy)
@@ -277,7 +277,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                     type="text"
                     value={sellerName}
                     onChange={(e) => setSellerName(e.target.value)}
-                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                     placeholder="e.g., John Doe"
                   />
                 </div>
@@ -289,7 +289,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                     type="text"
                     value={sellerLocation}
                     onChange={(e) => setSellerLocation(e.target.value)}
-                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                     placeholder="e.g., Delhi"
                   />
                 </div>
@@ -301,7 +301,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                     type="text"
                     value={sellerContact}
                     onChange={(e) => setSellerContact(e.target.value)}
-                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                     placeholder="e.g., +91 98765 43210"
                   />
                 </div>
@@ -313,7 +313,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                     type="text"
                     value={source}
                     onChange={(e) => setSource(e.target.value)}
-                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                     placeholder="e.g., whatsapp-group-mumbai"
                   />
                 </div>
@@ -330,7 +330,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                   <select
                     value={marketplaceName}
                     onChange={(e) => setMarketplaceName(e.target.value)}
-                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                   >
                     {marketplaceOptions.map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -345,7 +345,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                     type="url"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
-                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                     placeholder="https://..."
                   />
                 </div>
@@ -362,7 +362,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                   <select
                     value={platform}
                     onChange={(e) => setPlatform(e.target.value)}
-                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                   >
                     {platformOptions.map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -377,7 +377,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                     type="number"
                     value={reshippingCost}
                     onChange={(e) => setReshippingCost(e.target.value)}
-                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                     placeholder="e.g., 2000"
                   />
                 </div>
@@ -389,7 +389,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                     type="url"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
-                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-brand-black leading-tight"
+                    className="w-full border border-brand-gray/30 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black focus:outline-none focus:border-terminal-border-strong leading-tight"
                     placeholder="https://..."
                   />
                 </div>
@@ -400,7 +400,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
             <div className="flex gap-2 pt-3 border-t border-brand-gray/20">
               <button
                 type="submit"
-                className="px-3 py-1.5 border border-brand-black bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition leading-tight"
+                className="px-3 py-1.5 border border-accent bg-accent text-terminal-bg text-xs font-semibold uppercase tracking-wide hover:bg-accent/90 transition leading-tight"
               >
                 Add Listing
               </button>

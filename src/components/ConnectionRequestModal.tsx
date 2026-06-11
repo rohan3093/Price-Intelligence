@@ -85,15 +85,15 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
       />
       
       {/* Modal */}
-      <div className="relative bg-brand-white border-2 border-brand-black w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-modal animate-fade-in">
+      <div className="relative bg-brand-white border-2 border-terminal-border-strong w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-modal animate-fade-in">
         {/* Header */}
-        <div className="sticky top-0 bg-brand-white border-b-2 border-brand-black px-4 md:px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-brand-white border-b-2 border-terminal-border-strong px-4 md:px-6 py-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-black">
             Request Introduction
           </h2>
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center border-2 border-brand-gray hover:border-brand-black hover:bg-brand-gray/10 transition-all active:scale-95"
+            className="w-10 h-10 flex items-center justify-center border-2 border-brand-gray hover:border-terminal-border-strong hover:bg-brand-gray/10 transition-all active:scale-95"
             aria-label="Close modal"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,7 +159,7 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
                 max="10"
                 value={quantity}
                 onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                className="w-full px-3 py-2.5 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black"
+                className="w-full px-3 py-2.5 border border-brand-gray/30 text-sm focus:outline-none focus:border-terminal-border-strong"
                 required
               />
             </div>
@@ -179,7 +179,7 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
                     value={proposedPrice}
                     onChange={(e) => setProposedPrice(e.target.value)}
                     placeholder="e.g., 12500"
-                    className="w-full pl-8 pr-3 py-2.5 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black"
+                    className="w-full pl-8 pr-3 py-2.5 border border-brand-gray/30 text-sm focus:outline-none focus:border-terminal-border-strong"
                   />
                 </div>
                 <p className="text-xs text-brand-black/60 mt-1">
@@ -199,7 +199,7 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
                 placeholder={`Introduce yourself and why you're interested in ${connectionType === 'buy' ? 'buying' : 'selling'} this item...`}
                 rows={4}
                 maxLength={500}
-                className="w-full px-3 py-2.5 border border-brand-gray/30 text-sm focus:outline-none focus:border-brand-black resize-none"
+                className="w-full px-3 py-2.5 border border-brand-gray/30 text-sm focus:outline-none focus:border-terminal-border-strong resize-none"
               />
               <p className="text-xs text-brand-black/60 mt-1">
                 {message.length}/500 characters
@@ -208,8 +208,8 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
 
             {/* Error */}
             {error && (
-              <div className="border-l-4 border-red-500 bg-red-50 p-3">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="border-l-4 border-down/40 bg-down/10 p-3">
+                <p className="text-sm text-down">{error}</p>
               </div>
             )}
 
@@ -226,7 +226,7 @@ export const ConnectionRequestModal: React.FC<ConnectionRequestModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting || !currentUser}
-                className="flex-1 px-4 py-3 border border-brand-gray bg-brand-black text-white text-sm font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-3 border border-brand-gray bg-accent text-terminal-bg text-sm font-semibold uppercase tracking-wide hover:bg-accent/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Sending..." : "Send Request"}
               </button>

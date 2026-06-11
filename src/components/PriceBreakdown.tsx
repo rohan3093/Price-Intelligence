@@ -60,8 +60,8 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({ asset }) => {
             ))}
           </div>
           {asset.bestAvailablePrice && asset.pricePoints.b2b[0]?.price === asset.bestAvailablePrice && (
-            <div className="mt-2 pt-2 border-t border-emerald-500/30">
-              <p className="text-xs text-emerald-400">
+            <div className="mt-2 pt-2 border-t border-up/30">
+              <p className="text-xs text-up">
                 ✓ Best available: {formatPrice(asset.bestAvailablePrice)}
               </p>
             </div>

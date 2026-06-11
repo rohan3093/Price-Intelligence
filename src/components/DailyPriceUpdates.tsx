@@ -138,7 +138,7 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
         </div>
         <div className="border border-brand-gray/20 bg-brand-background p-4">
           <p className="text-xs text-brand-black/50 mb-1">Updated Today</p>
-          <p className="text-2xl font-semibold text-green-600">
+          <p className="text-2xl font-semibold text-up">
             {assets.filter(a => {
               const today = new Date().toDateString();
               const updated = a.lastUpdated ? new Date(a.lastUpdated).toDateString() : null;
@@ -148,7 +148,7 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
         </div>
         <div className="border border-brand-gray/20 bg-brand-background p-4">
           <p className="text-xs text-brand-black/50 mb-1">Pending</p>
-          <p className="text-2xl font-semibold text-red-600">
+          <p className="text-2xl font-semibold text-down">
             {assets.filter(a => {
               const today = new Date().toDateString();
               const updated = a.lastUpdated ? new Date(a.lastUpdated).toDateString() : null;
@@ -167,7 +167,7 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
         {/* Asset List */}
         <div className="lg:col-span-1">
-          <div className="border border-brand-gray/20 bg-white p-4">
+          <div className="border border-brand-gray/20 bg-terminal-surface p-4">
             <h2 className="text-sm font-semibold text-brand-black mb-4">
               Instruments
             </h2>
@@ -178,7 +178,7 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name, SKU, or brand..."
-                className="w-full bg-brand-background border border-brand-gray/20 py-2 px-3 text-xs text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-brand-black"
+                className="w-full bg-brand-background border border-brand-gray/20 py-2 px-3 text-xs text-brand-black placeholder:text-brand-black/40 focus:outline-none focus:border-terminal-border-strong"
               />
               <div className="flex flex-wrap gap-2 items-center">
                 {(["all", "pending", "updated"] as const).map((status) => (
@@ -188,8 +188,8 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
                     onClick={() => setFilterStatus(status)}
                     className={`px-3 py-1.5 text-xs font-semibold transition ${
                       filterStatus === status
-                        ? "bg-brand-black text-white"
-                        : "bg-white border border-brand-gray/30 text-brand-black hover:border-brand-black"
+                        ? "bg-terminal-surface-raised text-terminal-text"
+                        : "bg-terminal-surface border border-brand-gray/30 text-brand-black hover:border-terminal-border-strong"
                     }`}
                   >
                     {status === "all" ? "All" : status === "pending" ? (
@@ -232,8 +232,8 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
                     key={asset.id}
                     className={`border p-3 cursor-pointer transition-all ${
                       isSelected
-                        ? "border-brand-black bg-brand-black text-white"
-                        : "border-brand-gray/20 bg-white hover:border-brand-gray/40"
+                        ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
+                        : "border-brand-gray/20 bg-terminal-surface hover:border-brand-gray/40"
                     }`}
                     onClick={() => {
                       setSelectedAsset(asset);
@@ -251,8 +251,8 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
                           {isUpdatedToday && (
                             <span className={`text-xs px-1.5 py-0.5 flex-shrink-0 ${
                               isSelected 
-                                ? "bg-green-500/30 text-green-300" 
-                                : "bg-green-100 text-green-700"
+                                ? "bg-up/30 text-up" 
+                                : "bg-up/10 text-up"
                             }`}>
                               ✓
                             </span>
@@ -282,7 +282,7 @@ export const DailyPriceUpdates: React.FC<DailyPriceUpdatesProps> = ({
               onUpdatePricePoints={handleUpdatePricePoints}
             />
           ) : (
-            <div className="border border-brand-gray/20 bg-white p-12 text-center">
+            <div className="border border-brand-gray/20 bg-terminal-surface p-12 text-center">
               <p className="text-sm font-medium text-brand-black/60 mb-1">No Instrument Selected</p>
               <p className="text-xs text-brand-black/40">Select an instrument to begin market data entry</p>
             </div>
@@ -420,7 +420,7 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
   };
 
   return (
-    <div className="border border-brand-gray/20 bg-white p-5 space-y-5">
+    <div className="border border-brand-gray/20 bg-terminal-surface p-5 space-y-5">
       {/* Instrument Header */}
       <div className="border-b border-brand-gray/20 pb-4">
         <div className="flex items-start justify-between gap-3">
@@ -460,7 +460,7 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
       {asset.sizes && asset.sizes.length > 0 ? (
         <div className="border-b border-brand-gray/20 pb-4">
           <label className="block text-xs font-medium text-brand-black mb-3">
-            Size Variant {!selectedSize && <span className="text-red-500">(Required)</span>}
+            Size Variant {!selectedSize && <span className="text-down">(Required)</span>}
           </label>
           <div className="flex flex-wrap gap-2">
             {sortSizesByValue(asset.sizes).map((size) => (
@@ -469,8 +469,8 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
                 onClick={() => onSizeChange(size.size)}
                 className={`px-4 py-2 border text-xs font-semibold transition ${
                   selectedSize === size.size
-                    ? "border-brand-black bg-brand-black text-white"
-                    : "border-brand-gray/30 hover:border-brand-black text-brand-black bg-white"
+                    ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
+                    : "border-brand-gray/30 hover:border-terminal-border-strong text-brand-black bg-terminal-surface"
                 }`}
               >
                 {size.size}
@@ -478,15 +478,15 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
             ))}
           </div>
           {!selectedSize && (
-            <p className="text-xs text-red-500 mt-3">
+            <p className="text-xs text-down mt-3">
               Select a size variant to begin market data entry
             </p>
           )}
         </div>
       ) : (
-        <div className="border border-red-200 bg-red-50 p-4">
-          <p className="text-xs font-semibold text-red-800 mb-1">No Size Variants Configured</p>
-          <p className="text-xs text-red-600">
+        <div className="border border-down/40 bg-down/10 p-4">
+          <p className="text-xs font-semibold text-down mb-1">No Size Variants Configured</p>
+          <p className="text-xs text-down">
             Define size variants in the Assets tab before entering market data.
           </p>
         </div>
@@ -506,14 +506,14 @@ const PriceUpdateForm: React.FC<PriceUpdateFormProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setShowAddListingModal(true)}
-              className="px-3 py-1.5 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition disabled:opacity-50"
+              className="px-3 py-1.5 bg-accent text-terminal-bg text-xs font-semibold hover:bg-accent/90 transition disabled:opacity-50"
               disabled={!selectedSize}
             >
               + Add Listing
             </button>
             <button
               onClick={() => setShowBulkAddModal(true)}
-              className="px-3 py-1.5 border border-brand-gray/30 bg-white text-brand-black text-xs font-semibold hover:border-brand-black transition disabled:opacity-50"
+              className="px-3 py-1.5 border border-brand-gray/30 bg-terminal-surface text-brand-black text-xs font-semibold hover:border-terminal-border-strong transition disabled:opacity-50"
               disabled={!selectedSize}
             >
               + Bulk Add

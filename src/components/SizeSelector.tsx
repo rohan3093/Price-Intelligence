@@ -29,7 +29,7 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
         id="size-selector"
         value={selectedSize}
         onChange={(e) => onSizeChange(e.target.value)}
-        className="w-full border border-brand-gray/20 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black bg-brand-white focus:outline-none focus:border-brand-black transition-colors cursor-pointer"
+        className="w-full border border-brand-gray/20 rounded-none px-2 py-1.5 text-xs font-medium text-brand-black bg-brand-white focus:outline-none focus:border-terminal-border-strong transition-colors cursor-pointer"
       >
         {sortedSizes.map((sizeVariant) => (
           <option key={sizeVariant.size} value={sizeVariant.size}>

@@ -23,16 +23,16 @@ interface ErrorStateProps {
 }
 
 const ErrorState: React.FC<ErrorStateProps> = ({ message, onRetry, isRetrying = false }) => (
-  <div className="border border-red-200 bg-red-50 p-6 text-center">
-    <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 mb-3" style={{ borderRadius: '50%' }}>
-      <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div className="border border-down/40 bg-down/10 p-6 text-center">
+    <div className="inline-flex items-center justify-center w-12 h-12 bg-down/10 mb-3" style={{ borderRadius: '50%' }}>
+      <svg className="w-6 h-6 text-down" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
     </div>
-    <p className="text-sm font-medium text-red-800 mb-1.5 leading-tight">
+    <p className="text-sm font-medium text-down mb-1.5 leading-tight">
       Failed to load data
     </p>
-    <p className="text-xs text-red-600 mb-4 leading-tight">
+    <p className="text-xs text-down mb-4 leading-tight">
       {message}
     </p>
     <button
@@ -40,8 +40,8 @@ const ErrorState: React.FC<ErrorStateProps> = ({ message, onRetry, isRetrying = 
       disabled={isRetrying}
       className={`px-4 py-2 text-xs font-medium border transition-colors ${
         isRetrying 
-          ? "border-red-200 bg-red-100 text-red-400 cursor-not-allowed"
-          : "border-red-600 bg-red-600 text-white hover:bg-red-700 active:scale-95"
+          ? "border-down/40 bg-down/10 text-down cursor-not-allowed"
+          : "border-down/40 bg-down text-white hover:bg-down/90 active:scale-95"
       }`}
       aria-label={isRetrying ? "Retrying..." : "Retry loading data"}
     >
@@ -119,7 +119,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ releaseDate, releaseTim
   if (timeLeft.isLive) {
     return (
       <div className="flex items-center gap-2">
-        <span className="inline-block px-2.5 py-1 bg-brand-black text-brand-white text-xs font-semibold uppercase tracking-wide">
+        <span className="inline-block px-2.5 py-1 bg-terminal-surface-raised text-terminal-text text-xs font-semibold uppercase tracking-wide">
           Live Now
         </span>
       </div>
@@ -175,10 +175,10 @@ const HypeIndicator: React.FC<HypeIndicatorProps> = ({ hypeLevel }) => {
   if (!hypeLevel) return null;
 
   const config = {
-    low: { label: 'Low Hype', color: 'bg-gray-200 text-gray-700', bars: 1 },
+    low: { label: 'Low Hype', color: 'bg-terminal-surface-raised text-terminal-text-dim', bars: 1 },
     medium: { label: 'Medium Hype', color: 'bg-blue-100 text-blue-700', bars: 2 },
     high: { label: 'High Hype', color: 'bg-orange-100 text-orange-700', bars: 3 },
-    extreme: { label: 'Extreme Hype', color: 'bg-red-100 text-red-700', bars: 4 },
+    extreme: { label: 'Extreme Hype', color: 'bg-down/10 text-down', bars: 4 },
   };
 
   const { label, color, bars } = config[hypeLevel];
@@ -193,7 +193,7 @@ const HypeIndicator: React.FC<HypeIndicatorProps> = ({ hypeLevel }) => {
           <div
             key={i}
             className={`h-1.5 w-1.5 ${
-              i <= bars ? 'bg-brand-black' : 'bg-brand-gray/20'
+              i <= bars ? 'bg-terminal-text' : 'bg-brand-gray/20'
             }`}
           />
         ))}
@@ -405,8 +405,8 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
             onClick={() => setSelectedBrand(null)}
             className={`px-3 py-1 text-xs font-medium border transition leading-tight ${
               selectedBrand === null
-                ? "bg-brand-black text-white"
-                : "border-brand-gray/30 bg-white text-brand-black/70 hover:border-brand-black"
+                ? "bg-terminal-surface-raised text-terminal-text"
+                : "border-brand-gray/30 bg-terminal-surface text-brand-black/70 hover:border-terminal-border-strong"
             }`}
           >
             All Brands
@@ -417,8 +417,8 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
               onClick={() => setSelectedBrand(brand)}
               className={`px-3 py-1 text-xs font-medium border transition leading-tight ${
                 selectedBrand === brand
-                  ? "bg-brand-black text-white"
-                  : "border-brand-gray/30 bg-white text-brand-black/70 hover:border-brand-black"
+                  ? "bg-terminal-surface-raised text-terminal-text"
+                  : "border-brand-gray/30 bg-terminal-surface text-brand-black/70 hover:border-terminal-border-strong"
               }`}
             >
               {brand}
@@ -429,7 +429,7 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
 
       {/* Drops List */}
       {loading ? (
-        <div className="border border-brand-gray/20 p-8 text-center bg-white">
+        <div className="border border-brand-gray/20 p-8 text-center bg-terminal-surface">
           <div className="flex items-center justify-center gap-2">
             <svg className="w-4 h-4 animate-spin text-brand-black/60" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -445,7 +445,7 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
           isRetrying={isRetrying}
         />
       ) : filteredDrops.length === 0 ? (
-        <div className="border border-brand-gray/20 p-8 bg-white">
+        <div className="border border-brand-gray/20 p-8 bg-terminal-surface">
           <div className="text-center mb-6">
             <svg className="w-12 h-12 mx-auto mb-3 text-brand-black/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -481,7 +481,7 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
             return (
               <div
                 key={drop.id}
-                className="border border-brand-gray/20 p-4 bg-white transition"
+                className="border border-brand-gray/20 p-4 bg-terminal-surface transition"
               >
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
                   {/* Drop Image & Info */}
@@ -549,8 +549,8 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
                       onClick={() => handleToggleReminder(drop.id)}
                       className={`mt-3 flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-medium border transition leading-tight ${
                         checkHasReminder(drop.id)
-                          ? "bg-brand-black text-white"
-                          : "border-brand-gray/30 bg-white text-brand-black/70 hover:border-brand-black"
+                          ? "bg-terminal-surface-raised text-terminal-text"
+                          : "border-brand-gray/30 bg-terminal-surface text-brand-black/70 hover:border-terminal-border-strong"
                       }`}
                       title={
                         checkHasReminder(drop.id)
@@ -598,7 +598,7 @@ export const DropsView: React.FC<DropsViewProps> = ({ currentUser }) => {
                           href={retailer.url || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-block px-2.5 py-1 border border-brand-gray/30 bg-white text-[10px] font-medium text-brand-black/70 hover:border-brand-black hover:text-brand-black transition leading-tight"
+                          className="inline-block px-2.5 py-1 border border-brand-gray/30 bg-terminal-surface text-[10px] font-medium text-brand-black/70 hover:border-terminal-border-strong hover:text-brand-black transition leading-tight"
                         >
                           {retailer.displayName}
                         </a>

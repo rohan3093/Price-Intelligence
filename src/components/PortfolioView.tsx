@@ -388,7 +388,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               setSelectedForAdd(null);
               setSearchQuery("");
             }}
-            className="flex items-center gap-1.5 px-4 py-2 bg-brand-black text-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-all active:scale-[0.97]"
+            className="flex items-center gap-1.5 px-4 py-2 bg-accent text-terminal-bg text-xs font-semibold uppercase tracking-wide hover:bg-accent/90 transition-all active:scale-[0.97]"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -404,7 +404,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
       {/* Summary Strip */}
       {(portfolioAssets.length > 0 || soldPositions.length > 0) && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
-          <div className="bg-white border border-brand-gray/20 p-3">
+          <div className="bg-terminal-surface border border-brand-gray/20 p-3">
             <p className="text-[10px] text-brand-black/50 uppercase tracking-wide mb-0.5">Items</p>
             <p className="text-lg font-mono-numeric font-semibold text-brand-black leading-tight">
               {summary.totalItems}
@@ -413,7 +413,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               {summary.activePositionsCount} SKU{summary.activePositionsCount !== 1 ? "s" : ""}
             </p>
           </div>
-          <div className="bg-white border border-brand-gray/20 p-3">
+          <div className="bg-terminal-surface border border-brand-gray/20 p-3">
             <p className="text-[10px] text-brand-black/50 uppercase tracking-wide mb-0.5">Portfolio Value</p>
             <p className="text-lg font-mono-numeric font-semibold text-brand-black leading-tight">
               {summary.hasPricing ? formatPrice(summary.totalMarketValue) : "—"}
@@ -424,17 +424,17 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               </p>
             )}
           </div>
-          <div className="bg-white border border-brand-gray/20 p-3">
+          <div className="bg-terminal-surface border border-brand-gray/20 p-3">
             <p className="text-[10px] text-brand-black/50 uppercase tracking-wide mb-0.5">Unrealised P&L</p>
             {summary.hasPricing && summary.totalCostBasis > 0 ? (
               <>
                 <p className={`text-lg font-mono-numeric font-semibold leading-tight ${
-                  summary.totalPnl > 0 ? "text-emerald-600" : summary.totalPnl < 0 ? "text-red-500" : "text-brand-black"
+                  summary.totalPnl > 0 ? "text-up" : summary.totalPnl < 0 ? "text-down" : "text-brand-black"
                 }`}>
                   {summary.totalPnl > 0 ? "+" : ""}{formatPrice(summary.totalPnl)}
                 </p>
                 <p className={`text-[10px] mt-0.5 ${
-                  summary.totalPnl > 0 ? "text-emerald-600/70" : summary.totalPnl < 0 ? "text-red-500/70" : "text-brand-black/40"
+                  summary.totalPnl > 0 ? "text-up/70" : summary.totalPnl < 0 ? "text-down/70" : "text-brand-black/40"
                 }`}>
                   {summary.totalPnlPercent > 0 ? "+" : ""}{summary.totalPnlPercent.toFixed(1)}%
                 </p>
@@ -443,17 +443,17 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               <p className="text-lg font-mono-numeric font-semibold text-brand-black leading-tight">—</p>
             )}
           </div>
-          <div className="bg-white border border-brand-gray/20 p-3">
+          <div className="bg-terminal-surface border border-brand-gray/20 p-3">
             <p className="text-[10px] text-brand-black/50 uppercase tracking-wide mb-0.5">Realised P&L</p>
             {summary.soldPositionsCount > 0 ? (
               <>
                 <p className={`text-lg font-mono-numeric font-semibold leading-tight ${
-                  summary.soldPnl > 0 ? "text-emerald-600" : summary.soldPnl < 0 ? "text-red-500" : "text-brand-black"
+                  summary.soldPnl > 0 ? "text-up" : summary.soldPnl < 0 ? "text-down" : "text-brand-black"
                 }`}>
                   {summary.soldPnl > 0 ? "+" : ""}{formatPrice(summary.soldPnl)}
                 </p>
                 <p className={`text-[10px] mt-0.5 ${
-                  summary.soldPnl > 0 ? "text-emerald-600/70" : summary.soldPnl < 0 ? "text-red-500/70" : "text-brand-black/40"
+                  summary.soldPnl > 0 ? "text-up/70" : summary.soldPnl < 0 ? "text-down/70" : "text-brand-black/40"
                 }`}>
                   {summary.soldPnlPercent > 0 ? "+" : ""}{summary.soldPnlPercent.toFixed(1)}%
                 </p>
@@ -470,7 +470,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
 
       {/* Add Inventory Panel (collapsible) */}
       {showAddPanel && (
-        <div className="mb-4 border border-brand-gray/20 bg-white overflow-hidden animate-fade-in">
+        <div className="mb-4 border border-brand-gray/20 bg-terminal-surface overflow-hidden animate-fade-in">
           <div className="px-4 py-3 border-b border-brand-gray/15 flex items-center justify-between">
             <p className="text-xs font-semibold text-brand-black uppercase tracking-wide">
               {selectedForAdd ? "Set Position Details" : "Search Inventory"}
@@ -497,7 +497,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by name, SKU, or brand..."
-                  className="w-full border border-brand-gray/30 px-4 py-3 text-sm text-brand-black placeholder:text-brand-gray-medium focus:outline-none focus:border-brand-black transition-all"
+                  className="w-full border border-brand-gray/30 px-4 py-3 text-sm text-brand-black placeholder:text-brand-gray-medium focus:outline-none focus:border-terminal-border-strong transition-all"
                   autoFocus
                 />
                 {addableAssets.length > 0 && (
@@ -573,7 +573,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                     <select
                       value={addSize}
                       onChange={(e) => setAddSize(e.target.value)}
-                      className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-brand-black transition-all"
+                      className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm text-brand-black focus:outline-none focus:border-terminal-border-strong transition-all"
                     >
                       <option value="">Any</option>
                       {selectedForAdd.sizes?.map((s) => (
@@ -591,7 +591,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                         const v = Number(e.target.value);
                         setAddQuantity(!isNaN(v) && v > 0 ? v : 1);
                       }}
-                      className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-center focus:outline-none focus:border-brand-black transition-all"
+                      className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-center focus:outline-none focus:border-terminal-border-strong transition-all"
                       autoFocus
                     />
                   </div>
@@ -605,7 +605,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                         const v = e.target.value ? Number(e.target.value) : undefined;
                         setAddPrice(v && !isNaN(v) && v > 0 ? v : undefined);
                       }}
-                      className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-right placeholder:text-brand-gray-medium focus:outline-none focus:border-brand-black transition-all"
+                      className="w-full border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-right placeholder:text-brand-gray-medium focus:outline-none focus:border-terminal-border-strong transition-all"
                       placeholder="Optional"
                     />
                   </div>
@@ -613,7 +613,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
 
                 <button
                   onClick={handleAddToPortfolio}
-                  className="w-full px-5 py-3 bg-brand-black text-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-all active:scale-[0.98]"
+                  className="w-full px-5 py-3 bg-accent text-terminal-bg text-xs font-semibold uppercase tracking-wide hover:bg-accent/90 transition-all active:scale-[0.98]"
                 >
                   Add to Portfolio
                 </button>
@@ -626,7 +626,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
       {/* Empty State — only for truly empty portfolios (no active AND no sold) */}
       {portfolioAssets.length === 0 && soldPositions.length === 0 && !showAddPanel && (
         <div className="flex-1 flex flex-col items-center justify-center text-center py-16 px-4">
-          <div className="w-16 h-16 mb-5 border-2 border-brand-gray/30 flex items-center justify-center bg-white">
+          <div className="w-16 h-16 mb-5 border-2 border-brand-gray/30 flex items-center justify-center bg-terminal-surface">
             <svg className="w-7 h-7 text-brand-black/25" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
@@ -637,7 +637,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
           </p>
           <button
             onClick={() => setShowAddPanel(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-brand-black text-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-all active:scale-[0.97]"
+            className="flex items-center gap-2 px-5 py-2.5 bg-accent text-terminal-bg text-xs font-semibold uppercase tracking-wide hover:bg-accent/90 transition-all active:scale-[0.97]"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -656,7 +656,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               onClick={() => setActiveTab("active")}
               className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wide transition-all border-b-2 -mb-px ${
                 activeTab === "active"
-                  ? "border-brand-black text-brand-black"
+                  ? "border-terminal-border-strong text-brand-black"
                   : "border-transparent text-brand-black/40 hover:text-brand-black/60"
               }`}
             >
@@ -666,7 +666,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               onClick={() => setActiveTab("sold")}
               className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wide transition-all border-b-2 -mb-px ${
                 activeTab === "sold"
-                  ? "border-brand-black text-brand-black"
+                  ? "border-terminal-border-strong text-brand-black"
                   : "border-transparent text-brand-black/40 hover:text-brand-black/60"
               }`}
             >
@@ -692,7 +692,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                 return (
                   <div
                     key={asset.id}
-                    className="bg-white border border-brand-gray/20 overflow-hidden"
+                    className="bg-terminal-surface border border-brand-gray/20 overflow-hidden"
                   >
                     {/* Main card content */}
                     <div className="p-3.5">
@@ -721,10 +721,10 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                             {pnl !== undefined && quantity > 0 ? (
                               <span className={`flex-shrink-0 px-2 py-0.5 text-xs font-mono-numeric font-semibold ${
                                 pnl > 0
-                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  ? "bg-up/10 text-up border border-up/40"
                                   : pnl < 0
-                                  ? "bg-red-50 text-red-600 border border-red-200"
-                                  : "bg-gray-50 text-brand-black border border-brand-gray/20"
+                                  ? "bg-down/10 text-down border border-down/40"
+                                  : "bg-terminal-surface-raised text-brand-black border border-brand-gray/20"
                               }`}>
                                 {pnl > 0 ? "+" : ""}{pnlPercent?.toFixed(1)}%
                               </span>
@@ -757,7 +757,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                             )}
                             {pnl !== undefined && quantity > 0 && (
                               <span className={`text-xs font-mono-numeric font-semibold ${
-                                pnl > 0 ? "text-emerald-600" : pnl < 0 ? "text-red-500" : "text-brand-black"
+                                pnl > 0 ? "text-up" : pnl < 0 ? "text-down" : "text-brand-black"
                               }`}>
                                 {pnl > 0 ? "+" : ""}{formatPrice(pnl)}
                               </span>
@@ -779,7 +779,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                                 min={1}
                                 value={editQty}
                                 onChange={(e) => setEditQty(Math.max(1, Number(e.target.value) || 1))}
-                                className="w-full border border-brand-gray/30 px-3 py-2 text-sm font-mono-numeric text-center focus:outline-none focus:border-brand-black transition-all"
+                                className="w-full border border-brand-gray/30 px-3 py-2 text-sm font-mono-numeric text-center focus:outline-none focus:border-terminal-border-strong transition-all"
                                 autoFocus
                               />
                             </div>
@@ -793,7 +793,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                                   const v = e.target.value ? Number(e.target.value) : undefined;
                                   setEditPrice(v && !isNaN(v) && v > 0 ? v : undefined);
                                 }}
-                                className="w-full border border-brand-gray/30 px-3 py-2 text-sm font-mono-numeric text-right focus:outline-none focus:border-brand-black transition-all"
+                                className="w-full border border-brand-gray/30 px-3 py-2 text-sm font-mono-numeric text-right focus:outline-none focus:border-terminal-border-strong transition-all"
                                 placeholder="—"
                               />
                             </div>
@@ -801,13 +801,13 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                           <div className="flex gap-2">
                             <button
                               onClick={() => saveEdit(asset.id)}
-                              className="flex-1 px-3 py-2 bg-brand-black text-white text-xs font-semibold uppercase tracking-wide hover:bg-brand-black/90 transition-all"
+                              className="flex-1 px-3 py-2 bg-accent text-terminal-bg text-xs font-semibold uppercase tracking-wide hover:bg-accent/90 transition-all"
                             >
                               Save
                             </button>
                             <button
                               onClick={() => setEditingPosition(null)}
-                              className="px-3 py-2 border border-brand-gray/30 text-xs font-semibold uppercase tracking-wide text-brand-black/60 hover:text-brand-black hover:border-brand-black/30 transition-all"
+                              className="px-3 py-2 border border-brand-gray/30 text-xs font-semibold uppercase tracking-wide text-brand-black/60 hover:text-brand-black hover:border-terminal-border-strong transition-all"
                             >
                               Cancel
                             </button>
@@ -829,7 +829,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                           Edit
                         </button>
                         {listing ? (
-                          <span className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium text-emerald-600 border-r border-brand-gray/10">
+                          <span className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium text-up border-r border-brand-gray/10">
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
@@ -856,7 +856,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                             setSalePrice(bestPrice);
                             setSaleQuantity(quantity);
                           }}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-brand-black hover:bg-brand-black hover:text-white transition-all"
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-brand-black hover:bg-accent hover:text-terminal-bg transition-all"
                         >
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -885,15 +885,15 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                   {summary.soldPnl !== 0 && (
                     <div className={`p-3 border ${
                       summary.soldPnl > 0
-                        ? "bg-emerald-50 border-emerald-200"
-                        : "bg-red-50 border-red-200"
+                        ? "bg-up/10 border-up/40"
+                        : "bg-down/10 border-down/40"
                     }`}>
                       <div className="flex items-center justify-between">
                         <p className="text-[10px] uppercase tracking-wide text-brand-black/50 font-medium">
                           Total Realized P&L
                         </p>
                         <p className={`text-sm font-mono-numeric font-semibold ${
-                          summary.soldPnl > 0 ? "text-emerald-700" : "text-red-600"
+                          summary.soldPnl > 0 ? "text-up" : "text-down"
                         }`}>
                           {summary.soldPnl > 0 ? "+" : ""}{formatPrice(summary.soldPnl)}
                         </p>
@@ -914,7 +914,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                     return (
                       <div
                         key={`${pos.assetId}-${pos.soldDate}`}
-                        className="bg-white border border-brand-gray/20 p-3.5"
+                        className="bg-terminal-surface border border-brand-gray/20 p-3.5"
                       >
                         <div className="flex gap-3">
                           {asset.image && (
@@ -936,7 +936,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                               </div>
                               {realizedPnl !== undefined && (
                                 <span className={`flex-shrink-0 text-sm font-mono-numeric font-semibold ${
-                                  realizedPnl > 0 ? "text-emerald-600" : realizedPnl < 0 ? "text-red-500" : "text-brand-black/50"
+                                  realizedPnl > 0 ? "text-up" : realizedPnl < 0 ? "text-down" : "text-brand-black/50"
                                 }`}>
                                   {realizedPnl > 0 ? "+" : ""}{formatPrice(realizedPnl)}
                                 </span>
@@ -973,7 +973,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
       {/* Mark as Sold Modal */}
       {selectedForSale && (
         <div
-          className="fixed inset-0 bg-brand-black/60 flex items-end md:items-center justify-center z-50 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 bg-black/70 flex items-end md:items-center justify-center z-50 backdrop-blur-sm animate-fade-in"
           onClick={() => {
             setSelectedForSale(null);
             setSalePrice(undefined);
@@ -981,7 +981,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
           }}
         >
           <div
-            className="bg-white w-full md:max-w-md md:mx-4 shadow-modal animate-fade-in"
+            className="bg-terminal-surface w-full md:max-w-md md:mx-4 shadow-modal animate-fade-in"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -1028,7 +1028,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setSaleQuantity(Math.max(1, saleQuantity - 1))}
-                    className="w-10 h-10 border border-brand-gray/30 flex items-center justify-center text-brand-black hover:border-brand-black transition-all"
+                    className="w-10 h-10 border border-brand-gray/30 flex items-center justify-center text-brand-black hover:border-terminal-border-strong transition-all"
                   >
                     −
                   </button>
@@ -1041,11 +1041,11 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                       const val = Number(e.target.value) || 1;
                       setSaleQuantity(Math.max(1, Math.min(val, selectedForSale.position.quantity)));
                     }}
-                    className="flex-1 border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-center focus:outline-none focus:border-brand-black transition-all"
+                    className="flex-1 border border-brand-gray/30 px-3 py-2.5 text-sm font-mono-numeric text-center focus:outline-none focus:border-terminal-border-strong transition-all"
                   />
                   <button
                     onClick={() => setSaleQuantity(Math.min(selectedForSale.position.quantity, saleQuantity + 1))}
-                    className="w-10 h-10 border border-brand-gray/30 flex items-center justify-center text-brand-black hover:border-brand-black transition-all"
+                    className="w-10 h-10 border border-brand-gray/30 flex items-center justify-center text-brand-black hover:border-terminal-border-strong transition-all"
                   >
                     +
                   </button>
@@ -1070,7 +1070,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                     const val = e.target.value ? Number(e.target.value) : undefined;
                     setSalePrice(val);
                   }}
-                  className="w-full border border-brand-gray/30 px-4 py-3 text-sm font-mono-numeric placeholder:text-brand-gray-medium focus:outline-none focus:border-brand-black transition-all"
+                  className="w-full border border-brand-gray/30 px-4 py-3 text-sm font-mono-numeric placeholder:text-brand-gray-medium focus:outline-none focus:border-terminal-border-strong transition-all"
                   placeholder="Enter selling price"
                   autoFocus
                 />
@@ -1080,17 +1080,17 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
               {selectedForSale.position.acquisitionPrice !== undefined && salePrice !== undefined && salePrice > 0 && (
                 <div className={`p-3 border ${
                   (salePrice - selectedForSale.position.acquisitionPrice) > 0
-                    ? "bg-emerald-50 border-emerald-200"
+                    ? "bg-up/10 border-up/40"
                     : (salePrice - selectedForSale.position.acquisitionPrice) < 0
-                    ? "bg-red-50 border-red-200"
-                    : "bg-gray-50 border-brand-gray/20"
+                    ? "bg-down/10 border-down/40"
+                    : "bg-terminal-surface-raised border-brand-gray/20"
                 }`}>
                   <p className="text-[10px] text-brand-black/40 uppercase tracking-wide mb-1">Estimated Profit</p>
                   <p className={`text-lg font-mono-numeric font-semibold ${
                     (salePrice - selectedForSale.position.acquisitionPrice) > 0
-                      ? "text-emerald-700"
+                      ? "text-up"
                       : (salePrice - selectedForSale.position.acquisitionPrice) < 0
-                      ? "text-red-600"
+                      ? "text-down"
                       : "text-brand-black"
                   }`}>
                     {(salePrice - selectedForSale.position.acquisitionPrice) > 0 ? "+" : ""}
@@ -1110,7 +1110,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                   }
                 }}
                 disabled={salePrice === undefined || salePrice <= 0 || saleQuantity <= 0}
-                className="w-full px-5 py-3.5 text-sm uppercase tracking-wide font-semibold bg-brand-black text-white hover:bg-brand-black/90 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+                className="w-full px-5 py-3.5 text-sm uppercase tracking-wide font-semibold bg-accent text-terminal-bg hover:bg-accent/90 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
               >
                 Confirm Sale
               </button>
@@ -1122,7 +1122,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
       {/* List for Trade Modal */}
       {selectedForListing && currentUser && (
         <div
-          className="fixed inset-0 bg-brand-black/60 flex items-end md:items-center justify-center z-50 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 bg-black/70 flex items-end md:items-center justify-center z-50 backdrop-blur-sm animate-fade-in"
           onClick={() => {
             setSelectedForListing(null);
             setListingPrice(undefined);
@@ -1130,7 +1130,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
           }}
         >
           <div
-            className="bg-white w-full md:max-w-md md:mx-4 shadow-modal animate-fade-in"
+            className="bg-terminal-surface w-full md:max-w-md md:mx-4 shadow-modal animate-fade-in"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -1186,7 +1186,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                   value={listingPrice || ""}
                   onChange={(e) => setListingPrice(e.target.value ? parseFloat(e.target.value) : undefined)}
                   placeholder="e.g., 12500"
-                  className="w-full border border-brand-gray/30 px-4 py-3 text-sm font-mono-numeric focus:outline-none focus:border-brand-black transition-all"
+                  className="w-full border border-brand-gray/30 px-4 py-3 text-sm font-mono-numeric focus:outline-none focus:border-terminal-border-strong transition-all"
                   autoFocus
                 />
               </div>
@@ -1202,7 +1202,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                   placeholder="Condition, location, shipping details..."
                   rows={3}
                   maxLength={500}
-                  className="w-full border border-brand-gray/30 px-4 py-3 text-sm focus:outline-none focus:border-brand-black transition-all resize-none"
+                  className="w-full border border-brand-gray/30 px-4 py-3 text-sm focus:outline-none focus:border-terminal-border-strong transition-all resize-none"
                 />
               </div>
 
@@ -1239,7 +1239,7 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({
                   }
                 }}
                 disabled={!listingPrice || listingPrice <= 0}
-                className="w-full px-5 py-3.5 text-sm uppercase tracking-wide font-semibold bg-brand-black text-white hover:bg-brand-black/90 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+                className="w-full px-5 py-3.5 text-sm uppercase tracking-wide font-semibold bg-accent text-terminal-bg hover:bg-accent/90 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
               >
                 Create Listing
               </button>

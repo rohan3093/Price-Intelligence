@@ -34,7 +34,7 @@ export const GettingStartedView: React.FC<GettingStartedViewProps> = ({ assets =
               onClick={() => setStep(s as 1 | 2 | 3)}
               className={`flex-1 py-2 px-4 rounded-none border text-xs font-body font-medium transition ${
                 step === s
-                  ? "border-brand-black bg-brand-black text-brand-white"
+                  ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
                   : step > s
                   ? "border-brand-gray/30 bg-brand-gray/5 text-brand-black"
                   : "border-brand-gray/20 bg-brand-white text-brand-black"
@@ -47,7 +47,7 @@ export const GettingStartedView: React.FC<GettingStartedViewProps> = ({ assets =
             {s < 3 && (
               <div
                 className={`h-0.5 w-8 ${
-                  step > s ? "bg-brand-black" : "bg-brand-gray/20"
+                  step > s ? "bg-accent" : "bg-brand-gray/20"
                 }`}
               />
             )}
@@ -110,8 +110,8 @@ const ProfileAssessment: React.FC<{
                 onClick={() => onUpdate({ experienceLevel: level })}
                 className={`py-3 px-4 rounded-none border text-xs font-body font-medium transition ${
                   profile.experienceLevel === level
-                    ? "border-brand-black bg-brand-black text-brand-white"
-                    : "border-brand-gray/20 hover:border-brand-black text-brand-black"
+                    ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
+                    : "border-brand-gray/20 hover:border-terminal-border-strong text-brand-black"
                 }`}
               >
                 {level.charAt(0).toUpperCase() + level.slice(1)}
@@ -134,7 +134,7 @@ const ProfileAssessment: React.FC<{
               onUpdate({ budget: value });
             }}
             placeholder="e.g., 50000"
-            className="w-full bg-brand-white border border-brand-gray/20 rounded-none py-2.5 px-4 text-xs font-body text-brand-black placeholder:text-brand-gray focus:outline-none focus:border-brand-black"
+            className="w-full bg-brand-white border border-brand-gray/20 rounded-none py-2.5 px-4 text-xs font-body text-brand-black placeholder:text-brand-gray focus:outline-none focus:border-terminal-border-strong"
           />
           <div className="mt-2 flex gap-2">
             {[10000, 25000, 50000, 100000].map((amount) => (
@@ -146,8 +146,8 @@ const ProfileAssessment: React.FC<{
                 }}
                 className={`px-3 py-1 rounded-none text-xs border font-body ${
                   budget === amount
-                    ? "border-brand-black bg-brand-black text-brand-white"
-                    : "border-brand-gray/20 text-brand-black hover:border-brand-black"
+                    ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
+                    : "border-brand-gray/20 text-brand-black hover:border-terminal-border-strong"
                 }`}
               >
                 ₹{amount.toLocaleString('en-IN')}
@@ -172,8 +172,8 @@ const ProfileAssessment: React.FC<{
                 onClick={() => onUpdate({ riskTolerance: value })}
                 className={`w-full py-3 px-4 rounded-none border text-left transition font-body ${
                   profile.riskTolerance === value
-                    ? "border-brand-black bg-brand-black text-brand-white"
-                    : "border-brand-gray/20 hover:border-brand-black"
+                    ? "border-terminal-border-strong bg-terminal-surface-raised text-terminal-text"
+                    : "border-brand-gray/20 hover:border-terminal-border-strong"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -209,7 +209,7 @@ const ProfileAssessment: React.FC<{
             ]).map((goal) => (
               <label
                 key={goal}
-                className="flex items-center gap-3 p-3 rounded-none border border-brand-gray/20 hover:border-brand-black cursor-pointer"
+                className="flex items-center gap-3 p-3 rounded-none border border-brand-gray/20 hover:border-terminal-border-strong cursor-pointer"
               >
                 <input
                   type="checkbox"
@@ -234,7 +234,7 @@ const ProfileAssessment: React.FC<{
       <button
         onClick={onNext}
         disabled={!profile.experienceLevel || !profile.budget || !profile.riskTolerance}
-        className="w-full md:w-auto px-6 py-3 rounded-none bg-brand-black text-brand-white font-body font-medium text-xs hover:bg-brand-black/90 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full md:w-auto px-6 py-3 rounded-none bg-accent text-terminal-bg font-body font-medium text-xs hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Continue to Calculator →
       </button>

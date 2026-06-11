@@ -56,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="border-b border-brand-gray/20 px-3 md:px-4 py-3 flex items-center justify-between bg-white">
+    <header className="border-b border-brand-gray/20 px-3 md:px-4 py-3 flex items-center justify-between bg-terminal-surface">
       <button
         onClick={() => setView("home")}
         className="flex items-center hover:opacity-80 transition-opacity"
@@ -76,8 +76,8 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setView("home")}
           className={`px-4 py-2 text-xs font-semibold transition-all ${
             view === "home"
-              ? "bg-brand-black text-white"
-              : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+              ? "bg-terminal-surface-raised text-terminal-text border border-terminal-border-strong"
+              : "bg-terminal-surface text-brand-black/60 border border-brand-gray hover:border-terminal-border-strong hover:text-brand-black"
           }`}
         >
           Market
@@ -86,8 +86,8 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setView("watchlist")}
           className={`px-4 py-2 text-xs font-semibold transition-all ${
             view === "watchlist"
-              ? "bg-brand-black text-white"
-              : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+              ? "bg-terminal-surface-raised text-terminal-text border border-terminal-border-strong"
+              : "bg-terminal-surface text-brand-black/60 border border-brand-gray hover:border-terminal-border-strong hover:text-brand-black"
           }`}
         >
           Watchlist
@@ -96,8 +96,8 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setView("portfolio")}
           className={`px-4 py-2 text-xs font-semibold transition-all ${
             view === "portfolio"
-              ? "bg-brand-black text-white"
-              : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+              ? "bg-terminal-surface-raised text-terminal-text border border-terminal-border-strong"
+              : "bg-terminal-surface text-brand-black/60 border border-brand-gray hover:border-terminal-border-strong hover:text-brand-black"
           }`}
         >
           Portfolio
@@ -106,8 +106,8 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setView("connections")}
           className={`px-4 py-2 text-xs font-semibold transition-all ${
             view === "connections"
-              ? "bg-brand-black text-white"
-              : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+              ? "bg-terminal-surface-raised text-terminal-text border border-terminal-border-strong"
+              : "bg-terminal-surface text-brand-black/60 border border-brand-gray hover:border-terminal-border-strong hover:text-brand-black"
           }`}
         >
           Connections
@@ -116,8 +116,8 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setView("drops")}
           className={`px-4 py-2 text-xs font-semibold transition-all ${
             view === "drops"
-              ? "bg-brand-black text-white"
-              : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+              ? "bg-terminal-surface-raised text-terminal-text border border-terminal-border-strong"
+              : "bg-terminal-surface text-brand-black/60 border border-brand-gray hover:border-terminal-border-strong hover:text-brand-black"
           }`}
         >
           Drops
@@ -126,8 +126,8 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => setView("education")}
           className={`px-4 py-2 text-xs font-semibold transition-all ${
             view === "education"
-              ? "bg-brand-black text-white"
-              : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+              ? "bg-terminal-surface-raised text-terminal-text border border-terminal-border-strong"
+              : "bg-terminal-surface text-brand-black/60 border border-brand-gray hover:border-terminal-border-strong hover:text-brand-black"
           }`}
         >
           Learn
@@ -139,8 +139,8 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => setView("analyst")}
               className={`px-4 py-2 text-xs font-semibold transition-all ${
                 view === "analyst"
-                  ? "bg-brand-black text-white"
-                  : "bg-white text-brand-black border border-brand-gray/30 hover:border-brand-black"
+                  ? "bg-terminal-surface-raised text-terminal-text border border-terminal-border-strong"
+                  : "bg-terminal-surface text-brand-black/60 border border-brand-gray hover:border-terminal-border-strong hover:text-brand-black"
               }`}
             >
               Admin
@@ -171,7 +171,7 @@ export const Header: React.FC<HeaderProps> = ({
                   />
                 ) : (
                   <div 
-                    className="w-7 h-7 bg-brand-black text-brand-white flex items-center justify-center text-[10px] font-bold"
+                    className="w-7 h-7 bg-terminal-surface-raised text-terminal-text flex items-center justify-center text-[10px] font-bold"
                     style={{ borderRadius: '50%' }}
                     role="img"
                     aria-label={`${user.displayName || user.email || "User"}'s avatar`}
@@ -193,7 +193,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Dropdown Menu */}
               {showUserMenu && (
                 <div 
-                  className="absolute right-0 top-full mt-2 w-56 bg-white border border-brand-gray/20 shadow-dropdown z-50"
+                  className="absolute right-0 top-full mt-2 w-56 bg-terminal-surface border border-brand-gray/20 shadow-dropdown z-50"
                 >
                   {/* User Info */}
                   <div className="px-4 py-3 border-b border-brand-gray/20">
@@ -227,7 +227,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                       </svg>
                       Price Alerts
-                      <span className="text-[9px] px-1.5 py-0.5 bg-brand-black/10 text-brand-black/50 ml-auto">Coming Soon</span>
+                      <span className="text-[9px] px-1.5 py-0.5 bg-terminal-surface-raised text-brand-black/50 ml-auto">Coming Soon</span>
                     </div>
                   </div>
 
@@ -238,7 +238,7 @@ export const Header: React.FC<HeaderProps> = ({
                         onSignOutClick?.();
                         setShowUserMenu(false);
                       }}
-                      className="w-full px-4 py-2.5 text-left text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                      className="w-full px-4 py-2.5 text-left text-xs text-down hover:bg-down/10 transition-colors flex items-center gap-2"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -253,7 +253,7 @@ export const Header: React.FC<HeaderProps> = ({
             // Sign-in button
             <button
               onClick={onSignInClick}
-              className="px-4 py-2 bg-brand-black text-white text-xs font-semibold hover:bg-brand-black/90 transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-accent text-terminal-bg text-xs font-semibold hover:bg-accent/90 transition-colors flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
