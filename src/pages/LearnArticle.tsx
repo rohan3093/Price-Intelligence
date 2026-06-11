@@ -140,8 +140,8 @@ const LearnArticle: React.FC = () => {
           </h3>
           <p className="text-xs text-white/60 mb-4">
             Sentria aggregates prices from WhatsApp groups, Indian marketplaces,
-            and StockX/GOAT — so you can see the real market price and find
-            opportunities.
+            and StockX/GOAT — so you can see the real market price, spread, and
+            liquidity for any size.
           </p>
           <Link
             to="/app"

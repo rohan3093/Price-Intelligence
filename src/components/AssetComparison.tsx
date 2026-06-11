@@ -130,9 +130,9 @@ export const AssetComparison: React.FC<AssetComparisonProps> = ({ assets, onClos
                 ))}
               </tr>
 
-              {/* Best Price Row */}
+              {/* Lowest Ask Row */}
               <tr className="border-b border-brand-gray/20">
-                <td className="p-3 text-xs text-brand-black/60 uppercase tracking-wide">Best Price</td>
+                <td className="p-3 text-xs text-brand-black/60 uppercase tracking-wide">Lowest Ask</td>
                 {selectedAssets.map((asset) => {
                   const bestPrice = getBestPrice(asset);
                   return (

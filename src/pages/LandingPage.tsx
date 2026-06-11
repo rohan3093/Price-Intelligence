@@ -202,20 +202,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ showSignInModal, onCloseSignI
             <div key={setIdx} className="flex items-center gap-6 px-3">
               {[
                 { name: "Yeezy Slide Resin", price: "7,998", change: "+14.3%", up: true },
-                { name: "Samba OG", price: "7,695", change: "-30.0%", up: false, deal: true },
+                { name: "Samba OG", price: "7,695", change: "-30.0%", up: false },
                 { name: "Air Force 1 Low", price: "22,952", change: "+53.1%", up: true },
                 { name: "Dunk Low Cacao", price: "8,550", change: "+3.1%", up: true },
                 { name: "Jordan 1 Low", price: "8,207", change: "-8.8%", up: false },
                 { name: "Foam RNR", price: "8,998", change: "-0.0%", up: false },
                 { name: "Cloud All White", price: "13,499", change: "-6.9%", up: false },
                 { name: "Dunk Low Medium", price: "11,571", change: "+5.2%", up: true },
-                { name: "Adizero", price: "12,498", change: "-21.9%", up: false, deal: true },
+                { name: "Adizero", price: "12,498", change: "-21.9%", up: false },
               ].map((item, i) => (
                 <div key={`${setIdx}-${i}`} className="flex items-center gap-2 flex-shrink-0">
                   <span className="text-[11px] font-medium text-brand-black/70">{item.name}</span>
                   <span className="text-[11px] font-mono font-semibold text-brand-black">&#8377;{item.price}</span>
                   <span className={`text-[10px] font-semibold ${item.up ? 'text-up' : 'text-down'}`}>{item.change}</span>
-                  {item.deal && <span className="text-[8px] font-bold px-1 py-0.5 bg-up/10 text-up uppercase">Deal</span>}
                   <span className="text-brand-black/10 mx-1">&middot;</span>
                 </div>
               ))}
@@ -265,7 +264,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ showSignInModal, onCloseSignI
                 {[
                   { name: "Air Jordan 1 Low SE", brand: "Nike", price: "8,207", change: "-8.8%", up: false, selected: true },
                   { name: "Dunk Low Cacao Wow", brand: "Nike", price: "8,550", change: "+3.1%", up: true },
-                  { name: "Samba OG", brand: "Adidas", price: "7,695", change: "-30.0%", up: false, deal: true },
+                  { name: "Samba OG", brand: "Adidas", price: "7,695", change: "-30.0%", up: false },
                   { name: "Yeezy Slide Resin", brand: "Adidas", price: "7,998", change: "+14.3%", up: true },
                   { name: "Air Force 1 Low", brand: "Nike", price: "22,952", change: "+53.1%", up: true },
                   { name: "Dunk Low Medium Olive", brand: "Nike", price: "11,571", change: "+5.2%", up: true },
@@ -276,7 +275,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ showSignInModal, onCloseSignI
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1">
                         <p className="text-[10px] font-medium text-brand-black truncate">{item.name}</p>
-                        {item.deal && <span className="text-[7px] font-bold px-1 py-0.5 bg-up/10 text-up flex-shrink-0">DEAL</span>}
                       </div>
                       <p className="text-[8px] text-brand-black/40">{item.brand}</p>
                     </div>
@@ -412,8 +410,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ showSignInModal, onCloseSignI
                   "Every price from every channel on one screen, per size",
                   "See which channel has the lowest price instantly",
                   "StockX & GOAT prices auto-converted with platform fees included",
-                  "Fair value ranges tell you if it's a good deal or not",
-                  "Arbitrage flagged automatically with margin estimates",
+                  "Mark price and spread per size, computed from validated quotes",
+                  "A Trade Calculator to run the economics on your own assumptions",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2.5">
                     <svg className="w-4 h-4 text-up flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

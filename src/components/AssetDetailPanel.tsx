@@ -1464,7 +1464,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                         ? 'Some channel variation — normal'
                         : priceRangePct <= 50
                         ? 'Meaningful channel gaps — check listings'
-                        : 'Large channel gaps — sourcing opportunity'}
+                        : 'Large channel gaps — verify listings'}
                     </p>
                   </div>
                 </div>
@@ -1789,9 +1789,9 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   return 0;
                 });
                 
-                // Identify top 3 best deals (lowest landed prices for Buy listings)
-                // Create a map to track which specific listings are top deals by their index in filtered array
-                const topDealIndices = new Set<number>();
+                // Identify the 3 lowest-priced sell listings (lowest landed asks)
+                // Track which specific listings are the lowest asks by their index in filtered array
+                const lowestAskIndices = new Set<number>();
                 const buyListingsWithIndex = filtered
                   .map((row, idx) => ({ row, idx }))
                   .filter(({ row }) => row.side === 'Buy')
@@ -1802,11 +1802,11 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   })
                   .slice(0, 3); // Take only top 3
                 
-                buyListingsWithIndex.forEach(({ idx }) => topDealIndices.add(idx));
+                buyListingsWithIndex.forEach(({ idx }) => lowestAskIndices.add(idx));
                 
-                const isTopDeal = (row: typeof filtered[0], idx: number) => {
+                const isLowestAsk = (row: typeof filtered[0], idx: number) => {
                   if (row.side !== 'Buy') return false;
-                  return topDealIndices.has(idx);
+                  return lowestAskIndices.has(idx);
                 };
 
                 const hasAnyLocation = filtered.some(r => r.location);
@@ -1821,13 +1821,12 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                   <div>
                     {filtered.length > 0 ? (
                       filtered.map((row, idx) => {
-                        const isBestDeal = isTopDeal(row, idx);
+                        const isLowestAskRow = isLowestAsk(row, idx);
                         return (
                           <div key={idx} className="relative">
-                            {isBestDeal && (
-                              <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-yellow-400 text-brand-black px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide">
-                                <span>⭐</span>
-                                <span>Best</span>
+                            {isLowestAskRow && (
+                              <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-terminal-surface-raised text-terminal-text px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide">
+                                <span>Lowest ask</span>
                               </div>
                             )}
                             <ListingCard
@@ -1905,7 +1904,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                         ? `₹${row.landedPrice.toLocaleString('en-IN')}`
                         : '—';
                     
-                    const isBestDeal = isTopDeal(row, idx);
+                    const isLowestAskRow = isLowestAsk(row, idx);
                     
                     return (
                       <tr
@@ -1952,8 +1951,8 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                         </td>
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-1.5">
-                            {isBestDeal && (
-                              <span className="text-yellow-500 text-sm" title="Best Deal">⭐</span>
+                            {isLowestAskRow && (
+                              <span className="text-[9px] font-bold uppercase tracking-wide text-brand-black/50 border border-brand-gray/40 px-1 py-0.5" title="Lowest ask">Low</span>
                             )}
                             <span className="text-sm text-brand-black">{row.sourceLabel}</span>
                           </div>

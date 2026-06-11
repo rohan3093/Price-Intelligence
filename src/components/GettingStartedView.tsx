@@ -22,7 +22,7 @@ export const GettingStartedView: React.FC<GettingStartedViewProps> = ({ assets =
           Start Your Sneaker Investing Journey
         </h1>
         <p className="text-sm text-brand-black/60">
-          We'll help you understand the market, assess your goals, and find the right opportunities
+          We'll help you understand the market, read prices and spreads, and assess trades on your own terms
         </p>
       </div>
 

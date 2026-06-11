@@ -145,9 +145,9 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Best Price */}
+                  {/* Lowest Ask */}
                   <div className="md:col-span-2">
-                    <p className="text-xs text-brand-black/60 uppercase tracking-wide mb-1 leading-tight font-semibold">Best Price</p>
+                    <p className="text-xs text-brand-black/60 uppercase tracking-wide mb-1 leading-tight font-semibold">Lowest Ask</p>
                     <p className="text-sm font-mono-numeric font-semibold text-brand-black leading-tight">
                       {buyPrice ? `₹${buyPrice.toLocaleString("en-IN")}` : "—"}
                     </p>

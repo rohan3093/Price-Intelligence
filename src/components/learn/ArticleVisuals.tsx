@@ -449,7 +449,7 @@ const articleVisuals: Record<string, { hero?: React.ReactNode; inserts: VisualIn
           "Price up 20%+ in 30 days",
           "Price plateaued for 2-3 months",
           "Mass restock announced",
-          "Better opportunity available",
+          "Capital better deployed elsewhere",
         ]}
         hold={[
           "Upcoming collaboration or release",
@@ -533,9 +533,10 @@ const articleVisuals: Record<string, { hero?: React.ReactNode; inserts: VisualIn
       {
         after: "Fair Value Range",
         component: (
-          <TipCard type="tip" title="How to use Fair Value">
-            When a sneaker trades <strong>below</strong> its fair value range, it may be a buying opportunity.
-            When it trades <strong>above</strong>, consider selling. Sentria calculates this automatically from cross-channel data.
+          <TipCard type="tip" title="How to read Fair Value">
+            Fair value is the range where a sneaker is currently trading across channels. A price
+            <strong> below</strong> the range is cheaper than the market; <strong>above</strong> is dearer.
+            Sentria calculates the range automatically from cross-channel data — what you do with it is your call.
           </TipCard>
         ),
       },

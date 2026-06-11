@@ -97,7 +97,7 @@ export const PortfolioTableSkeleton: React.FC = () => {
               Buy Price
             </th>
             <th className="text-right px-3 py-3 text-xs font-semibold text-brand-gray-dark uppercase tracking-wide">
-              Best Price
+              Lowest Ask
             </th>
             <th className="text-right px-3 py-3 text-xs font-semibold text-brand-gray-dark uppercase tracking-wide">
               Position Value

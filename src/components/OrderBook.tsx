@@ -159,7 +159,7 @@ export const OrderBook: React.FC<OrderBookProps> = ({
             ) : spread < 0 ? (
               <>
                 <div className="text-lg font-bold font-mono-numeric text-up">Crossed</div>
-                <div className="text-xs text-up/80 mt-1" title="Highest bid exceeds lowest ask — buyers are willing to pay more than sellers are asking. This typically signals an arbitrage opportunity across channels.">
+                <div className="text-xs text-up/80 mt-1" title="Highest bid exceeds lowest ask — buyers are quoting more than sellers are asking across channels.">
                   Bid exceeds ask by {formatPrice(Math.abs(spread))}
                 </div>
               </>
@@ -182,8 +182,8 @@ export const OrderBook: React.FC<OrderBookProps> = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
           <div>
-            <p className="font-semibold text-up">Crossed market — arbitrage opportunity</p>
-            <p className="text-up/70 mt-0.5">The highest bid ({formatPrice(bestBid)}) exceeds the lowest ask ({formatPrice(bestAsk)}). In a traditional exchange these would auto-match, but since these are across different channels (WhatsApp, marketplaces, international), the price gap represents a potential arbitrage opportunity. Check the Arbitrage tab for actionable strategies.</p>
+            <p className="font-semibold text-up">Crossed market</p>
+            <p className="text-up/70 mt-0.5">The highest bid ({formatPrice(bestBid)}) exceeds the lowest ask ({formatPrice(bestAsk)}). In a single-venue exchange these would auto-match; here the quotes sit across different channels (WhatsApp, marketplaces, international), so the gap reflects cross-channel price differences. Use the Trade Calculator to assess the economics on your own assumptions.</p>
           </div>
         </div>
       )}
