@@ -19,6 +19,9 @@ import * as admin from "firebase-admin";
 const MIN_PLAUSIBLE_PRICE = 1000;
 const RELATIVE_FLOOR_PCT = 0.35;
 
+// Per-channel daily value: "median-ask" (smoother) or "best-ask" (min, jumpier).
+const PER_CHANNEL_VALUE: "median-ask" | "best-ask" = "median-ask";
+
 // History windows for change computation.
 const CHANGE_WINDOWS = { change30d: 30, change90d: 90 } as const;
 // How far from the target day a snapshot may be and still count as "~N days ago".
@@ -34,12 +37,23 @@ interface PricePointLike {
   listingCount?: number | null;
 }
 
+interface ChannelSnap {
+  value: number | null;
+  bestAsk: number | null;
+  dataPoints: number;
+}
+
 interface SizeSnapshot {
   mark: number | null;
   bestAsk: number | null;
   bestBid: number | null;
   spreadPct: number | null;
   dataPoints: number;
+  channels: {
+    whatsapp: ChannelSnap | null;
+    marketplace: ChannelSnap | null;
+    international: ChannelSnap | null;
+  };
 }
 
 interface DayDoc {
@@ -78,12 +92,12 @@ function filterValidQuotes(prices: number[], reference: number | undefined): num
   return floored.filter((p) => p >= relFloor);
 }
 
-function computeSizeSnapshot(
+/** Consolidated mark/spread from the pooled (merged-channel) asks/bids. */
+function computeMarkFields(
   askPrices: number[],
   bidPrices: number[],
-  retailIndia: number | undefined
-): SizeSnapshot {
-  const reference = referencePrice(retailIndia, askPrices);
+  reference: number | undefined
+): { mark: number | null; bestAsk: number | null; bestBid: number | null; spreadPct: number | null; dataPoints: number } {
   const asks = filterValidQuotes(askPrices, reference);
   const bids = filterValidQuotes(bidPrices, reference);
 
@@ -105,12 +119,31 @@ function computeSizeSnapshot(
   return { mark, bestAsk, bestBid, spreadPct, dataPoints: asks.length + bids.length };
 }
 
-/** Extract ask/bid prices for one size, mirroring the UI's channel logic. */
-function extractAsksBids(size: any): { asks: number[]; bids: number[] } {
+/**
+ * Per-channel daily value from one channel's asks, validated against the SAME
+ * asset/size reference used for the consolidated mark (low-side floor only).
+ * Returns null when the channel has no valid asks that day.
+ */
+function computeChannelSnap(channelAsks: number[], reference: number | undefined): ChannelSnap | null {
+  const asks = filterValidQuotes(channelAsks, reference);
+  if (asks.length === 0) return null;
+  const value = PER_CHANNEL_VALUE === "median-ask" ? (median(asks) ?? null) : Math.min(...asks);
+  return { value, bestAsk: Math.min(...asks), dataPoints: asks.length };
+}
+
+/** Per-channel ask arrays (and WhatsApp bids) for one size, mirroring the UI. */
+function extractChannelArrays(size: any): {
+  whatsappAsks: number[];
+  marketplaceAsks: number[];
+  internationalAsks: number[];
+  whatsappBids: number[];
+} {
   const pp = size?.pricePoints;
-  const asks: number[] = [];
-  const bids: number[] = [];
-  if (!pp) return { asks, bids };
+  const whatsappAsks: number[] = [];
+  const whatsappBids: number[] = [];
+  const marketplaceAsks: number[] = [];
+  const internationalAsks: number[] = [];
+  if (!pp) return { whatsappAsks, marketplaceAsks, internationalAsks, whatsappBids };
 
   const wa: PricePointLike[] = pp.whatsapp || [];
   const mp: PricePointLike[] = pp.marketplace || [];
@@ -119,17 +152,17 @@ function extractAsksBids(size: any): { asks: number[]; bids: number[] } {
   wa.forEach((p) => {
     if (typeof p.price !== "number") return;
     const t = p.transactionType;
-    if (!t || t === "buy" || t === "both") asks.push(p.price);
-    if (t === "sell" || t === "both") bids.push(p.price);
+    if (!t || t === "buy" || t === "both") whatsappAsks.push(p.price);
+    if (t === "sell" || t === "both") whatsappBids.push(p.price);
   });
   mp.forEach((p) => {
-    if (typeof p.price === "number") asks.push(p.price);
+    if (typeof p.price === "number") marketplaceAsks.push(p.price);
   });
   intl.forEach((p) => {
-    if (typeof p.price === "number") asks.push(p.price + (p.reshippingCost || 0));
+    if (typeof p.price === "number") internationalAsks.push(p.price + (p.reshippingCost || 0));
   });
 
-  return { asks, bids };
+  return { whatsappAsks, marketplaceAsks, internationalAsks, whatsappBids };
 }
 
 function buildDayDoc(assetData: any, dateKey: string): DayDoc {
@@ -139,8 +172,21 @@ function buildDayDoc(assetData: any, dateKey: string): DayDoc {
   const sizeSnaps: Record<string, SizeSnapshot> = {};
   sizes.forEach((size) => {
     if (!size?.size) return;
-    const { asks, bids } = extractAsksBids(size);
-    sizeSnaps[size.size] = computeSizeSnapshot(asks, bids, retailIndia);
+    const { whatsappAsks, marketplaceAsks, internationalAsks, whatsappBids } = extractChannelArrays(size);
+
+    // Pooled asks drive the consolidated mark AND the shared relative-floor reference.
+    const mergedAsks = [...whatsappAsks, ...marketplaceAsks, ...internationalAsks];
+    const reference = referencePrice(retailIndia, mergedAsks);
+
+    const base = computeMarkFields(mergedAsks, whatsappBids, reference);
+    sizeSnaps[size.size] = {
+      ...base,
+      channels: {
+        whatsapp: computeChannelSnap(whatsappAsks, reference),
+        marketplace: computeChannelSnap(marketplaceAsks, reference),
+        international: computeChannelSnap(internationalAsks, reference),
+      },
+    };
   });
 
   // Asset mark = default size's mark, else first size with a mark.

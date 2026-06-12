@@ -10,7 +10,13 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { fetchPriceHistory, markSeriesForSize, MarkSeriesPoint } from "../utils/priceHistoryApi";
+import {
+  fetchPriceHistory,
+  markSeriesForSize,
+  channelSeriesForSize,
+  PriceHistoryDay,
+  ChannelKey,
+} from "../utils/priceHistoryApi";
 
 interface TradingChartProps {
   /** Asset id whose daily mark-price history to plot. */
@@ -21,9 +27,14 @@ interface TradingChartProps {
 
 type Timeframe = "7D" | "1M" | "3M" | "6M" | "1Y" | "ALL";
 
-const MARK_COLOR = "#2563eb";
-const ASK_COLOR = "#f59e0b";
-const BID_COLOR = "#10b981";
+// Mark is the bold primary; channels are thinner, muted, in their brand colors.
+const MARK_COLOR = "#111827";
+const CHANNEL_META: Record<ChannelKey, { label: string; color: string }> = {
+  whatsapp: { label: "WhatsApp", color: "#10b981" },
+  marketplace: { label: "Marketplace", color: "#3b82f6" },
+  international: { label: "International", color: "#f59e0b" },
+};
+const CHANNELS: ChannelKey[] = ["whatsapp", "marketplace", "international"];
 
 // Below this many dated points we don't draw a line — a 2-point line through weeks
 // misrepresents the trajectory. We show the latest value + a building-history note.
@@ -33,9 +44,10 @@ interface ChartDataPoint {
   date: string;
   timestamp: number;
   displayDate: string;
-  mark: number;
-  ask: number | null;
-  bid: number | null;
+  mark?: number;
+  whatsapp?: number;
+  marketplace?: number;
+  international?: number;
 }
 
 const TimeframeButton: React.FC<{
@@ -76,63 +88,86 @@ const TIMEFRAME_MS: Record<Timeframe, number> = {
   "ALL": Infinity,
 };
 
+const isDesktop = (): boolean =>
+  typeof window !== "undefined" && window.matchMedia("(min-width: 640px)").matches;
+
 export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => {
   const [timeframe, setTimeframe] = useState<Timeframe>("1M");
   const [chartType, setChartType] = useState<"area" | "line">("line");
-  const [history, setHistory] = useState<MarkSeriesPoint[] | null>(null);
+  const [days, setDays] = useState<PriceHistoryDay[] | null>(null);
+  // Default: mark + channels on desktop; mark-only on mobile (toggle reveals channels).
+  const [showChannels, setShowChannels] = useState<boolean>(isDesktop());
 
   useEffect(() => {
     let cancelled = false;
-    setHistory(null);
-    fetchPriceHistory(assetId).then((days) => {
-      if (cancelled) return;
-      setHistory(markSeriesForSize(days, size));
+    setDays(null);
+    fetchPriceHistory(assetId).then((d) => {
+      if (!cancelled) setDays(d);
     });
     return () => {
       cancelled = true;
     };
-  }, [assetId, size]);
+  }, [assetId]);
 
-  const { chartData, totalPoints, availableTimeframes, hasAsk, hasBid } = useMemo(() => {
-    const series = history ?? [];
+  const { chartData, totalPoints, availableTimeframes, channelsWithData } = useMemo(() => {
+    const history = days ?? [];
     const now = Date.now();
 
-    const all: ChartDataPoint[] = series
-      .map((p) => ({
-        date: p.date,
-        timestamp: dateKeyToMs(p.date),
-        displayDate: new Date(dateKeyToMs(p.date)).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
-        mark: p.mark,
-        ask: p.bestAsk,
-        bid: p.bestBid,
-      }))
+    const markSeries = markSeriesForSize(history, size);
+    const byDate = new Map<string, ChartDataPoint>();
+
+    const ensure = (date: string): ChartDataPoint => {
+      let pt = byDate.get(date);
+      if (!pt) {
+        const ts = dateKeyToMs(date);
+        pt = {
+          date,
+          timestamp: ts,
+          displayDate: new Date(ts).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
+        };
+        byDate.set(date, pt);
+      }
+      return pt;
+    };
+
+    markSeries.forEach((p) => {
+      ensure(p.date).mark = p.mark;
+    });
+
+    const channelsWithData: ChannelKey[] = [];
+    CHANNELS.forEach((ch) => {
+      const series = channelSeriesForSize(history, size, ch);
+      if (series.length > 0) channelsWithData.push(ch);
+      series.forEach((p) => {
+        (ensure(p.date) as any)[ch] = p.value;
+      });
+    });
+
+    const all = Array.from(byDate.values())
       .filter((p) => isFinite(p.timestamp))
       .sort((a, b) => a.timestamp - b.timestamp);
 
     const available: Timeframe[] = (Object.entries(TIMEFRAME_MS) as [Timeframe, number][])
-      .filter(([tf, ms]) => {
-        if (tf === "ALL") return all.length >= 2;
-        const cutoff = now - ms;
-        return all.filter((p) => p.timestamp >= cutoff).length >= 2;
+      .filter(([, ms]) => {
+        const pts = ms === Infinity ? all : all.filter((p) => p.timestamp >= now - ms);
+        return pts.filter((p) => p.mark !== undefined).length >= 2;
       })
       .map(([tf]) => tf);
 
     let filtered = all;
     const ms = TIMEFRAME_MS[timeframe];
     if (ms !== Infinity) {
-      const cutoff = now - ms;
-      const windowed = all.filter((p) => p.timestamp >= cutoff);
-      if (windowed.length >= 2) filtered = windowed;
+      const windowed = all.filter((p) => p.timestamp >= now - ms);
+      if (windowed.filter((p) => p.mark !== undefined).length >= 2) filtered = windowed;
     }
 
     return {
       chartData: filtered,
-      totalPoints: all.length,
+      totalPoints: all.filter((p) => p.mark !== undefined).length,
       availableTimeframes: available,
-      hasAsk: filtered.some((p) => p.ask !== null),
-      hasBid: filtered.some((p) => p.bid !== null),
+      channelsWithData,
     };
-  }, [history, timeframe]);
+  }, [days, size, timeframe]);
 
   // If the active timeframe has no data, fall back to ALL so it never renders blank.
   useEffect(() => {
@@ -142,7 +177,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
   }, [availableTimeframes, timeframe]);
 
   const stats = useMemo(() => {
-    const marks = chartData.map((d) => d.mark);
+    const marks = chartData.map((d) => d.mark).filter((m): m is number => m !== undefined);
     if (marks.length === 0) return { latest: 0, high: 0, low: 0, change: 0, changePct: "0" };
     const high = Math.max(...marks);
     const low = Math.min(...marks);
@@ -153,44 +188,37 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
     return { latest: last, high, low, change, changePct };
   }, [chartData]);
 
+  const visibleChannels = showChannels ? channelsWithData : [];
+
   const CustomTooltip = ({ active, payload }: any) => {
     if (!active || !payload || payload.length === 0) return null;
     const data = payload[0]?.payload as ChartDataPoint | undefined;
     if (!data) return null;
+    const rows: { label: string; color: string; value: number }[] = [];
+    if (data.mark !== undefined) rows.push({ label: "Mark", color: MARK_COLOR, value: data.mark });
+    visibleChannels.forEach((ch) => {
+      const v = data[ch];
+      if (typeof v === "number") rows.push({ label: CHANNEL_META[ch].label, color: CHANNEL_META[ch].color, value: v });
+    });
+    if (rows.length === 0) return null;
     return (
       <div className="bg-terminal-surface border-2 border-terminal-border-strong px-3 py-2 shadow-dropdown">
         <p className="text-xs text-brand-black/60 mb-1.5">{data.displayDate}</p>
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: MARK_COLOR }} />
-          <span className="text-xs text-brand-black/60">Mark</span>
-          <span className="text-sm font-mono-numeric font-bold ml-auto" style={{ color: MARK_COLOR }}>
-            ₹{Math.round(data.mark).toLocaleString("en-IN")}
-          </span>
-        </div>
-        {data.ask !== null && (
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: ASK_COLOR }} />
-            <span className="text-xs text-brand-black/60">Ask</span>
-            <span className="text-sm font-mono-numeric ml-auto" style={{ color: ASK_COLOR }}>
-              ₹{Math.round(data.ask).toLocaleString("en-IN")}
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-center gap-2 mb-0.5">
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: r.color }} />
+            <span className="text-xs text-brand-black/60">{r.label}</span>
+            <span className="text-sm font-mono-numeric font-bold ml-auto" style={{ color: r.color }}>
+              ₹{Math.round(r.value).toLocaleString("en-IN")}
             </span>
           </div>
-        )}
-        {data.bid !== null && (
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: BID_COLOR }} />
-            <span className="text-xs text-brand-black/60">Bid</span>
-            <span className="text-sm font-mono-numeric ml-auto" style={{ color: BID_COLOR }}>
-              ₹{Math.round(data.bid).toLocaleString("en-IN")}
-            </span>
-          </div>
-        )}
+        ))}
       </div>
     );
   };
 
   // Loading state
-  if (history === null) {
+  if (days === null) {
     return (
       <div className="bg-brand-background/30 border border-brand-gray/20 p-8 text-center">
         <p className="text-sm text-brand-black/50 font-medium animate-pulse">Loading price history…</p>
@@ -227,7 +255,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
     );
   }
 
-  const allMarks = chartData.map((d) => d.mark);
+  const allMarks = chartData.map((d) => d.mark).filter((m): m is number => m !== undefined);
   const yMin = Math.floor(Math.min(...allMarks) * 0.95 / 1000) * 1000;
   const yMax = Math.ceil(Math.max(...allMarks) * 1.05 / 1000) * 1000;
 
@@ -250,14 +278,29 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
   return (
     <div className="space-y-3">
       {/* Controls */}
-      {availableTimeframes.length > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {availableTimeframes.length > 1 ? (
           <div className="inline-flex items-center gap-0.5 sm:gap-1 border border-brand-gray/30 bg-brand-background/50 p-1 flex-wrap">
             {availableTimeframes.map((tf) => (
               <TimeframeButton key={tf} label={tf} active={timeframe === tf} onClick={() => setTimeframe(tf)} />
             ))}
           </div>
+        ) : <span />}
 
+        <div className="inline-flex items-center gap-1">
+          {channelsWithData.length > 0 && (
+            <button
+              onClick={() => setShowChannels((s) => !s)}
+              className={`px-3 py-1.5 text-xs font-semibold transition-all border ${
+                showChannels
+                  ? "bg-terminal-surface-raised text-terminal-text border-terminal-border-strong"
+                  : "bg-brand-background/50 text-brand-black/60 hover:text-brand-black border-brand-gray/30"
+              }`}
+              title="Toggle per-channel lines"
+            >
+              Channels
+            </button>
+          )}
           <div className="inline-flex items-center gap-1 border border-brand-gray/30 bg-brand-background/50 p-1">
             <button
               onClick={() => setChartType("area")}
@@ -285,7 +328,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
             </button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Stats Bar */}
       <div className="grid grid-cols-3 gap-x-3 gap-y-2.5 sm:gap-3 text-sm">
@@ -329,7 +372,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
             <AreaChart key="area" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
               <defs>
                 <linearGradient id="markGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={MARK_COLOR} stopOpacity={0.18} />
+                  <stop offset="0%" stopColor={MARK_COLOR} stopOpacity={0.15} />
                   <stop offset="95%" stopColor={MARK_COLOR} stopOpacity={0} />
                 </linearGradient>
               </defs>
@@ -337,15 +380,12 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
               <XAxis {...sharedAxisProps.xAxis} />
               <YAxis {...sharedAxisProps.yAxis} />
               <Tooltip content={<CustomTooltip />} />
-              {hasAsk && (
-                <Area type="monotone" dataKey="ask" stroke={ASK_COLOR} strokeWidth={1} strokeDasharray="4 3"
-                  fill="none" dot={false} connectNulls isAnimationActive={false} name="Ask" />
-              )}
-              {hasBid && (
-                <Area type="monotone" dataKey="bid" stroke={BID_COLOR} strokeWidth={1} strokeDasharray="4 3"
-                  fill="none" dot={false} connectNulls isAnimationActive={false} name="Bid" />
-              )}
-              <Area type="monotone" dataKey="mark" stroke={MARK_COLOR} strokeWidth={2}
+              {visibleChannels.map((ch) => (
+                <Area key={ch} type="monotone" dataKey={ch} stroke={CHANNEL_META[ch].color} strokeWidth={1}
+                  strokeOpacity={0.7} strokeDasharray="4 3" fill="none" dot={false}
+                  connectNulls={false} isAnimationActive={false} name={CHANNEL_META[ch].label} />
+              ))}
+              <Area type="monotone" dataKey="mark" stroke={MARK_COLOR} strokeWidth={2.5}
                 fill="url(#markGrad)" dot={{ r: 2.5, fill: MARK_COLOR }}
                 connectNulls isAnimationActive={false} name="Mark" />
             </AreaChart>
@@ -355,15 +395,12 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
               <XAxis {...sharedAxisProps.xAxis} />
               <YAxis {...sharedAxisProps.yAxis} />
               <Tooltip content={<CustomTooltip />} />
-              {hasAsk && (
-                <Line type="monotone" dataKey="ask" stroke={ASK_COLOR} strokeWidth={1} strokeDasharray="4 3"
-                  dot={false} connectNulls isAnimationActive={false} name="Ask" />
-              )}
-              {hasBid && (
-                <Line type="monotone" dataKey="bid" stroke={BID_COLOR} strokeWidth={1} strokeDasharray="4 3"
-                  dot={false} connectNulls isAnimationActive={false} name="Bid" />
-              )}
-              <Line type="monotone" dataKey="mark" stroke={MARK_COLOR} strokeWidth={2}
+              {visibleChannels.map((ch) => (
+                <Line key={ch} type="monotone" dataKey={ch} stroke={CHANNEL_META[ch].color} strokeWidth={1}
+                  strokeOpacity={0.7} strokeDasharray="4 3" dot={false}
+                  connectNulls={false} isAnimationActive={false} name={CHANNEL_META[ch].label} />
+              ))}
+              <Line type="monotone" dataKey="mark" stroke={MARK_COLOR} strokeWidth={2.5}
                 dot={{ r: 2.5, fill: MARK_COLOR, stroke: MARK_COLOR }}
                 connectNulls isAnimationActive={false} name="Mark" />
             </LineChart>
@@ -378,18 +415,12 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
             <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: MARK_COLOR }} />
             <span className="text-[11px] text-brand-black/60 font-medium">Mark</span>
           </div>
-          {hasAsk && (
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: ASK_COLOR }} />
-              <span className="text-[11px] text-brand-black/60 font-medium">Ask</span>
+          {visibleChannels.map((ch) => (
+            <div key={ch} className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: CHANNEL_META[ch].color }} />
+              <span className="text-[11px] text-brand-black/60 font-medium">{CHANNEL_META[ch].label}</span>
             </div>
-          )}
-          {hasBid && (
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: BID_COLOR }} />
-              <span className="text-[11px] text-brand-black/60 font-medium">Bid</span>
-            </div>
-          )}
+          ))}
         </div>
         <p className="text-[11px] text-brand-black/40">
           {chartData.length < 10 ? (

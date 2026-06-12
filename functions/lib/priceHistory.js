@@ -19,6 +19,8 @@ exports.runDailySnapshot = runDailySnapshot;
 // ── Validated-quote constants (parity with src/utils/priceMetrics.ts) ──────────
 const MIN_PLAUSIBLE_PRICE = 1000;
 const RELATIVE_FLOOR_PCT = 0.35;
+// Per-channel daily value: "median-ask" (smoother) or "best-ask" (min, jumpier).
+const PER_CHANNEL_VALUE = "median-ask";
 // History windows for change computation.
 const CHANGE_WINDOWS = { change30d: 30, change90d: 90 };
 // How far from the target day a snapshot may be and still count as "~N days ago".
@@ -53,9 +55,9 @@ function filterValidQuotes(prices, reference) {
     const relFloor = RELATIVE_FLOOR_PCT * reference;
     return floored.filter((p) => p >= relFloor);
 }
-function computeSizeSnapshot(askPrices, bidPrices, retailIndia) {
+/** Consolidated mark/spread from the pooled (merged-channel) asks/bids. */
+function computeMarkFields(askPrices, bidPrices, reference) {
     var _a;
-    const reference = referencePrice(retailIndia, askPrices);
     const asks = filterValidQuotes(askPrices, reference);
     const bids = filterValidQuotes(bidPrices, reference);
     const bestAsk = asks.length > 0 ? Math.min(...asks) : null;
@@ -74,13 +76,28 @@ function computeSizeSnapshot(askPrices, bidPrices, retailIndia) {
     }
     return { mark, bestAsk, bestBid, spreadPct, dataPoints: asks.length + bids.length };
 }
-/** Extract ask/bid prices for one size, mirroring the UI's channel logic. */
-function extractAsksBids(size) {
+/**
+ * Per-channel daily value from one channel's asks, validated against the SAME
+ * asset/size reference used for the consolidated mark (low-side floor only).
+ * Returns null when the channel has no valid asks that day.
+ */
+function computeChannelSnap(channelAsks, reference) {
+    var _a;
+    const asks = filterValidQuotes(channelAsks, reference);
+    if (asks.length === 0)
+        return null;
+    const value = PER_CHANNEL_VALUE === "median-ask" ? ((_a = median(asks)) !== null && _a !== void 0 ? _a : null) : Math.min(...asks);
+    return { value, bestAsk: Math.min(...asks), dataPoints: asks.length };
+}
+/** Per-channel ask arrays (and WhatsApp bids) for one size, mirroring the UI. */
+function extractChannelArrays(size) {
     const pp = size === null || size === void 0 ? void 0 : size.pricePoints;
-    const asks = [];
-    const bids = [];
+    const whatsappAsks = [];
+    const whatsappBids = [];
+    const marketplaceAsks = [];
+    const internationalAsks = [];
     if (!pp)
-        return { asks, bids };
+        return { whatsappAsks, marketplaceAsks, internationalAsks, whatsappBids };
     const wa = pp.whatsapp || [];
     const mp = pp.marketplace || [];
     const intl = pp.international || [];
@@ -89,19 +106,19 @@ function extractAsksBids(size) {
             return;
         const t = p.transactionType;
         if (!t || t === "buy" || t === "both")
-            asks.push(p.price);
+            whatsappAsks.push(p.price);
         if (t === "sell" || t === "both")
-            bids.push(p.price);
+            whatsappBids.push(p.price);
     });
     mp.forEach((p) => {
         if (typeof p.price === "number")
-            asks.push(p.price);
+            marketplaceAsks.push(p.price);
     });
     intl.forEach((p) => {
         if (typeof p.price === "number")
-            asks.push(p.price + (p.reshippingCost || 0));
+            internationalAsks.push(p.price + (p.reshippingCost || 0));
     });
-    return { asks, bids };
+    return { whatsappAsks, marketplaceAsks, internationalAsks, whatsappBids };
 }
 function buildDayDoc(assetData, dateKey) {
     var _a, _b, _c;
@@ -111,8 +128,16 @@ function buildDayDoc(assetData, dateKey) {
     sizes.forEach((size) => {
         if (!(size === null || size === void 0 ? void 0 : size.size))
             return;
-        const { asks, bids } = extractAsksBids(size);
-        sizeSnaps[size.size] = computeSizeSnapshot(asks, bids, retailIndia);
+        const { whatsappAsks, marketplaceAsks, internationalAsks, whatsappBids } = extractChannelArrays(size);
+        // Pooled asks drive the consolidated mark AND the shared relative-floor reference.
+        const mergedAsks = [...whatsappAsks, ...marketplaceAsks, ...internationalAsks];
+        const reference = referencePrice(retailIndia, mergedAsks);
+        const base = computeMarkFields(mergedAsks, whatsappBids, reference);
+        sizeSnaps[size.size] = Object.assign(Object.assign({}, base), { channels: {
+                whatsapp: computeChannelSnap(whatsappAsks, reference),
+                marketplace: computeChannelSnap(marketplaceAsks, reference),
+                international: computeChannelSnap(internationalAsks, reference),
+            } });
     });
     // Asset mark = default size's mark, else first size with a mark.
     const defaultSize = assetData.defaultSize || assetData.size || "";

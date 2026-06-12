@@ -11,12 +11,26 @@
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "./firebase";
 
+export type ChannelKey = "whatsapp" | "marketplace" | "international";
+
+export interface ChannelSnap {
+  value: number | null;
+  bestAsk: number | null;
+  dataPoints: number;
+}
+
 export interface PriceHistorySize {
   mark: number | null;
   bestAsk: number | null;
   bestBid: number | null;
   spreadPct: number | null;
   dataPoints: number;
+  /** Per-channel daily value; absent on day-docs written before this feature. */
+  channels?: {
+    whatsapp: ChannelSnap | null;
+    marketplace: ChannelSnap | null;
+    international: ChannelSnap | null;
+  };
 }
 
 export interface PriceHistoryDay {
@@ -30,6 +44,11 @@ export interface MarkSeriesPoint {
   mark: number;
   bestAsk: number | null;
   bestBid: number | null;
+}
+
+export interface ChannelSeriesPoint {
+  date: string;
+  value: number;
 }
 
 /** Fetch the full daily history for an asset, ascending by date. */
@@ -79,6 +98,28 @@ export function markSeriesForSize(
 
     if (mark !== null && isFinite(mark) && mark > 0) {
       out.push({ date: day.date, mark, bestAsk, bestBid });
+    }
+  }
+  return out;
+}
+
+/**
+ * Dated per-channel value series for a size. Days where the channel has no valid
+ * value are DROPPED (not zero-filled) so the chart gaps rather than fabricating a
+ * point. Returns [] for day-docs predating the per-channel feature.
+ */
+export function channelSeriesForSize(
+  history: PriceHistoryDay[],
+  size: string | undefined,
+  channel: ChannelKey
+): ChannelSeriesPoint[] {
+  if (!size) return [];
+  const out: ChannelSeriesPoint[] = [];
+  for (const day of history) {
+    const snap = day.sizes[size]?.channels?.[channel];
+    const value = snap?.value;
+    if (typeof value === "number" && isFinite(value) && value > 0) {
+      out.push({ date: day.date, value });
     }
   }
   return out;
