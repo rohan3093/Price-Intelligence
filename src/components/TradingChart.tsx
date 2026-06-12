@@ -36,9 +36,35 @@ const CHANNEL_META: Record<ChannelKey, { label: string; color: string }> = {
 };
 const CHANNELS: ChannelKey[] = ["whatsapp", "marketplace", "international"];
 
-// Below this many dated points we don't draw a line — a 2-point line through weeks
-// misrepresents the trajectory. We show the latest value + a building-history note.
-const MIN_CHART_POINTS = 5;
+// Dashed→solid threshold: below this count a series uses a thin dashed line + visible dots.
+// This is NOT a hide gate — all point counts render real data.
+const TREND_POINTS = 5;
+
+/**
+ * Returns Recharts-ready style props for a series based on how many dated
+ * points it currently has.
+ *
+ * 1 pt  → invisible stroke (no connecting line), prominent dot
+ * 2–4   → thin dashed muted line + visible dots
+ * 5+    → solid line, normal styling
+ */
+const seriesStyle = (
+  count: number,
+  baseStrokeWidth = 2.5,
+): {
+  strokeWidth: number;
+  strokeDasharray: string | undefined;
+  strokeOpacity: number;
+  dotR: number;
+} => {
+  if (count === 1) {
+    return { strokeWidth: 0, strokeDasharray: undefined, strokeOpacity: 1, dotR: 5 };
+  }
+  if (count < TREND_POINTS) {
+    return { strokeWidth: 1.5, strokeDasharray: "5 4", strokeOpacity: 0.6, dotR: 3.5 };
+  }
+  return { strokeWidth: baseStrokeWidth, strokeDasharray: undefined, strokeOpacity: 1, dotR: 2.5 };
+};
 
 interface ChartDataPoint {
   date: string;
@@ -150,7 +176,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
     const available: Timeframe[] = (Object.entries(TIMEFRAME_MS) as [Timeframe, number][])
       .filter(([, ms]) => {
         const pts = ms === Infinity ? all : all.filter((p) => p.timestamp >= now - ms);
-        return pts.filter((p) => p.mark !== undefined).length >= 2;
+        return pts.filter((p) => p.mark !== undefined).length >= 1;
       })
       .map(([tf]) => tf);
 
@@ -158,7 +184,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
     const ms = TIMEFRAME_MS[timeframe];
     if (ms !== Infinity) {
       const windowed = all.filter((p) => p.timestamp >= now - ms);
-      if (windowed.filter((p) => p.mark !== undefined).length >= 2) filtered = windowed;
+      if (windowed.filter((p) => p.mark !== undefined).length >= 1) filtered = windowed;
     }
 
     return {
@@ -240,24 +266,20 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
     );
   }
 
-  // Too few dated points to draw a trustworthy line
-  if (totalPoints < MIN_CHART_POINTS) {
-    return (
-      <div className="py-6 text-center">
-        <p className="text-[10px] uppercase tracking-wider mb-1 text-brand-black/50">Mark Price</p>
-        <p className="font-mono-numeric font-bold text-2xl" style={{ color: MARK_COLOR }}>
-          {formatCompactINR(stats.latest)}
-        </p>
-        <p className="text-xs text-brand-black/40 mt-3">
-          Building price history — {totalPoints} day{totalPoints !== 1 ? "s" : ""} recorded so far. The trend appears once {MIN_CHART_POINTS}+ days accrue.
-        </p>
-      </div>
-    );
-  }
-
   const allMarks = chartData.map((d) => d.mark).filter((m): m is number => m !== undefined);
-  const yMin = Math.floor(Math.min(...allMarks) * 0.95 / 1000) * 1000;
-  const yMax = Math.ceil(Math.max(...allMarks) * 1.05 / 1000) * 1000;
+  // 10 % padding prevents a near-flat sparse series from looking like a dramatic swing.
+  const yMin = Math.floor(Math.min(...allMarks) * 0.90 / 1000) * 1000;
+  const yMax = Math.ceil(Math.max(...allMarks) * 1.10 / 1000) * 1000;
+
+  // Per-series density styles — each series switches independently at TREND_POINTS.
+  const markPointCount = allMarks.length;
+  const markSty = seriesStyle(markPointCount, 2.5);
+  const channelSty = Object.fromEntries(
+    CHANNELS.map((ch) => [
+      ch,
+      seriesStyle(chartData.filter((d) => (d as any)[ch] !== undefined).length, 1),
+    ]),
+  ) as Record<ChannelKey, ReturnType<typeof seriesStyle>>;
 
   const sharedAxisProps = {
     xAxis: {
@@ -356,14 +378,23 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
         </div>
       </div>
 
-      {chartData.length < 10 && (
+      {markPointCount < TREND_POINTS ? (
+        <div className="flex items-start gap-2 text-xs text-brand-black/50 bg-brand-background/50 border border-brand-gray/15 p-2.5">
+          <svg className="w-4 h-4 text-brand-black/30 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>
+            Early data — {markPointCount} day{markPointCount !== 1 ? "s" : ""}. Trend firms up as more accrue.
+          </span>
+        </div>
+      ) : chartData.length < 10 ? (
         <div className="flex items-start gap-2 text-xs text-brand-black/50 bg-brand-background/50 border border-brand-gray/15 p-2.5">
           <svg className="w-4 h-4 text-brand-black/30 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span>Building price history — {totalPoints} day{totalPoints !== 1 ? "s" : ""} recorded so far. The trend becomes more meaningful as more daily points accrue.</span>
         </div>
-      )}
+      ) : null}
 
       {/* Chart */}
       <div className="bg-terminal-surface border border-brand-gray/20 p-2 sm:p-4">
@@ -380,14 +411,26 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
               <XAxis {...sharedAxisProps.xAxis} />
               <YAxis {...sharedAxisProps.yAxis} />
               <Tooltip content={<CustomTooltip />} />
-              {visibleChannels.map((ch) => (
-                <Area key={ch} type="monotone" dataKey={ch} stroke={CHANNEL_META[ch].color} strokeWidth={1}
-                  strokeOpacity={0.7} strokeDasharray="4 3" fill="none" dot={false}
-                  connectNulls={false} isAnimationActive={false} name={CHANNEL_META[ch].label} />
-              ))}
-              <Area type="monotone" dataKey="mark" stroke={MARK_COLOR} strokeWidth={2.5}
-                fill="url(#markGrad)" dot={{ r: 2.5, fill: MARK_COLOR }}
-                connectNulls isAnimationActive={false} name="Mark" />
+              {visibleChannels.map((ch) => {
+                const s = channelSty[ch];
+                return (
+                  <Area key={ch} type="monotone" dataKey={ch}
+                    stroke={CHANNEL_META[ch].color}
+                    strokeWidth={s.strokeWidth}
+                    strokeOpacity={s.strokeOpacity}
+                    strokeDasharray={s.strokeDasharray}
+                    fill="none"
+                    dot={s.dotR > 0 ? { r: s.dotR, fill: CHANNEL_META[ch].color, strokeWidth: 0 } : false}
+                    connectNulls={false} isAnimationActive={false} name={CHANNEL_META[ch].label} />
+                );
+              })}
+              <Area type="monotone" dataKey="mark" stroke={MARK_COLOR}
+                strokeWidth={markSty.strokeWidth}
+                strokeOpacity={markSty.strokeOpacity}
+                strokeDasharray={markSty.strokeDasharray}
+                fill={markSty.strokeWidth > 0 ? "url(#markGrad)" : "none"}
+                dot={{ r: markSty.dotR, fill: MARK_COLOR, strokeWidth: 0 }}
+                connectNulls={false} isAnimationActive={false} name="Mark" />
             </AreaChart>
           ) : (
             <LineChart key="line" data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
@@ -395,14 +438,24 @@ export const TradingChart: React.FC<TradingChartProps> = ({ assetId, size }) => 
               <XAxis {...sharedAxisProps.xAxis} />
               <YAxis {...sharedAxisProps.yAxis} />
               <Tooltip content={<CustomTooltip />} />
-              {visibleChannels.map((ch) => (
-                <Line key={ch} type="monotone" dataKey={ch} stroke={CHANNEL_META[ch].color} strokeWidth={1}
-                  strokeOpacity={0.7} strokeDasharray="4 3" dot={false}
-                  connectNulls={false} isAnimationActive={false} name={CHANNEL_META[ch].label} />
-              ))}
-              <Line type="monotone" dataKey="mark" stroke={MARK_COLOR} strokeWidth={2.5}
-                dot={{ r: 2.5, fill: MARK_COLOR, stroke: MARK_COLOR }}
-                connectNulls isAnimationActive={false} name="Mark" />
+              {visibleChannels.map((ch) => {
+                const s = channelSty[ch];
+                return (
+                  <Line key={ch} type="monotone" dataKey={ch}
+                    stroke={CHANNEL_META[ch].color}
+                    strokeWidth={s.strokeWidth}
+                    strokeOpacity={s.strokeOpacity}
+                    strokeDasharray={s.strokeDasharray}
+                    dot={s.dotR > 0 ? { r: s.dotR, fill: CHANNEL_META[ch].color, stroke: CHANNEL_META[ch].color } : false}
+                    connectNulls={false} isAnimationActive={false} name={CHANNEL_META[ch].label} />
+                );
+              })}
+              <Line type="monotone" dataKey="mark" stroke={MARK_COLOR}
+                strokeWidth={markSty.strokeWidth}
+                strokeOpacity={markSty.strokeOpacity}
+                strokeDasharray={markSty.strokeDasharray}
+                dot={{ r: markSty.dotR, fill: MARK_COLOR, stroke: MARK_COLOR }}
+                connectNulls={false} isAnimationActive={false} name="Mark" />
             </LineChart>
           )}
         </ResponsiveContainer>
