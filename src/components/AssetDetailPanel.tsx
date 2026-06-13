@@ -74,17 +74,6 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({
 Card.displayName = 'Card';
 
 // Loading Skeleton Components with shimmer effect
-const MetricSkeleton: React.FC = () => (
-  <div className="space-y-2">
-    <div className="h-3 w-24 bg-brand-gray/20 relative overflow-hidden">
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-    </div>
-    <div className="h-6 w-32 bg-brand-gray/30 relative overflow-hidden">
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-    </div>
-  </div>
-);
-
 const CardSkeleton: React.FC = () => (
   <div className="p-4 bg-brand-white border border-brand-gray/20">
     <div className="space-y-3">
@@ -103,30 +92,25 @@ const CardSkeleton: React.FC = () => (
   </div>
 );
 
-const ImageSkeleton: React.FC = () => (
-  <div className="aspect-square w-full max-w-xs bg-brand-gray/10 border border-brand-gray/20 relative overflow-hidden">
-    <div className="w-full h-full bg-brand-gray/20 relative overflow-hidden">
+const HeaderSkeleton: React.FC = () => (
+  <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] gap-x-4 gap-y-3 items-start p-4">
+    <div className="w-[140px] h-[140px] bg-brand-gray/10 border border-brand-gray/20 relative overflow-hidden flex-shrink-0">
       <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
     </div>
-  </div>
-);
-
-const HeaderSkeleton: React.FC = () => (
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-brand-gray/30 pb-6">
-    <div className="md:col-span-1">
-      <ImageSkeleton />
-    </div>
-    <div className="md:col-span-2 space-y-4">
-      <div className="space-y-3">
-        <div className="h-8 w-64 bg-brand-gray/20 animate-pulse"></div>
-        <div className="h-4 w-48 bg-brand-gray/20 animate-pulse"></div>
+    <div className="min-w-0 space-y-2 pt-0.5">
+      <div className="h-6 w-56 bg-brand-gray/20 relative overflow-hidden">
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
       </div>
-      <div className="pt-4 border-t border-brand-gray/20">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <MetricSkeleton key={i} />
-          ))}
-        </div>
+      <div className="h-3 w-36 bg-brand-gray/20 relative overflow-hidden">
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+      </div>
+    </div>
+    <div className="col-span-2 sm:col-span-1 sm:border-l sm:border-brand-gray/20 sm:pl-4 space-y-2">
+      <div className="h-7 w-28 bg-brand-gray/30 relative overflow-hidden">
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+      </div>
+      <div className="h-3 w-40 bg-brand-gray/20 relative overflow-hidden">
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
       </div>
     </div>
   </div>
@@ -356,7 +340,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
   
   // Main tab system — 3 tabs: Overview (chart+analytics+insight), Listings (orderbook+listings), Arbitrage
   const [mainTab, setMainTab] = useState<'overview' | 'listings' | 'arbitrage'>('overview');
-  const [listingsViewMode, setListingsViewMode] = useState<'individual' | 'aggregated'>('individual');
+  const [listingsViewMode, setListingsViewMode] = useState<'individual' | 'aggregated'>('aggregated');
 
   // Toast notification system
   const { toasts, toast, removeToast } = useToast();
@@ -786,504 +770,242 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
     <section className="p-3 md:p-6 text-brand-black bg-brand-background/30 relative overflow-x-hidden max-w-7xl mx-auto">
       {/* Intelligence-First Terminal Layout - Grid on Desktop */}
       
-      {/* HERO SECTION - Image & Core Info */}
+      {/* ─── HEADER: compact image · identity · summary ─── */}
       <Card className="mb-4" noPadding>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-6 p-4 md:p-6">
-          {/* Large Image - Full Height */}
-          <div className="md:col-span-2">
-            <div className="w-full h-full min-h-[280px] bg-brand-gray/5 border border-brand-gray/20 flex items-center justify-center">
-              {asset.image ? (
-                <img
-                  src={asset.image}
-                  alt={asset.name}
-                  className="w-full h-full object-contain p-4"
-                  loading="lazy"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    const parent = target.parentElement;
-                    if (parent && !parent.querySelector('.image-placeholder')) {
-                      const placeholder = document.createElement('div');
-                      placeholder.className = 'image-placeholder text-xs text-brand-black/40 text-center px-2';
-                      placeholder.textContent = 'No image';
-                      parent.appendChild(placeholder);
-                    }
-                  }}
-                />
-              ) : (
-                <div className="text-xs text-brand-black/40 text-center px-2">No image</div>
+        {/*
+          Two-row on mobile:  row1 = [image | identity]   row2 = [summary full-width]
+          Single row on sm+:  [image | identity (flex-1) | summary]
+        */}
+        <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] gap-x-4 gap-y-3 items-start p-4">
+
+          {/* Image — compact thumbnail ≤ 140 px, never a full-height hero */}
+          <div className="w-[140px] h-[140px] bg-brand-gray/5 border border-brand-gray/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+            {asset.image ? (
+              <img
+                src={asset.image}
+                alt={asset.name}
+                className="w-full h-full object-contain p-2"
+                loading="lazy"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent && !parent.querySelector('.image-placeholder')) {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'image-placeholder text-xs text-brand-black/40 text-center px-2';
+                    placeholder.textContent = 'No image';
+                    parent.appendChild(placeholder);
+                  }
+                }}
+              />
+            ) : (
+              <div className="text-xs text-brand-black/40 text-center px-2">No image</div>
+            )}
+          </div>
+
+          {/* Identity: name + brand · SKU */}
+          <div className="min-w-0 pt-0.5">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-heading font-normal text-brand-black leading-tight mb-1.5">
+              {asset.name}
+            </h1>
+            <div className="flex flex-wrap items-center gap-1.5 text-xs text-brand-black/60">
+              <span className="font-semibold">{asset.brand}</span>
+              <span>·</span>
+              <span>SKU {asset.sku}</span>
+            </div>
+          </div>
+
+          {/* Summary — spans 2 cols on mobile, right column on sm+ */}
+          <div className="col-span-2 sm:col-span-1 sm:border-l sm:border-brand-gray/20 sm:pl-4 relative">
+            {/* Watch star — top-right corner of header */}
+            <button
+              onClick={onToggleWatchlist}
+              type="button"
+              className={`absolute top-0 right-0 flex items-center gap-1 px-2 py-1 text-xs font-medium transition-all ${
+                watchlisted ? 'text-brand-black' : 'text-brand-black/40 hover:text-brand-black'
+              }`}
+              title={watchlisted ? 'Remove from watchlist' : 'Add to watchlist'}
+            >
+              <span className="text-base leading-none">{watchlisted ? '★' : '☆'}</span>
+            </button>
+
+            {/* Mark price + 30d delta */}
+            <div className="flex items-start gap-4 sm:flex-col sm:items-end sm:gap-1 pr-8">
+              <div className="sm:text-right">
+                <p className="text-[10px] text-brand-black/50 uppercase tracking-wider mb-0.5 flex items-center sm:justify-end gap-1 flex-wrap">
+                  Mark Price
+                  {markMetrics.markMode === 'bid-only' && (
+                    <span className="text-[9px] normal-case tracking-normal text-brand-black/40">indicative · bid-only</span>
+                  )}
+                  {markMetrics.markMode === 'ask-median' && (
+                    <span className="text-[9px] normal-case tracking-normal text-brand-black/40">ask median</span>
+                  )}
+                </p>
+                <p className="text-xl sm:text-2xl font-mono-numeric font-bold text-brand-black leading-tight tabular-nums">
+                  {markMetrics.markPrice !== undefined ? `₹${Math.round(markMetrics.markPrice).toLocaleString("en-IN")}` : "—"}
+                </p>
+              </div>
+              {/* 30d / vs-retail delta */}
+              {(() => {
+                const raw = currentData.change30d;
+                const hasRealChange = typeof raw === 'string' && raw.includes('%');
+                if (hasRealChange) {
+                  const chg = parseFloat(raw.replace(/[^0-9.\-+]/g, ''));
+                  if (isFinite(chg)) {
+                    const isUp = chg > 0;
+                    return (
+                      <div className="sm:text-right flex-shrink-0">
+                        <p className="text-[10px] text-brand-black/50 uppercase tracking-wider mb-0.5">30d</p>
+                        <p className={`text-base font-mono-numeric font-bold leading-tight tabular-nums ${isUp ? 'text-up' : chg < 0 ? 'text-down' : 'text-brand-black'}`}>
+                          {isUp ? '+' : ''}{chg.toFixed(1)}%
+                        </p>
+                      </div>
+                    );
+                  }
+                }
+                const retail = anchor?.retailIndia;
+                if (SHOW_VS_RETAIL_WHEN_NO_HISTORY && retail && retail > 0 && markMetrics.markPrice !== undefined) {
+                  const vs = ((markMetrics.markPrice - retail) / retail) * 100;
+                  const isUp = vs > 0;
+                  return (
+                    <div className="sm:text-right flex-shrink-0">
+                      <p className="text-[10px] text-brand-black/50 uppercase tracking-wider mb-0.5">vs retail</p>
+                      <p className={`text-base font-mono-numeric font-bold leading-tight tabular-nums ${isUp ? 'text-up' : vs < 0 ? 'text-down' : 'text-brand-black'}`}>
+                        {isUp ? '+' : ''}{vs.toFixed(1)}%
+                      </p>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="sm:text-right flex-shrink-0">
+                    <p className="text-[10px] text-brand-black/50 uppercase tracking-wider mb-0.5">30d</p>
+                    <p className="text-base font-mono-numeric font-bold leading-tight tabular-nums text-brand-black/30">—</p>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Trade-readiness line: Liquidity · Stock · Spread/sellers-only · Sellers · Updated */}
+            <div className="mt-1.5 flex flex-wrap sm:justify-end gap-x-3 gap-y-0.5 text-[11px] text-brand-black/50">
+              {currentData.liquidity && currentData.liquidity !== "N/A" && (
+                <span>Liquidity <span className="text-brand-black/80 font-semibold">{currentData.liquidity}</span></span>
+              )}
+              {anchor?.retailIndia && (
+                <span>Retail <span className="font-mono-numeric text-brand-black/80 font-semibold tabular-nums">₹{anchor.retailIndia.toLocaleString("en-IN")}</span></span>
+              )}
+              {/* Stock availability */}
+              <span>Stock <span className="text-brand-black/80 font-semibold">
+                {(whatsappPrices.buy.length + marketplacePrices.length + internationalPrices.length) > 0 ? "Available" : "Limited"}
+              </span></span>
+              {/* Spread % when both sides exist; "sellers-only" / "buyers-only" when one side */}
+              {markMetrics.bestBid !== undefined && markMetrics.bestAsk !== undefined && markMetrics.spreadPct !== undefined ? (
+                <span>Spread <span className="font-mono-numeric text-brand-black/80 font-semibold tabular-nums">{(markMetrics.spreadPct * 100).toFixed(1)}%</span></span>
+              ) : markMetrics.bestAsk === undefined && markMetrics.bestBid !== undefined ? (
+                <span className="text-brand-black/60">buyers-only</span>
+              ) : markMetrics.bestBid === undefined && markMetrics.bestAsk !== undefined ? (
+                <span className="text-brand-black/60">sellers-only</span>
+              ) : null}
+              {/* Seller count */}
+              {(() => {
+                const s = new Set<string>();
+                whatsappPrices.buy.forEach(p => { if (p.sellerContact) s.add(p.sellerContact); else if (p.sellerName) s.add(p.sellerName); });
+                whatsappPrices.sell.forEach(p => { if (p.sellerContact) s.add(p.sellerContact); else if (p.sellerName) s.add(p.sellerName); });
+                marketplacePrices.forEach(p => { if (p.url) s.add(p.url); else if (p.marketplaceName) s.add(p.marketplaceName); else if (p.source) s.add(p.source); });
+                internationalPrices.forEach(p => { if (p.marketplaceName) s.add(p.marketplaceName); else if (p.source) s.add(p.source); });
+                if (s.size === 0) return null;
+                return <span><span className="text-brand-black/80 font-semibold">{s.size}</span> {s.size === 1 ? 'seller' : 'sellers'}</span>;
+              })()}
+              {/* Updated timestamp (derived from listing freshness, same as before) */}
+              {currentData.lastUpdated && (
+                <span>Updated <span className="text-brand-black/80">{formatLastSeen(currentData.lastUpdated)}</span></span>
               )}
             </div>
           </div>
-          
-          {/* Asset Info & Quick Decision */}
-          <div className="md:col-span-3 flex flex-col justify-between space-y-3">
-            {/* Asset Title */}
-            <div>
-              <h1 className="text-2xl md:text-3xl font-heading font-normal text-brand-black mb-2">
-                {asset.name}
-              </h1>
-              <div className="flex flex-wrap items-center gap-2 text-sm text-brand-black/60">
-                <span className="font-semibold">{asset.brand}</span>
-                <span>·</span>
-                <span>SKU {asset.sku}</span>
-              </div>
-            </div>
+        </div>
+      </Card>
 
-            {/* Size Selector — Visual buttons with best price per size */}
-            {asset.sizes && asset.sizes.length > 0 && (() => {
-              const sorted = sortSizesNumerically(asset.sizes);
-              const sizePriceMap = new Map<string, number | null>();
-              sorted.forEach(sv => {
-                const prices: number[] = [];
-                if (sv.pricePoints) {
-                  (sv.pricePoints.whatsapp || []).filter((p: PricePoint) => !p.transactionType || p.transactionType === 'buy' || p.transactionType === 'both').forEach((p: PricePoint) => prices.push(p.price));
-                  (sv.pricePoints.marketplace || []).forEach((p: PricePoint) => prices.push(p.price));
-                  (sv.pricePoints.international || []).forEach((p: PricePoint) => prices.push(p.price + (p.reshippingCost || 0)));
-                } else if (sv.legacyPricePoints) {
-                  (sv.legacyPricePoints.b2b || []).filter((p: PricePoint) => !p.transactionType || p.transactionType === 'buy' || p.transactionType === 'both').forEach((p: PricePoint) => prices.push(p.price));
-                  (sv.legacyPricePoints.endCustomer || []).forEach((p: PricePoint) => prices.push(p.price));
-                  (sv.legacyPricePoints.stockxGoat || []).forEach((p: PricePoint) => prices.push(p.price + (p.reshippingCost || 0)));
-                }
-                // Validate against absolute + relative floor (anchored on this
-                // size's own asks / asset retail) before taking the per-size min.
-                const validated = filterValidQuotes(prices, asset.priceAnchors?.retailIndia);
-                sizePriceMap.set(sv.size, validated.length > 0 ? Math.min(...validated) : null);
-              });
+      {/* ─── ACTIONS: SOURCE + LIST — slim row under header, above size grid ─── */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <button
+          onClick={() => { setShowBuyModal(true); setBuyModalExpandWhatsapp(false); setBuyModalExpandMarketplace(false); setBuyModalExpandIntl(false); }}
+          className="px-4 py-2.5 bg-accent text-terminal-bg text-center hover:bg-accent/80 transition-all duration-200 active:scale-95"
+          title="See verified sources for this asset"
+        >
+          <span className="text-[10px] font-normal opacity-70 block leading-tight">
+            Best Source Price{bestPrice !== undefined ? ` · ₹${bestPrice.toLocaleString('en-IN')}` : ''}
+          </span>
+          <span className="text-sm font-bold uppercase tracking-wide block leading-tight mt-0.5">Source</span>
+        </button>
+        <button
+          onClick={() => setShowSellModal(true)}
+          className="px-4 py-2.5 border-2 border-terminal-border-strong text-brand-black bg-transparent text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
+          title="Post a listing for this asset"
+        >
+          <span className="text-[10px] font-normal opacity-50 block leading-tight">Your Ask Price</span>
+          <span className="text-sm font-bold uppercase tracking-wide block leading-tight mt-0.5">List</span>
+        </button>
+      </div>
 
-              return (
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-semibold uppercase text-brand-black/50 tracking-wide">Size</label>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {sorted.map(sv => {
-                      const best = sizePriceMap.get(sv.size) ?? null;
-                      const isSelected = sv.size === selectedSize;
-                      const hasPrice = best !== null && best !== undefined;
-                      return (
-                        <button
-                          key={sv.size}
-                          onClick={() => setSelectedSize(sv.size)}
-                          className={`px-2.5 py-1.5 text-center transition-all min-w-[60px] ${
-                            isSelected
-                              ? 'bg-terminal-surface-raised text-terminal-text'
-                              : 'bg-terminal-surface border border-brand-gray/30 text-brand-black hover:border-terminal-border-strong'
-                          }`}
-                        >
-                          <span className="block text-xs font-semibold leading-tight">{sv.size}</span>
-                          {hasPrice ? (
-                            <span className={`block text-[10px] font-mono-numeric font-bold mt-0.5 leading-tight tabular-nums ${
-                              isSelected ? 'text-white/80' : 'text-brand-black/60'
-                            }`}>
-                              {(() => {
-                                const v = best!;
-                                if (v >= 1_00_00_000) return `₹${(v / 1_00_00_000).toFixed(v >= 1_00_00_00_000 ? 0 : 1)}Cr`;
-                                if (v >= 1_00_000) return `₹${(v / 1_00_000).toFixed(v >= 10_00_000 ? 0 : 1)}L`;
-                                if (v >= 10_000) return `₹${Math.round(v / 1000)}k`;
-                                if (v >= 1_000) return `₹${(v / 1000).toFixed(1)}k`;
-                                return `₹${v.toLocaleString('en-IN')}`;
-                              })()}
-                            </span>
-                          ) : (
-                            <span className={`block text-[10px] mt-0.5 leading-tight ${isSelected ? 'text-white/50' : 'text-brand-black/30'}`}>—</span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Quick Decision Card - Key Metrics at a Glance */}
-            <div className="bg-brand-background border border-brand-gray/30 p-3">
-              {/* Exchange hero — mark price + spread from validated quotes only */}
-              <div className="mb-2">
-                {/* Row 1: Mark price + 30d change */}
-                <div className="flex items-baseline justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-brand-black/50 uppercase tracking-wider mb-1 flex items-center gap-1.5 flex-wrap">
-                      Mark Price
-                      {markMetrics.markMode === 'bid-only' && (
-                        <span className="text-[9px] normal-case tracking-normal text-brand-black/40">indicative · bid-only</span>
-                      )}
-                      {markMetrics.markMode === 'ask-median' && (
-                        <span className="text-[9px] normal-case tracking-normal text-brand-black/40">ask median</span>
-                      )}
-                    </p>
-                    <p className="text-2xl sm:text-3xl md:text-4xl font-mono-numeric font-bold text-brand-black leading-tight break-words tabular-nums">
-                      {markMetrics.markPrice !== undefined ? `₹${Math.round(markMetrics.markPrice).toLocaleString("en-IN")}` : "—"}
-                    </p>
-                  </div>
-                  {(() => {
-                    // Hero delta MUST share a base with the price: real 30d if a
-                    // genuine historical series exists, else a labelled vs-retail
-                    // computed off MARK PRICE (never the lowest ask). No history
-                    // and no retail (or flag off) -> em dash.
-                    const raw = currentData.change30d;
-                    const hasRealChange = typeof raw === 'string' && raw.includes('%');
-                    if (hasRealChange) {
-                      const chg = parseFloat(raw.replace(/[^0-9.\-+]/g, ''));
-                      if (isFinite(chg)) {
-                        const isUp = chg > 0;
-                        return (
-                          <div className="text-right flex-shrink-0">
-                            <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wider mb-1">30d</p>
-                            <p className={`text-base sm:text-lg font-mono-numeric font-bold leading-tight tabular-nums ${isUp ? 'text-up' : chg < 0 ? 'text-down' : 'text-brand-black'}`}>
-                              {isUp ? '+' : ''}{chg.toFixed(1)}%
-                            </p>
-                          </div>
-                        );
-                      }
-                    }
-                    const retail = anchor?.retailIndia;
-                    if (
-                      SHOW_VS_RETAIL_WHEN_NO_HISTORY &&
-                      retail && retail > 0 &&
-                      markMetrics.markPrice !== undefined
-                    ) {
-                      const vs = ((markMetrics.markPrice - retail) / retail) * 100;
-                      const isUp = vs > 0;
-                      return (
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wider mb-1">vs retail</p>
-                          <p className={`text-base sm:text-lg font-mono-numeric font-bold leading-tight tabular-nums ${isUp ? 'text-up' : vs < 0 ? 'text-down' : 'text-brand-black'}`}>
-                            {isUp ? '+' : ''}{vs.toFixed(1)}%
-                          </p>
-                        </div>
-                      );
-                    }
-                    return (
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-[10px] sm:text-xs text-brand-black/50 uppercase tracking-wider mb-1">30d</p>
-                        <p className="text-base sm:text-lg font-mono-numeric font-bold leading-tight tabular-nums text-brand-black/40">—</p>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Row 2: Bid / Ask / Spread — spread only when both sides exist */}
-                {markMetrics.bestBid !== undefined && markMetrics.bestAsk !== undefined ? (
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    <div className="bg-terminal-surface border border-brand-gray/20 p-2">
-                      <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Bid</p>
-                      <p className="text-sm font-mono-numeric font-bold text-brand-black tabular-nums">₹{Math.round(markMetrics.bestBid).toLocaleString("en-IN")}</p>
-                    </div>
-                    <div className="bg-terminal-surface border border-brand-gray/20 p-2">
-                      <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Ask</p>
-                      <p className="text-sm font-mono-numeric font-bold text-brand-black tabular-nums">₹{Math.round(markMetrics.bestAsk).toLocaleString("en-IN")}</p>
-                    </div>
-                    <div className={`border p-2 ${(markMetrics.spreadAbs ?? 0) < 0 ? 'bg-up/10 border-up/40' : 'border-brand-gray/20 bg-terminal-surface'}`}>
-                      <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Spread</p>
-                      {(markMetrics.spreadAbs ?? 0) < 0 ? (
-                        <p className="text-sm font-mono-numeric font-bold text-up tabular-nums" title="Highest bid exceeds lowest ask across channels.">Crossed</p>
-                      ) : (
-                        <p className="text-sm font-mono-numeric font-bold text-brand-black tabular-nums">
-                          ₹{Math.round(markMetrics.spreadAbs ?? 0).toLocaleString("en-IN")}
-                          {markMetrics.spreadPct !== undefined && (
-                            <span className="text-[10px] text-brand-black/50 ml-1">{(markMetrics.spreadPct * 100).toFixed(1)}%</span>
-                          )}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ) : (markMetrics.bestBid !== undefined || markMetrics.bestAsk !== undefined) ? (
-                  <div className="mt-3 flex items-start gap-2 text-xs bg-brand-background/50 border border-brand-gray/20 p-2.5">
-                    <span className="text-brand-black/40 leading-none mt-0.5">ⓘ</span>
-                    <p className="text-brand-black/60 leading-snug">
-                      {markMetrics.bestAsk === undefined
-                        ? 'Buyers-only market — only bids posted, so no spread can be quoted.'
-                        : 'Sellers-only market — only asks posted, so no spread can be quoted.'}
-                    </p>
-                  </div>
-                ) : null}
-
-                {/* Row 3: Liquidity + neutral reference lines (lowest ask · retail · freshness) */}
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-brand-black/50">
-                  {currentData.liquidity && currentData.liquidity !== "N/A" && (
-                    <span>Liquidity <span className="text-brand-black/80 font-semibold">{currentData.liquidity}</span></span>
-                  )}
-                  {markMetrics.bestAsk !== undefined && (
-                    <span>Lowest ask <span className="font-mono-numeric text-brand-black/80 font-semibold tabular-nums">₹{Math.round(markMetrics.bestAsk).toLocaleString("en-IN")}</span></span>
-                  )}
-                  {anchor?.retailIndia && (
-                    <span>Retail <span className="font-mono-numeric text-brand-black/80 font-semibold tabular-nums">₹{anchor.retailIndia.toLocaleString("en-IN")}</span></span>
-                  )}
-                  {currentData.lastUpdated && (
-                    <span>Updated <span className="text-brand-black/80">{formatLastSeen(currentData.lastUpdated)}</span></span>
-                  )}
-                </div>
-              </div>
-
-              {/* Per-Channel Best Prices */}
-              {(() => {
-                const channels: { label: string; price: number | undefined; count: number }[] = [];
-                if (whatsappPrices.buy.length > 0) {
-                  channels.push({
-                    label: "WhatsApp",
-                    price: Math.min(...whatsappPrices.buy.map(p => p.price)),
-                    count: whatsappPrices.buy.length,
-                  });
-                }
-                if (marketplacePrices.length > 0) {
-                  channels.push({
-                    label: "Marketplace",
-                    price: Math.min(...marketplacePrices.map(p => p.price)),
-                    count: marketplacePrices.length,
-                  });
-                }
-                if (internationalPrices.length > 0) {
-                  channels.push({
-                    label: "International",
-                    price: Math.min(...internationalPrices.map(p => p.price + (p.reshippingCost || 0))),
-                    count: internationalPrices.length,
-                  });
-                }
-                if (channels.length === 0) return null;
-                const overallBest = bestPrice;
+      {/* ─── SIZE GRID: full pane width ─── */}
+      {asset.sizes && asset.sizes.length > 0 && (() => {
+        const sorted = sortSizesNumerically(asset.sizes);
+        const sizePriceMap = new Map<string, number | null>();
+        sorted.forEach(sv => {
+          const prices: number[] = [];
+          if (sv.pricePoints) {
+            (sv.pricePoints.whatsapp || []).filter((p: PricePoint) => !p.transactionType || p.transactionType === 'buy' || p.transactionType === 'both').forEach((p: PricePoint) => prices.push(p.price));
+            (sv.pricePoints.marketplace || []).forEach((p: PricePoint) => prices.push(p.price));
+            (sv.pricePoints.international || []).forEach((p: PricePoint) => prices.push(p.price + (p.reshippingCost || 0)));
+          } else if (sv.legacyPricePoints) {
+            (sv.legacyPricePoints.b2b || []).filter((p: PricePoint) => !p.transactionType || p.transactionType === 'buy' || p.transactionType === 'both').forEach((p: PricePoint) => prices.push(p.price));
+            (sv.legacyPricePoints.endCustomer || []).forEach((p: PricePoint) => prices.push(p.price));
+            (sv.legacyPricePoints.stockxGoat || []).forEach((p: PricePoint) => prices.push(p.price + (p.reshippingCost || 0)));
+          }
+          const validated = filterValidQuotes(prices, asset.priceAnchors?.retailIndia);
+          sizePriceMap.set(sv.size, validated.length > 0 ? Math.min(...validated) : null);
+        });
+        return (
+          <div className="mb-4 bg-terminal-surface border border-brand-gray/20 p-3">
+            <label className="text-xs font-semibold uppercase text-brand-black/50 tracking-wide block mb-2">Size</label>
+            <div className="flex flex-wrap gap-1.5">
+              {sorted.map(sv => {
+                const best = sizePriceMap.get(sv.size) ?? null;
+                const isSelected = sv.size === selectedSize;
+                const hasPrice = best !== null && best !== undefined;
                 return (
-                  <div className={`grid gap-2 pt-2 border-t border-brand-gray/30 ${
-                    channels.length === 1 ? "grid-cols-1" : channels.length === 2 ? "grid-cols-2" : "grid-cols-3"
-                  }`}>
-                    {channels.map((ch) => {
-                      const isBest = overallBest !== undefined && ch.price === overallBest;
-                      const fullDisplayLabel =
-                        ch.label === "WhatsApp" ? "P2P Channel"
-                        : ch.label === "Marketplace" ? "Platform"
-                        : ch.label; // International stays as-is
-                      const shortDisplayLabel =
-                        ch.label === "WhatsApp" ? "P2P"
-                        : ch.label === "Marketplace" ? "Platform"
-                        : ch.label === "International" ? "Intl"
-                        : ch.label;
-                      const tooltip =
-                        ch.label === "Marketplace"
-                          ? "Best price across Indian resale platforms (e.g. Culture Circle, HypeFly). Shipped domestically."
-                          : ch.label === "International"
-                          ? "Best landed price from global platforms (e.g. StockX, GOAT). Includes platform fees."
-                          : "Best price across peer-to-peer trade groups. Direct seller-to-buyer.";
-                      return (
-                        <div
-                          key={ch.label}
-                          className={`px-1.5 sm:px-2.5 py-2 text-center relative group/ch min-w-0 ${isBest ? "bg-up/10 border border-up/40" : "bg-terminal-surface border border-brand-gray/15"}`}
-                          title={tooltip}
-                        >
-                          <p className="text-[9px] sm:text-[10px] text-brand-black/50 uppercase tracking-wider mb-0.5 leading-tight flex items-center justify-center gap-1">
-                            <span className="sm:hidden">{shortDisplayLabel}</span>
-                            <span className="hidden sm:inline">{fullDisplayLabel}</span>
-                            <span className="hidden sm:inline cursor-help text-brand-black/30 hover:text-brand-black/60 transition-colors flex-shrink-0">ⓘ</span>
-                          </p>
-                          <p className={`text-[13px] sm:text-sm font-mono-numeric font-bold leading-tight truncate ${isBest ? "text-up" : "text-brand-black"}`}>
-                            {ch.price !== undefined ? `₹${ch.price.toLocaleString("en-IN")}` : "—"}
-                          </p>
-                          <p className="text-[9px] sm:text-[10px] text-brand-black/40 mt-0.5 leading-tight">{ch.count} listing{ch.count !== 1 ? "s" : ""}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <button
+                    key={sv.size}
+                    onClick={() => setSelectedSize(sv.size)}
+                    className={`px-2.5 py-1.5 text-center transition-all min-w-[60px] ${
+                      isSelected
+                        ? 'bg-terminal-surface-raised text-terminal-text'
+                        : 'bg-terminal-surface border border-brand-gray/30 text-brand-black hover:border-terminal-border-strong'
+                    }`}
+                  >
+                    <span className="block text-xs font-semibold leading-tight">{sv.size}</span>
+                    {hasPrice ? (
+                      <span className={`block text-[10px] font-mono-numeric font-bold mt-0.5 leading-tight tabular-nums ${
+                        isSelected ? 'text-white/80' : 'text-brand-black/60'
+                      }`}>
+                        {(() => {
+                          const v = best!;
+                          if (v >= 1_00_00_000) return `₹${(v / 1_00_00_000).toFixed(v >= 1_00_00_00_000 ? 0 : 1)}Cr`;
+                          if (v >= 1_00_000) return `₹${(v / 1_00_000).toFixed(v >= 10_00_000 ? 0 : 1)}L`;
+                          if (v >= 10_000) return `₹${Math.round(v / 1000)}k`;
+                          if (v >= 1_000) return `₹${(v / 1000).toFixed(1)}k`;
+                          return `₹${v.toLocaleString('en-IN')}`;
+                        })()}
+                      </span>
+                    ) : (
+                      <span className={`block text-[10px] mt-0.5 leading-tight ${isSelected ? 'text-white/50' : 'text-brand-black/30'}`}>—</span>
+                    )}
+                  </button>
                 );
-              })()}
-
-              {/* Quick Stats Row with Icons */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-brand-gray/30 mt-2">
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-sm text-brand-black/50 mb-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                    <span>30d</span>
-                  </div>
-                  <p className={`text-sm font-semibold ${
-                    currentData.change30d?.startsWith("-") ? "text-down" : 
-                    currentData.change30d?.startsWith("+") ? "text-up" : "text-brand-black"
-                  }`}>
-                    {currentData.change30d || "—"}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-sm text-brand-black/50 mb-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Liquidity</span>
-                  </div>
-                  <p className="text-sm font-semibold text-brand-black">{currentData.liquidity || "—"}</p>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-sm text-brand-black/50 mb-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                    <span>Stock</span>
-                  </div>
-                  <p className="text-sm font-semibold text-up">
-                    {(whatsappPrices.buy.length + marketplacePrices.length + internationalPrices.length) > 0 ? "Available" : "Limited"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Transparency Indicators - Compact */}
-            <div className="pt-2 border-t border-brand-gray/20">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-brand-black/70">
-              {/* Channel Breakdown */}
-              {(() => {
-                const activeChannels = [];
-                if (whatsappPrices.buy.length > 0 || whatsappPrices.sell.length > 0) activeChannels.push('WhatsApp');
-                if (marketplacePrices.length > 0) activeChannels.push('Marketplace');
-                if (internationalPrices.length > 0) activeChannels.push('International');
-                
-                if (activeChannels.length === 0) return null;
-                
-                return (
-                  <div className="flex items-center gap-1 min-w-0">
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <span className="font-medium whitespace-nowrap">{activeChannels.length} {activeChannels.length === 1 ? 'channel' : 'channels'}</span>
-                    {/* Detailed channel list — desktop only (redundant on mobile, channel chips above already show this) */}
-                    <span className="hidden sm:inline text-brand-black/40">·</span>
-                    <span className="hidden sm:inline truncate">{activeChannels.join(', ')}</span>
-                  </div>
-                );
-              })()}
-              
-              {/* Unique Seller Count */}
-              {(() => {
-                const uniqueSellers = new Set<string>();
-                
-                // Add WhatsApp sellers
-                whatsappPrices.buy.forEach(p => {
-                  if (p.sellerContact) uniqueSellers.add(p.sellerContact);
-                  else if (p.sellerName) uniqueSellers.add(p.sellerName);
-                });
-                whatsappPrices.sell.forEach(p => {
-                  if (p.sellerContact) uniqueSellers.add(p.sellerContact);
-                  else if (p.sellerName) uniqueSellers.add(p.sellerName);
-                });
-                
-                // Add Marketplace sellers (use URL or marketplace name)
-                marketplacePrices.forEach(p => {
-                  if (p.url) uniqueSellers.add(p.url);
-                  else if (p.marketplaceName) uniqueSellers.add(p.marketplaceName);
-                  else if (p.source) uniqueSellers.add(p.source);
-                });
-                
-                // Add International sellers (use marketplace name or source)
-                internationalPrices.forEach(p => {
-                  if (p.marketplaceName) uniqueSellers.add(p.marketplaceName);
-                  else if (p.source) uniqueSellers.add(p.source);
-                });
-                
-                const sellerCount = uniqueSellers.size;
-                if (sellerCount === 0) return null;
-                
-                return (
-                  <div className="flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    <span className="font-medium whitespace-nowrap">{sellerCount} {sellerCount === 1 ? 'seller' : 'sellers'}</span>
-                  </div>
-                );
-              })()}
-              
-              {/* Last Updated */}
-              {(() => {
-                const allDates: Date[] = [];
-                
-                // Collect all lastSeen dates
-                whatsappPrices.buy.forEach(p => {
-                  if (p.lastSeen) allDates.push(typeof p.lastSeen === 'string' ? new Date(p.lastSeen) : p.lastSeen);
-                });
-                whatsappPrices.sell.forEach(p => {
-                  if (p.lastSeen) allDates.push(typeof p.lastSeen === 'string' ? new Date(p.lastSeen) : p.lastSeen);
-                });
-                marketplacePrices.forEach(p => {
-                  if (p.lastSeen) allDates.push(typeof p.lastSeen === 'string' ? new Date(p.lastSeen) : p.lastSeen);
-                });
-                internationalPrices.forEach(p => {
-                  if (p.lastSeen) allDates.push(typeof p.lastSeen === 'string' ? new Date(p.lastSeen) : p.lastSeen);
-                });
-                
-                if (allDates.length === 0) return null;
-                
-                // Get most recent date
-                const mostRecent = new Date(Math.max(...allDates.map(d => d.getTime())));
-                const now = new Date();
-                const diffMs = now.getTime() - mostRecent.getTime();
-                const diffMins = Math.floor(diffMs / (1000 * 60));
-                const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                
-                let timeAgo = '';
-                if (diffMins < 1) {
-                  timeAgo = 'Just now';
-                } else if (diffMins < 60) {
-                  timeAgo = `${diffMins}m ago`;
-                } else if (diffHours < 24) {
-                  timeAgo = `${diffHours}h ago`;
-                } else if (diffDays === 1) {
-                  timeAgo = '1 day ago';
-                } else {
-                  timeAgo = `${diffDays} days ago`;
-                }
-                
-                return (
-                  <div className="flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="font-medium whitespace-nowrap">Updated {timeAgo}</span>
-                  </div>
-                );
-              })()}
-              </div>
-            </div>
-
-            {/* Action Toolbar */}
-            <div className="pt-2 border-t border-brand-gray/20 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => { setShowBuyModal(true); setBuyModalExpandWhatsapp(false); setBuyModalExpandMarketplace(false); setBuyModalExpandIntl(false); }}
-                  className="px-4 py-3 bg-accent text-terminal-bg text-center hover:bg-accent/80 transition-all duration-200 active:scale-95"
-                  title="See verified sources for this asset"
-                >
-                  <span className="text-[10px] font-normal opacity-70 block leading-tight">
-                    Best Source Price{bestPrice !== undefined ? ` · ₹${bestPrice.toLocaleString('en-IN')}` : ''}
-                  </span>
-                  <span className="text-sm font-bold uppercase tracking-wide block leading-tight mt-0.5">Source</span>
-                </button>
-                <button
-                  onClick={() => setShowSellModal(true)}
-                  className="px-4 py-3 border-2 border-terminal-border-strong text-brand-black bg-transparent text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
-                  title="Post a listing for this asset"
-                >
-                  <span className="text-[10px] font-normal opacity-50 block leading-tight">Your Ask Price</span>
-                  <span className="text-sm font-bold uppercase tracking-wide block leading-tight mt-0.5">List</span>
-                </button>
-              </div>
-              <div className="flex items-center justify-center mt-2">
-                <button
-                  onClick={onToggleWatchlist}
-                  type="button"
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all ${
-                    watchlisted
-                      ? 'text-brand-black'
-                      : 'text-brand-black/50 hover:text-brand-black'
-                  }`}
-                >
-                  <span className="text-sm">{watchlisted ? '★' : '☆'}</span>
-                  <span>{watchlisted ? 'Watching' : 'Watch'}</span>
-                </button>
-              </div>
+              })}
             </div>
           </div>
-        </div>
-
-        {/* Price Comparison Bar - REMOVED - Redundant with hero data */}
-      </Card>
+        );
+      })()}
 
       {/* Platform Disclaimer - Compact */}
       {/* ============================================ */}
@@ -1309,7 +1031,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 : 'bg-terminal-surface text-brand-black border-2 border-brand-gray/30 hover:border-terminal-border-strong'
             }`}
           >
-            Listings {unifiedListings.length > 0 && (
+            Order book {unifiedListings.length > 0 && (
               <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'listings' ? 'bg-white/20' : 'bg-terminal-surface-raised'}`}>
                 {unifiedListings.length}
               </span>
@@ -1332,9 +1054,110 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       {/* TAB CONTENT */}
       {/* ============================================ */}
 
-      {/* OVERVIEW TAB — Chart + Analytics + Insight */}
+      {/* OVERVIEW TAB — Market Snapshot + Chart + Analytics */}
       {mainTab === 'overview' && (
         <div className="space-y-4">
+
+          {/* ── Market Snapshot: channel prices · bid/ask · quick stats · transparency ── */}
+          <Card noPadding>
+            <div className="p-3 sm:p-4 space-y-3">
+
+              {/* Per-channel best prices (P2P / Platform / International) */}
+              {(() => {
+                const channels: { label: string; price: number | undefined; count: number }[] = [];
+                if (whatsappPrices.buy.length > 0) channels.push({ label: "WhatsApp", price: Math.min(...whatsappPrices.buy.map(p => p.price)), count: whatsappPrices.buy.length });
+                if (marketplacePrices.length > 0) channels.push({ label: "Marketplace", price: Math.min(...marketplacePrices.map(p => p.price)), count: marketplacePrices.length });
+                if (internationalPrices.length > 0) channels.push({ label: "International", price: Math.min(...internationalPrices.map(p => p.price + (p.reshippingCost || 0))), count: internationalPrices.length });
+                if (channels.length === 0) return null;
+
+                // Dispersion headline — computed from the same prices shown in the cards
+                const pricesWithValue = channels.filter(ch => ch.price !== undefined).map(ch => ch.price as number);
+                const dispMin = pricesWithValue.length > 0 ? Math.min(...pricesWithValue) : undefined;
+                const dispMax = pricesWithValue.length > 0 ? Math.max(...pricesWithValue) : undefined;
+                const dispPct = dispMin && dispMax && dispMin > 0 ? Math.round((dispMax - dispMin) / dispMin * 100) : 0;
+                const dispN = pricesWithValue.length;
+
+                const overallBest = bestPrice;
+                return (
+                  <div className="space-y-2">
+                    {/* Headline */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-brand-black/40 font-semibold mb-0.5">Cross-channel pricing</p>
+                        {dispN >= 2 && dispMin !== undefined && dispMax !== undefined ? (
+                          <p className="text-xs text-brand-black/70">
+                            <span className="font-mono-numeric font-semibold text-brand-black">₹{dispMin.toLocaleString("en-IN")}–₹{dispMax.toLocaleString("en-IN")}</span>
+                            <span className="text-brand-black/50">, {dispPct}% spread across {dispN} channel{dispN !== 1 ? "s" : ""}</span>
+                          </p>
+                        ) : dispN === 1 && dispMin !== undefined ? (
+                          <p className="text-xs text-brand-black/70">
+                            Single channel — <span className="font-mono-numeric font-semibold text-brand-black">₹{dispMin.toLocaleString("en-IN")}</span>
+                          </p>
+                        ) : null}
+                      </div>
+                      {/* One-sided market notice — adjacent to the channel block */}
+                      {(markMetrics.bestBid !== undefined) !== (markMetrics.bestAsk !== undefined) && (
+                        <span className="text-[11px] text-brand-black/50 italic flex-shrink-0 mt-0.5">
+                          {markMetrics.bestAsk === undefined ? "buyers-only" : "sellers-only"}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Channel cards */}
+                    <div className={`grid gap-2 ${channels.length === 1 ? "grid-cols-1" : channels.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
+                      {channels.map((ch) => {
+                        const isBest = overallBest !== undefined && ch.price === overallBest;
+                        const fullLabel = ch.label === "WhatsApp" ? "P2P Channel" : ch.label === "Marketplace" ? "Platform" : ch.label;
+                        const shortLabel = ch.label === "WhatsApp" ? "P2P" : ch.label === "Marketplace" ? "Platform" : ch.label === "International" ? "Intl" : ch.label;
+                        const tooltip = ch.label === "Marketplace" ? "Best price across Indian resale platforms (e.g. Culture Circle, HypeFly). Shipped domestically." : ch.label === "International" ? "Best landed price from global platforms (e.g. StockX, GOAT). Includes platform fees." : "Best price across peer-to-peer trade groups. Direct seller-to-buyer.";
+                        return (
+                          <div key={ch.label} className={`px-2.5 py-2 text-center relative min-w-0 ${isBest ? "bg-up/10 border border-up/40" : "bg-terminal-surface border border-brand-gray/15"}`} title={tooltip}>
+                            <p className="text-[9px] sm:text-[10px] text-brand-black/50 uppercase tracking-wider mb-0.5 leading-tight flex items-center justify-center gap-1">
+                              <span className="sm:hidden">{shortLabel}</span>
+                              <span className="hidden sm:inline">{fullLabel}</span>
+                              <span className="hidden sm:inline cursor-help text-brand-black/30 hover:text-brand-black/60 transition-colors flex-shrink-0">ⓘ</span>
+                            </p>
+                            <p className={`text-sm font-mono-numeric font-bold leading-tight truncate ${isBest ? "text-up" : "text-brand-black"}`}>
+                              {ch.price !== undefined ? `₹${ch.price.toLocaleString("en-IN")}` : "—"}
+                            </p>
+                            <p className="text-[9px] sm:text-[10px] text-brand-black/40 mt-0.5 leading-tight">{ch.count} listing{ch.count !== 1 ? "s" : ""}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Bid / Ask / Spread — shown here only when BOTH sides exist */}
+              {markMetrics.bestBid !== undefined && markMetrics.bestAsk !== undefined ? (
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-terminal-surface border border-brand-gray/20 p-2">
+                    <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Bid</p>
+                    <p className="text-sm font-mono-numeric font-bold text-brand-black tabular-nums">₹{Math.round(markMetrics.bestBid).toLocaleString("en-IN")}</p>
+                  </div>
+                  <div className="bg-terminal-surface border border-brand-gray/20 p-2">
+                    <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Ask</p>
+                    <p className="text-sm font-mono-numeric font-bold text-brand-black tabular-nums">₹{Math.round(markMetrics.bestAsk).toLocaleString("en-IN")}</p>
+                  </div>
+                  <div className={`border p-2 ${(markMetrics.spreadAbs ?? 0) < 0 ? 'bg-up/10 border-up/40' : 'border-brand-gray/20 bg-terminal-surface'}`}>
+                    <p className="text-[10px] text-brand-black/50 uppercase tracking-wider">Spread</p>
+                    {(markMetrics.spreadAbs ?? 0) < 0 ? (
+                      <p className="text-sm font-mono-numeric font-bold text-up tabular-nums" title="Highest bid exceeds lowest ask across channels.">Crossed</p>
+                    ) : (
+                      <p className="text-sm font-mono-numeric font-bold text-brand-black tabular-nums">
+                        ₹{Math.round(markMetrics.spreadAbs ?? 0).toLocaleString("en-IN")}
+                        {markMetrics.spreadPct !== undefined && (
+                          <span className="text-[10px] text-brand-black/50 ml-1">{(markMetrics.spreadPct * 100).toFixed(1)}%</span>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </Card>
+
           {/* Price Chart */}
           <Card
             title="Price Chart"
@@ -1344,7 +1167,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             }
-           
           >
             <TradingChart assetId={asset.id} size={selectedSize || undefined} />
           </Card>
@@ -1495,8 +1317,19 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       {/* LISTINGS TAB — Combined Order Book + Individual Listings */}
       {mainTab === 'listings' && (
         <div className="space-y-4">
-      {/* View Mode Toggle */}
+      {/* View Mode Toggle — Order book is primary (default) */}
       <div className="inline-flex items-center gap-1 bg-terminal-surface border border-brand-gray/30 p-1 w-full sm:w-fit">
+        <button
+          onClick={() => setListingsViewMode('aggregated')}
+          className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-semibold transition-all whitespace-nowrap ${
+            listingsViewMode === 'aggregated'
+              ? 'bg-terminal-surface-raised text-terminal-text'
+              : 'text-brand-black/60 hover:text-brand-black'
+          }`}
+        >
+          <span className="sm:hidden">Order book</span>
+          <span className="hidden sm:inline">Order book</span>
+        </button>
         <button
           onClick={() => setListingsViewMode('individual')}
           className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-semibold transition-all whitespace-nowrap ${
@@ -1506,18 +1339,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
           }`}
         >
           <span className="sm:hidden">Individual</span>
-          <span className="hidden sm:inline">Individual Listings</span>
-        </button>
-        <button
-          onClick={() => setListingsViewMode('aggregated')}
-          className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-semibold transition-all whitespace-nowrap ${
-            listingsViewMode === 'aggregated'
-              ? 'bg-terminal-surface-raised text-terminal-text'
-              : 'text-brand-black/60 hover:text-brand-black'
-          }`}
-        >
-          <span className="sm:hidden">Order Book</span>
-          <span className="hidden sm:inline">Aggregated (Order Book)</span>
+          <span className="hidden sm:inline">Individual listings</span>
         </button>
       </div>
 
