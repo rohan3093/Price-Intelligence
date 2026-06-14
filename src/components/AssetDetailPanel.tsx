@@ -340,7 +340,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
   
   // Main tab system — 3 tabs: Overview (chart+analytics+insight), Listings (orderbook+listings), Arbitrage
   const [mainTab, setMainTab] = useState<'overview' | 'listings' | 'arbitrage'>('overview');
-  const [listingsViewMode, setListingsViewMode] = useState<'individual' | 'aggregated'>('aggregated');
+  const [listingsViewMode, setListingsViewMode] = useState<'channel' | 'orderbook' | 'individual'>('channel');
 
   // Toast notification system
   const { toasts, toast, removeToast } = useToast();
@@ -924,28 +924,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
         </div>
       </Card>
 
-      {/* ─── ACTIONS: SOURCE + LIST — slim row under header, above size grid ─── */}
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        <button
-          onClick={() => { setShowBuyModal(true); setBuyModalExpandWhatsapp(false); setBuyModalExpandMarketplace(false); setBuyModalExpandIntl(false); }}
-          className="px-4 py-2.5 bg-accent text-terminal-bg text-center hover:bg-accent/80 transition-all duration-200 active:scale-95"
-          title="See verified sources for this asset"
-        >
-          <span className="text-[10px] font-normal opacity-70 block leading-tight">
-            Best Source Price{bestPrice !== undefined ? ` · ₹${bestPrice.toLocaleString('en-IN')}` : ''}
-          </span>
-          <span className="text-sm font-bold uppercase tracking-wide block leading-tight mt-0.5">Source</span>
-        </button>
-        <button
-          onClick={() => setShowSellModal(true)}
-          className="px-4 py-2.5 border-2 border-terminal-border-strong text-brand-black bg-transparent text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
-          title="Post a listing for this asset"
-        >
-          <span className="text-[10px] font-normal opacity-50 block leading-tight">Your Ask Price</span>
-          <span className="text-sm font-bold uppercase tracking-wide block leading-tight mt-0.5">List</span>
-        </button>
-      </div>
-
       {/* ─── SIZE GRID: full pane width ─── */}
       {asset.sizes && asset.sizes.length > 0 && (() => {
         const sorted = sortSizesNumerically(asset.sizes);
@@ -1007,7 +985,28 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
         );
       })()}
 
-      {/* Platform Disclaimer - Compact */}
+      {/* ─── ACTIONS: SOURCE + LIST — below size selection ─── */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <button
+          onClick={() => { setShowBuyModal(true); setBuyModalExpandWhatsapp(false); setBuyModalExpandMarketplace(false); setBuyModalExpandIntl(false); }}
+          className="px-4 py-2.5 bg-accent text-terminal-bg text-center hover:bg-accent/80 transition-all duration-200 active:scale-95"
+          title="See verified sources for this asset"
+        >
+          <span className="text-[10px] font-normal opacity-70 block leading-tight">
+            Best Source Price{bestPrice !== undefined ? ` · ₹${bestPrice.toLocaleString('en-IN')}` : ''}
+          </span>
+          <span className="text-sm font-bold uppercase tracking-wide block leading-tight mt-0.5">Source</span>
+        </button>
+        <button
+          onClick={() => setShowSellModal(true)}
+          className="px-4 py-2.5 border-2 border-terminal-border-strong text-brand-black bg-transparent text-center hover:bg-brand-gray/10 transition-all duration-200 active:scale-95"
+          title="Post a listing for this asset"
+        >
+          <span className="text-[10px] font-normal opacity-50 block leading-tight">Your Ask Price</span>
+          <span className="text-sm font-bold uppercase tracking-wide block leading-tight mt-0.5">List</span>
+        </button>
+      </div>
+
       {/* ============================================ */}
       {/* MAIN TAB NAVIGATION — 3 Tabs */}
       {/* ============================================ */}
@@ -1031,7 +1030,7 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                 : 'bg-terminal-surface text-brand-black border-2 border-brand-gray/30 hover:border-terminal-border-strong'
             }`}
           >
-            Order book {unifiedListings.length > 0 && (
+            Listings {unifiedListings.length > 0 && (
               <span className={`ml-1 sm:ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold ${mainTab === 'listings' ? 'bg-white/20' : 'bg-terminal-surface-raised'}`}>
                 {unifiedListings.length}
               </span>
@@ -1124,6 +1123,16 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
                           </div>
                         );
                       })}
+                    </div>
+                    {/* Affordance to open the channel-grouped Listings view */}
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => { setMainTab('listings'); setListingsViewMode('channel'); }}
+                        className="text-[11px] text-brand-black/50 hover:text-brand-black transition-colors underline underline-offset-2"
+                      >
+                        View by channel →
+                      </button>
                     </div>
                   </div>
                 );
@@ -1317,18 +1326,27 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
       {/* LISTINGS TAB — Combined Order Book + Individual Listings */}
       {mainTab === 'listings' && (
         <div className="space-y-4">
-      {/* View Mode Toggle — Order book is primary (default) */}
+      {/* View Mode Toggle — By channel is default (sourcing-first) */}
       <div className="inline-flex items-center gap-1 bg-terminal-surface border border-brand-gray/30 p-1 w-full sm:w-fit">
         <button
-          onClick={() => setListingsViewMode('aggregated')}
+          onClick={() => setListingsViewMode('channel')}
           className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-semibold transition-all whitespace-nowrap ${
-            listingsViewMode === 'aggregated'
+            listingsViewMode === 'channel'
               ? 'bg-terminal-surface-raised text-terminal-text'
               : 'text-brand-black/60 hover:text-brand-black'
           }`}
         >
-          <span className="sm:hidden">Order book</span>
-          <span className="hidden sm:inline">Order book</span>
+          By channel
+        </button>
+        <button
+          onClick={() => setListingsViewMode('orderbook')}
+          className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs font-semibold transition-all whitespace-nowrap ${
+            listingsViewMode === 'orderbook'
+              ? 'bg-terminal-surface-raised text-terminal-text'
+              : 'text-brand-black/60 hover:text-brand-black'
+          }`}
+        >
+          Order book
         </button>
         <button
           onClick={() => setListingsViewMode('individual')}
@@ -1338,13 +1356,243 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               : 'text-brand-black/60 hover:text-brand-black'
           }`}
         >
-          <span className="sm:hidden">Individual</span>
-          <span className="hidden sm:inline">Individual listings</span>
+          <span className="sm:hidden">All</span>
+          <span className="hidden sm:inline">All listings</span>
         </button>
       </div>
 
-      {/* Aggregated Order Book View */}
-      {listingsViewMode === 'aggregated' ? (
+      {/* Channel-Grouped View — default, sourcing-first */}
+      {listingsViewMode === 'channel' && (() => {
+        const isStale = (lastSeen?: Date | string) => {
+          if (!lastSeen) return false;
+          const d = typeof lastSeen === 'string' ? new Date(lastSeen) : lastSeen;
+          return (Date.now() - d.getTime()) > 7 * 24 * 60 * 60 * 1000;
+        };
+
+        const channelSections = [
+          {
+            key: 'Sentria' as const,
+            title: 'Sentria Network',
+            profile: 'Platform-native listings · verified users',
+            dotColor: 'bg-up',
+            listings: unifiedListings
+              .filter(l => l.channel === 'Sentria')
+              .sort((a, b) => (a.landedPrice ?? a.price) - (b.landedPrice ?? b.price)),
+            alwaysShow: false,
+          },
+          {
+            key: 'WhatsApp' as const,
+            title: 'WhatsApp & Reseller',
+            profile: 'Local · direct · often negotiable',
+            dotColor: 'bg-green-600',
+            listings: unifiedListings
+              .filter(l => l.channel === 'WhatsApp')
+              .sort((a, b) => (a.landedPrice ?? a.price) - (b.landedPrice ?? b.price)),
+            alwaysShow: true,
+          },
+          {
+            key: 'Marketplace' as const,
+            title: 'Indian Marketplaces',
+            profile: 'Indian resale platforms · shipped domestically',
+            dotColor: 'bg-blue-600',
+            listings: unifiedListings
+              .filter(l => l.channel === 'Marketplace')
+              .sort((a, b) => (a.landedPrice ?? a.price) - (b.landedPrice ?? b.price)),
+            alwaysShow: true,
+          },
+          {
+            key: 'International' as const,
+            title: 'International',
+            profile: 'Global platforms · landed cost includes shipping & duties',
+            dotColor: 'bg-purple-600',
+            listings: unifiedListings
+              .filter(l => l.channel === 'International')
+              .sort((a, b) => (a.landedPrice ?? a.price) - (b.landedPrice ?? b.price)),
+            alwaysShow: true,
+          },
+        ].filter(s => s.alwaysShow || s.listings.length > 0);
+
+        const renderRowAction = (row: typeof unifiedListings[number]) => {
+          if (row.contactType === 'sentria' && row.tradeListingUserId) {
+            if (currentUser?.uid === row.tradeListingUserId) {
+              return <span className="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-brand-black/40 whitespace-nowrap">Your Listing</span>;
+            }
+            return (
+              <button
+                onClick={() => {
+                  if (currentUser) {
+                    setConnectionTarget({ userId: row.tradeListingUserId!, email: row.tradeListingUserEmail || '', name: row.sourceLabel });
+                    setShowConnectionModal(true);
+                  } else {
+                    toast.warning('Please sign in to request introductions');
+                  }
+                }}
+                className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold bg-up text-terminal-bg hover:bg-up/90 transition-colors whitespace-nowrap"
+              >
+                Request Intro
+              </button>
+            );
+          }
+          if (row.contactType && row.contactValue) {
+            if (row.contactType === 'whatsapp') {
+              return (
+                <a
+                  href={`https://wa.me/${row.contactValue.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold bg-up text-terminal-bg hover:bg-up/90 transition-colors whitespace-nowrap"
+                >
+                  {row.side === 'Sell' ? 'Sell to' : 'Buy from'}
+                </a>
+              );
+            }
+            return (
+              <a
+                href={row.contactValue}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold border border-brand-gray/30 text-brand-black hover:bg-accent hover:text-terminal-bg hover:border-terminal-border-strong transition-colors whitespace-nowrap"
+              >
+                {row.side === 'Sell' ? 'Sell to' : 'Buy from'}
+              </a>
+            );
+          }
+          return <span className="text-xs text-brand-black/30">—</span>;
+        };
+
+        return (
+          <div className="space-y-3">
+            {channelSections.map(section => {
+              const cheapest = section.listings.length > 0
+                ? Math.min(...section.listings.map(l => l.landedPrice ?? l.price))
+                : undefined;
+              const hasAnyLocation = section.listings.some(l => l.location);
+              const showSide = section.key === 'WhatsApp';
+              const showLanded = section.key === 'International';
+
+              return (
+                <Card key={section.key} noPadding>
+                  <div className="px-3 sm:px-5 py-3 border-b border-brand-gray/10">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${section.dotColor}`} />
+                          <h3 className="text-sm font-bold text-brand-black uppercase tracking-wide">{section.title}</h3>
+                        </div>
+                        <p className="text-[11px] text-brand-black/50 mt-0.5 ml-4">{section.profile}</p>
+                      </div>
+                      {cheapest !== undefined && (
+                        <div className="flex-shrink-0 text-right">
+                          <p className="text-xs font-mono-numeric font-bold text-brand-black">₹{cheapest.toLocaleString('en-IN')}</p>
+                          <p className="text-[10px] text-brand-black/40">{section.listings.length} listing{section.listings.length !== 1 ? 's' : ''}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="p-3 sm:p-5">
+                    {section.listings.length === 0 ? (
+                      <p className="text-xs text-brand-black/40 py-4 text-center">No listings on this channel</p>
+                    ) : isMobile ? (
+                      <div>
+                        {section.listings.map((row, idx) => (
+                          <div key={idx} className={isStale(row.lastSeen) ? 'opacity-60' : ''}>
+                            <ListingCard
+                              listing={{
+                                channel: row.channel,
+                                side: row.side,
+                                price: row.price,
+                                landedPrice: row.landedPrice,
+                                listingCount: row.listingCount,
+                                sourceLabel: row.sourceLabel,
+                                location: row.location,
+                                lastSeen: row.lastSeen,
+                                contactType: row.contactType,
+                                contactValue: row.contactValue,
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b border-brand-gray/15">
+                            <th className="text-left pb-2 pt-0 px-2 text-[10px] font-semibold text-brand-black/40 uppercase tracking-wider">Price</th>
+                            {showLanded && <th className="text-left pb-2 pt-0 px-2 text-[10px] font-semibold text-brand-black/40 uppercase tracking-wider">Landed</th>}
+                            {showSide && <th className="text-left pb-2 pt-0 px-2 text-[10px] font-semibold text-brand-black/40 uppercase tracking-wider">Side</th>}
+                            <th className="text-center pb-2 pt-0 px-2 text-[10px] font-semibold text-brand-black/40 uppercase tracking-wider">Qty</th>
+                            <th className="text-left pb-2 pt-0 px-2 text-[10px] font-semibold text-brand-black/40 uppercase tracking-wider">Source</th>
+                            {hasAnyLocation && <th className="text-left pb-2 pt-0 px-2 text-[10px] font-semibold text-brand-black/40 uppercase tracking-wider">Location</th>}
+                            <th className="text-right pb-2 pt-0 px-2 text-[10px] font-semibold text-brand-black/40 uppercase tracking-wider">Last seen</th>
+                            <th className="text-right pb-2 pt-0 px-2 text-[10px] font-semibold text-brand-black/40 uppercase tracking-wider">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {section.listings.map((row, idx) => (
+                            <tr
+                              key={idx}
+                              className={`border-b border-brand-gray/10 hover:bg-brand-background/50 transition-colors ${isStale(row.lastSeen) ? 'opacity-60' : ''}`}
+                            >
+                              <td className="px-2 py-2.5">
+                                <span className="text-sm font-semibold text-brand-black font-mono-numeric">
+                                  ₹{row.price.toLocaleString('en-IN')}
+                                </span>
+                              </td>
+                              {showLanded && (
+                                <td className="px-2 py-2.5">
+                                  <span className="text-sm text-brand-black/70 font-mono-numeric">
+                                    {row.landedPrice && row.landedPrice !== row.price
+                                      ? `₹${row.landedPrice.toLocaleString('en-IN')}`
+                                      : '—'}
+                                  </span>
+                                </td>
+                              )}
+                              {showSide && (
+                                <td className="px-2 py-2.5">
+                                  <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium ${
+                                    row.side === 'Buy' ? 'bg-up/10 text-up' :
+                                    row.side === 'Sell' ? 'bg-down/10 text-down' :
+                                    'bg-terminal-surface-raised text-terminal-text-dim'
+                                  }`}>
+                                    {row.side}
+                                  </span>
+                                </td>
+                              )}
+                              <td className="px-2 py-2.5 text-center">
+                                <span className="text-sm text-brand-black font-mono-numeric">{row.listingCount}</span>
+                              </td>
+                              <td className="px-2 py-2.5">
+                                <span className="text-sm text-brand-black">{row.sourceLabel}</span>
+                              </td>
+                              {hasAnyLocation && (
+                                <td className="px-2 py-2.5">
+                                  <span className="text-sm text-brand-black/70">{row.location || '—'}</span>
+                                </td>
+                              )}
+                              <td className="px-2 py-2.5 text-right">
+                                <span className={`text-xs ${isStale(row.lastSeen) ? 'text-orange-600 font-medium' : 'text-brand-black/50'}`}>
+                                  {row.lastSeen ? formatLastSeen(row.lastSeen) : '—'}
+                                  {isStale(row.lastSeen) && <span className="ml-1" title="This listing may be outdated">⚠</span>}
+                                </span>
+                              </td>
+                              <td className="px-2 py-2.5 text-right">
+                                {renderRowAction(row)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        );
+      })()}
+
+      {/* Order Book View */}
+      {listingsViewMode === 'orderbook' && (
         <Card
           title="Order Book"
           subtitle="Buy/sell orders aggregated at each price level"
@@ -1353,7 +1601,6 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           }
-         
         >
           <OrderBook
             whatsappBuyPrices={whatsappPrices.buy}
@@ -1362,7 +1609,10 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
             internationalPrices={internationalPrices}
           />
         </Card>
-      ) : unifiedListings.length > 0 ? (
+      )}
+
+      {/* All Listings (Flat Table) */}
+      {listingsViewMode === 'individual' && (unifiedListings.length > 0 ? (
         <Card
           title="All Listings"
           subtitle={isMobile ? undefined : `${unifiedListings.length} listings across all channels`}
@@ -1876,10 +2126,10 @@ export const AssetDetailPanel: React.FC<AssetDetailPanelProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <p className="text-sm font-semibold text-brand-black/60">No Listings Available</p>
-            <p className="text-xs text-brand-black/40 mt-1">Check back later or try the aggregated view</p>
+            <p className="text-xs text-brand-black/40 mt-1">Check back later or switch to order book view</p>
           </div>
         </Card>
-      )}
+      ))}
         </div>
       )}
 
